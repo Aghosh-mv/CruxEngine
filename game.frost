@@ -1,0 +1,58 @@
+# FROST ENGINE GAME SCRIPT
+# Write your game in plain English!
+
+# SETUP: Create the game world
+game name: "My Awesome Game"
+screen size: 1920 x 1080
+background color: sky blue
+
+# ENTITIES: Create game objects
+player: is a box at position (0, 0, 0) with size (1, 2, 1), color red
+ground: is a box at position (0, -1, 0) with size (20, 1, 20), color green
+sun: is a light of type directional, color warm white, intensity 1.0
+
+# Add some enemies
+enemy type goblin: is a box at position (5, 0, 5) with size (1, 1, 1), color green, health 50
+enemy type goblin: at position (-3, 0, 2) with health 50
+enemy type dragon: is a box at position (10, 5, 10) with size (5, 5, 5), color purple, health 500
+
+# CAMERA: Set up the player view
+camera: follows player, type third person, distance 10 units behind
+
+# PHYSICS: Enable physics
+enable physics with gravity -9.8
+player: has rigidbody, mass 70, can jump
+goblin: has rigidbody, mass 30
+ground: is static collider
+
+# INPUT: Define controls
+key "W": move player forward
+key "A": move player left
+key "S": move player backward
+key "D": move player right
+key "SPACE": make player jump
+mouse: controls camera rotation
+
+# GAME LOGIC:
+# When player touches goblin, reduce goblin health by 10
+# When goblin health is less than 0, destroy goblin
+
+# When player health is less than 0, restart game
+on enemy type dragon: attack player every 2 seconds, damage 20
+
+# VISUAL EFFECTS:
+add particle effect "fire" to dragon
+add bloom with intensity 0.5
+
+# SOUND:
+play music "adventure.mp3"
+when player jumps, play sound "jump.wav"
+when goblin dies, play sound "enemy_death.wav"
+
+# UI:
+show score at top left
+show health bar above player
+show "Game Over" when player dies
+
+# WIN CONDITION:
+when all dragons are dead, show "VICTORY!"

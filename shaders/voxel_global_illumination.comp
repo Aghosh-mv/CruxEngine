@@ -1,0 +1,345 @@
+#version 450
+
+#extension GL_EXT_ray_tracing : enable
+#extension GL_EXT_ray_query : enable
+#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_spirv_extensions : enable
+
+precision highp float;
+precision highp image2D;
+precision highp image3D;
+
+#include "shared.h"
+
+layout(set = 0, binding = 0) uniform CameraBlock { Camera camera; } camData;
+layout(set = 0, binding = 1) uniform texture3D t_voxelClip;
+layout(set = 0, binding = 2) uniform texture3D t_voxelNormal;
+layout(set = 0, binding = 3) uniform texture3D t_voxelRadiance;
+layout(set = 0, binding = 4) uniform texture3D t_voxelEmissive;
+layout(set = 0, binding = 5) uniform texture3D t_sdf;
+layout(set = 0, binding = 6) uniform texture2D t_depth;
+
+layout(set = 0, binding = 7) uniform sampler s_VoxelNearest;
+layout(set = 0, binding = 8) uniform sampler s_VoxelLinear;
+
+layout(push_constant) uniform VoxelUniforms {
+    mat4 clipToLocal;
+    vec3 gridSize;
+    float bias;
+    vec3 center;
+    float normalWeight;
+    float indirectWeight;
+    float emissiveWeight;
+    float radius;
+    uint frameIndex;
+    bool hiZEnabled;
+    bool sdfEnabled;
+    float temporalWeight;
+    uint pad;
+} voxelUniforms;
+
+layout(const_id = 0) const uint VOXEL_FLAGS = 0;
+
+const vec3 VOxelGridOffsets[8] = {
+    vec3(0, 0, 0), vec3(1, 0, 0),
+    vec3(0, 1, 0), vec3(1, 1, 0),
+    vec3(0, 0, 1), vec3(1, 0, 1),
+    vec3(0, 1, 1), vec3(1, 1, 1)
+};
+
+uint getVoxelIndex(vec3 gridPos, vec3 gridSize) {
+    return uint(gridPos.x) + uint(gridPos.y) * uint(gridSize.x) + uint(gridPos.z) * uint(gridSize.x) * uint(gridSize.y);
+}
+
+vec3 voxelToWorld(vec3 gridPos, vec3 gridSize) {
+    return (gridPos / gridSize) * voxelUniforms.radius * 2.0 + voxelUniforms.center - voxelUniforms.radius;
+}
+
+vec3 worldToVoxel(vec3 worldPos, vec3 gridSize) {
+    vec3 localPos = worldPos - voxelUniforms.center;
+    return (localPos / (voxelUniforms.radius * 2.0) + 0.5) * gridSize;
+}
+
+bool isInsideVoxelVolume(vec3 worldPos) {
+    vec3 halfSize = vec3(voxelUniforms.radius);
+    vec3 localPos = worldPos - voxelUniforms.center;
+    return abs(localPos.x) < halfSize.x &&
+           abs(localPos.y) < halfSize.y &&
+           abs(localPos.z) < halfSize.z;
+}
+
+vec3 sampleVoxelRadiance(vec3 worldPos, vec3 normal) {
+    vec3 gridSize = voxelUniforms.gridSize;
+    vec3 localPos = worldPosToVoxel(worldPos, gridSize);
+    
+    if(localPos.x < 0.0 || localPos.x >= gridSize.x ||
+       localPos.y < 0.0 || localPos.y >= gridSize.y ||
+       localPos.z < 0.0 || localPos.z >= gridSize.z) {
+        return vec3(0.0);
+    }
+    
+    vec3 gridPos = floor(localPos);
+    
+    vec3 radiance = vec3(0.0);
+    float weight = 0.0;
+    
+    for(uint i = 0; i < 8; i++) {
+        vec3 offset = VOxelGridOffsets[i];
+        vec3 samplePos = gridPos + offset;
+        
+        if(samplePos.x < 0.0 || samplePos.x >= gridSize.x ||
+           samplePos.y < 0.0 || samplePos.y >= gridSize.y ||
+           samplePos.z < 0.0 || samplePos.z >= gridSize.z) {
+            continue;
+        }
+        
+        vec3 dist = abs(localPos - samplePos);
+        float w = 1.0 / (1.0 + (dist.x + dist.y + dist.z));
+        
+        vec3 radianceSample = textureLod(sampler3D(t_voxelRadiance, s_VoxelLinear), 
+                                  samplePos / gridSize, 0.0).rgb;
+        radiance += radianceSample * w;
+        weight += w;
+    }
+    
+    return weight > 0.0 ? radiance / weight : vec3(0.0);
+}
+
+vec3 sampleVoxelEmissive(vec3 worldPos, vec3 normal) {
+    vec3 gridSize = voxelUniforms.gridSize;
+    vec3 localPos = worldToVoxel(worldPos, gridSize);
+    
+    vec3 gridPos = floor(localPos);
+    
+    if(gridPos.x < 0.0 || gridPos.x >= gridSize.x ||
+       gridPos.y < 0.0 || gridPos.y >= gridSize.y ||
+       gridPos.z < 0.0 || gridPos.z >= gridSize.z) {
+        return vec3(0.0);
+    }
+    
+    vec3 worldVoxelPos = voxelToWorld(gridPos + 0.5, gridSize);
+    float dist = length(worldPos - worldVoxelPos);
+    
+    vec3 emissive = textureLod(sampler3D(t_voxelEmissive, s_VoxelLinear),
+                             localPos / gridSize, 0.0).rgb;
+    
+    float falloff = 1.0 / (1.0 + dist * dist * 0.1);
+    return emissive * falloff;
+}
+
+vec4 sampleVoxelNormal(vec3 worldPos) {
+    vec3 gridSize = voxelUniforms.gridSize;
+    vec3 localPos = worldToVoxel(worldPos, gridSize);
+    
+    if(localPos.x < 0.0 || localPos.x >= gridSize.x ||
+       localPos.y < 0.0 || localPos.y >= gridSize.y ||
+       localPos.z < 0.0 || localPos.z >= gridSize.z) {
+        return vec4(0.0);
+    }
+    
+    return textureLod(sampler3D(t_voxelNormal, s_VoxelNearest),
+                     localPos / gridSize, 0.0);
+}
+
+vec3 voxelConeTrace(vec3 origin, vec3 direction, float coneAngle, int maxSteps) {
+    vec3 color = vec3(0.0);
+    float totalWeight = 0.0;
+    
+    float stepSize = 0.1;
+    vec3 currentPos = origin;
+    
+    for(int i = 0; i < maxSteps; i++) {
+        if(!isInsideVoxelVolume(currentPos)) break;
+        
+        vec3 gridSize = voxelUniforms.gridSize;
+        vec3 localPos = worldToVoxel(currentPos, gridSize);
+        
+        if(localPos.x < 0.0 || localPos.x >= gridSize.x ||
+           localPos.y < 0.0 || localPos.y >= gridSize.y ||
+           localPos.z < 0.0 || localPos.z >= gridSize.z) {
+            break;
+        }
+        
+        vec4 clipData = textureLod(sampler3D(t_voxelClip, s_VoxelNearest), localPos / gridSize, 0.0);
+        
+        if(clipData.a > 0.5) {
+            vec3 radiance = sampleVoxelRadiance(currentPos, direction);
+            float weight = 1.0;
+            color += radiance * weight;
+            totalWeight += weight;
+        }
+        
+        float stepDist = stepSize * (1.0 + float(i) * 0.1);
+        currentPos += direction * stepDist;
+        
+        vec3 worldRadius = voxelUniforms.radius * 2.0;
+        stepSize = (worldRadius / voxelUniforms.gridSize).x * (1.0 + tan(coneAngle));
+    }
+    
+    return totalWeight > 0.0 ? color / totalWeight : vec3(0.0);
+}
+
+vec3 calculateVirtualShadow(vec3 origin, vec3 direction, float maxDist) {
+    vec3 shadow = vec3(0.0);
+    
+    float stepSize = 0.5;
+    vec3 currentPos = origin;
+    float totalDist = 0.0;
+    
+    for(int i = 0; i < 128; i++) {
+        if(totalDist >= maxDist) break;
+        
+        vec3 gridSize = voxelUniforms.gridSize;
+        vec3 localPos = worldToVoxel(currentPos, gridSize);
+        
+        if(localPos.x < 0.0 || localPos.x >= gridSize.x ||
+           localPos.y < 0.0 || localPos.y >= gridSize.y ||
+           localPos.z < 0.0 || localPos.z >= gridSize.z) {
+            break;
+        }
+        
+        vec4 clipData = textureLod(sampler3D(t_voxelClip, s_VoxelNearest), localPos / gridSize, 0.0);
+        
+        if(clipData.a > 0.5) {
+            float dist = totalDist;
+            vec3 occlusion = (1.0 - clipData.rgb);
+            shadow += occlusion * (1.0 - dist / maxDist);
+            break;
+        }
+        
+        currentPos += direction * stepSize;
+        totalDist += stepSize;
+    }
+    
+    return vec3(1.0) - min(shadow, vec3(1.0));
+}
+
+vec3 calculateSSRTarget(vec3 worldPos, vec3 N, vec3 V) {
+    vec3 indirect = vec3(0.0);
+    
+    vec3 refracted = V - N * dot(V, N);
+    
+    uint maxBounces = 2;
+    for(uint bounce = 0; bounce < maxBounces; bounce++) {
+        vec3 rayDir = normalize(reflected + N * 0.1);
+        
+        rayQueryEXT rayQuery;
+        rayQueryInitializeEXT(rayQuery, gl_Accel, gl_RayFlagsOpaqueEXT, 0xFF,
+                          worldPos, 0.001, rayDir, 100.0);
+        
+        while(rayQueryProceedEXT(rayQuery)) {}
+        
+        if(rayQueryGetIntersectionTypeEXT(rayQuery, false) == 
+           RayQueryCandidateIntersectionEXT) {
+            continue;
+        }
+        
+        vec4 hitData = rayQueryGetIntersectionEXT(rayQuery, false);
+        vec3 hitPos = rayQueryGetWorldRayEXT(rayQuery).xyz;
+        
+        vec3 radiance = sampleVoxelRadiance(hitPos, -rayDir);
+        indirect += radiance;
+    }
+    
+    return indirect;
+}
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) void main() {
+    uvec3 gridSize = uvec3(voxelUniforms.gridSize);
+    uvec3 voxelPos = gl_GlobalInvocationID;
+    
+    if(voxelPos.x >= gridSize.x || voxelPos.y >= gridSize.y || voxelPos.z >= gridSize.z) {
+        return;
+    }
+    
+    vec3 worldPos = voxelToWorld(vec3(voxelPos) + 0.5, voxelUniforms.gridSize);
+    
+    vec3 gridPosF = vec3(voxelPos) + 0.5;
+    imageStore(t_voxelClip, ivec3(voxelPos), vec4(0.0));
+    imageStore(t_voxelNormal, ivec3(voxelPos), vec4(0.0));
+    imageStore(t_voxelRadiance, ivec3(voxelPos), vec4(0.0));
+    imageStore(t_voxelEmissive, ivec3(voxelPos), vec4(0.0));
+    
+    mat4 clipToLocal = voxelUniforms.clipToLocal;
+    vec4 clipSpace = clipToLocal * vec4(worldPos, 1.0);
+    clipSpace.xyz /= clipSpace.w;
+    
+    if(clipSpace.x < -1.0 || clipSpace.x > 1.0 ||
+       clipSpace.y < -1.0 || clipSpace.y > 1.0 ||
+       clipSpace.z < 0.0 || clipSpace.z > 1.0) {
+        return;
+    }
+    
+    vec2 screenUV = clipSpace.xy * 0.5 + 0.5;
+    
+    float depth = textureLod(t_depth, screenUV, 0.0).r;
+    float voxelDepth = clipSpace.z * 0.5 + 0.5;
+    
+    if(depth < voxelDepth) {
+        return;
+    }
+    
+    float occlusion = 0.0;
+    for(int i = 0; i < 6; i++) {
+        vec3 samples[6] = {
+            vec3(1, 0, 0), vec3(-1, 0, 0),
+            vec3(0, 1, 0), vec3(0, -1, 0),
+            vec3(0, 0, 1), vec3(0, 0, -1)
+        };
+        
+        vec3 neighborPos = worldPos + samples[i] * voxelUniforms.gridSize.x;
+        vec3 neighborGrid = worldToVoxel(neighborPos, voxelUniforms.gridSize);
+        
+        if(neighborGrid.x < 0.0 || neighborGrid.x >= voxelUniforms.gridSize.x ||
+           neighborGrid.y < 0.0 || neighborGrid.y >= voxelUniforms.gridSize.y ||
+           neighborGrid.z < 0.0 || neighborGrid.z >= voxelUniforms.gridSize.z) {
+            occlusion += 1.0;
+        }
+    }
+    
+    vec3 normal = vec3(occlusion / 6.0);
+    imageStore(t_voxelNormal, ivec3(voxelPos), vec4(normal, 1.0));
+    imageStore(t_voxelClip, ivec3(voxelPos), vec4(1.0));
+    imageStore(t_voxelEmissive, ivec3(voxelPos), vec4(0.0));
+}
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) void main() {
+    uvec3 gridSize = uvec3(voxelUniforms.gridSize);
+    uvec3 voxelPos = gl_GlobalInvocationID;
+    
+    if(voxelPos.x >= gridSize.x || voxelPos.y >= gridSize.y || voxelPos.z >= gridSize.z) {
+        return;
+    }
+    
+    vec3 worldPos = voxelToWorld(vec3(voxelPos) + 0.5, voxelUniforms.gridSize);
+    vec3 localPos = worldToVoxel(worldPos, voxelUniforms.gridSize) / voxelUniforms.gridSize;
+    
+    vec3 radiance = vec3(0.0);
+    float weight = 0.0;
+    
+    for(int i = 0; i < 6; i++) {
+        vec3 dir[6] = {
+            vec3(1, 0, 0), vec3(-1, 0, 0),
+            vec3(0, 1, 0), vec3(0, -1, 0),
+            vec3(0, 0, 1), vec3(0, 0, -1)
+        };
+        
+        float coneAngle = 0.5;
+        
+        vec3 sampleRadiance = voxelConeTrace(worldPos, dir[i], coneAngle, 32);
+        
+        float w = 1.0 / (1.0 + length(dir[i]) * voxelUniforms.indirectWeight;
+        radiance += sampleRadiance * w;
+        weight += w;
+    }
+    
+    vec3 emissive = imageLoad(t_voxelEmissive, ivec3(voxelPos)).rgb * voxelUniforms.emissiveWeight;
+    
+    vec3 prevRadiance = imageLoad(t_voxelRadiance, ivec3(voxelPos)).rgb;
+    vec3 newRadiance = (radiance + emissive) / max(weight, 1.0);
+    
+    float temporalBlend = voxelUniforms.temporalWeight;
+    newRadiance = mix(prevRadiance, newRadiance, temporalBlend);
+    
+    imageStore(t_voxelRadiance, ivec3(voxelPos), vec4(newRadiance, 1.0));
+}
