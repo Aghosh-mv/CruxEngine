@@ -11,7 +11,7 @@
 #include <cstring>
 #include <unordered_map>
 
-namespace Crux {
+namespace Frost {
 
 using XWindow = ::Window;
 
@@ -123,7 +123,7 @@ bool Window::init(const WindowConfig& cfg) {
 
     p.display = XOpenDisplay(nullptr);
     if (!p.display) {
-        CRUX_LOG_ERROR("Failed to open X display");
+        FROST_LOG_ERROR("Failed to open X display");
         delete impl_; impl_ = nullptr;
         return false;
     }
@@ -148,7 +148,7 @@ bool Window::init(const WindowConfig& cfg) {
     int fbCount = 0;
     GLXFBConfig* fbConfigs = glXChooseFBConfig(p.display, screen, attrs, &fbCount);
     if (!fbConfigs || fbCount == 0) {
-        CRUX_LOG_ERROR("No suitable GLX framebuffer config");
+        FROST_LOG_ERROR("No suitable GLX framebuffer config");
         XCloseDisplay(p.display); delete impl_; impl_ = nullptr;
         return false;
     }
@@ -194,7 +194,7 @@ bool Window::init(const WindowConfig& cfg) {
     XFree(vi);
     XFree(fbConfigs);
     if (!p.glx) {
-        CRUX_LOG_ERROR("Failed to create GLX context");
+        FROST_LOG_ERROR("Failed to create GLX context");
         XDestroyWindow(p.display, p.win);
         XCloseDisplay(p.display); delete impl_; impl_ = nullptr;
         return false;
@@ -202,7 +202,7 @@ bool Window::init(const WindowConfig& cfg) {
 
     glXMakeCurrent(p.display, p.win, p.glx);
     if (!Gl::loadFunctions()) {
-        CRUX_LOG_ERROR("Failed to load GL functions");
+        FROST_LOG_ERROR("Failed to load GL functions");
         return false;
     }
 
@@ -213,8 +213,8 @@ bool Window::init(const WindowConfig& cfg) {
     p.mousePos = Vec2((f32)w * 0.5f, (f32)h * 0.5f);
     p.lastMousePos = p.mousePos;
 
-    CRUX_LOG_INFO("Window created: %ux%u (%s)", w, h, cfg.title);
-    CRUX_LOG_INFO("OpenGL: %s | GLSL: %s",
+    FROST_LOG_INFO("Window created: %ux%u (%s)", w, h, cfg.title);
+    FROST_LOG_INFO("OpenGL: %s | GLSL: %s",
         Gl::GetString(GL_VERSION), Gl::GetString(GL_SHADING_LANGUAGE_VERSION));
     return true;
 }

@@ -1,7 +1,7 @@
 #include "Scripting/KitrisLexer.h"
 #include "Core/Log.h"
 
-namespace Crux {
+namespace Frost {
 namespace Kitris {
 
 static const struct { const char* text; TokenType type; } keywords[] = {

@@ -1,6 +1,6 @@
 #include "Physics/RigidBody.h"
 
-namespace Crux {
+namespace Frost {
 
 void RigidBody::applyForceAt(const Vec3& force, const Vec3& worldPoint) {
     force_ += force;

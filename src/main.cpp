@@ -5,7 +5,7 @@
 #include <ctime>
 #include <cstdio>
 
-using namespace Crux;
+using namespace Frost;
 
 static f32 nowSeconds() {
     struct timespec ts;
@@ -25,20 +25,20 @@ int main() {
 
     Window window;
     if (!window.init(config)) {
-        CRUX_LOG_ERROR("Failed to create window");
+        FROST_LOG_ERROR("Failed to create window");
         return 1;
     }
 
     Renderer renderer;
     if (!renderer.init(window, 4)) {
-        CRUX_LOG_ERROR("Failed to initialize renderer");
+        FROST_LOG_ERROR("Failed to initialize renderer");
         window.shutdown();
         return 1;
     }
 
     Game game;
     if (!game.init(window, renderer)) {
-        CRUX_LOG_ERROR("Failed to initialize game");
+        FROST_LOG_ERROR("Failed to initialize game");
         renderer.shutdown();
         window.shutdown();
         return 1;

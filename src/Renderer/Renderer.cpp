@@ -6,7 +6,7 @@
 #include "Core/Log.h"
 #include <cmath>
 
-namespace Crux {
+namespace Frost {
 
 static i64 makeChunkKey(i32 level, i32 ix, i32 iz) {
     return ((i64)level << 52) |
@@ -24,7 +24,7 @@ bool Renderer::init(const Window& window, u32 msaaSamples) {
     height_ = window.height();
     msaaSamples_ = msaaSamples;
 
-    CRUX_LOG_INFO("[Renderer] initializing...");
+    FROST_LOG_INFO("[Renderer] initializing...");
 
     if (!pbrShader_.create(ShaderSource::pbrVert, ShaderSource::pbrFrag, "pbr")) return false;
     if (!terrainShader_.create(ShaderSource::terrainVert, ShaderSource::terrainFrag, "terrain")) return false;
@@ -74,7 +74,7 @@ bool Renderer::init(const Window& window, u32 msaaSamples) {
     sun_.castShadow = true;
 
     ready_ = true;
-    CRUX_LOG_INFO("[Renderer] ready (%ux%u, MSAA x%u)", width_, height_, msaaSamples_);
+    FROST_LOG_INFO("[Renderer] ready (%ux%u, MSAA x%u)", width_, height_, msaaSamples_);
     return true;
 }
 

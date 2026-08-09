@@ -1,6 +1,6 @@
 #include "Physics/WindField.h"
 
-namespace Crux {
+namespace Frost {
 
 WindField::WindField() : noise_(4242u) {}
 

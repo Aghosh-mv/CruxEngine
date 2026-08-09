@@ -1,6 +1,6 @@
 #include "Renderer/ShaderSource_compute.h"
 
-namespace Crux {
+namespace Frost {
 namespace ShaderSource {
 
 // ============================================================================

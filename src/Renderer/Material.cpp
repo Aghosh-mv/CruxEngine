@@ -1,6 +1,6 @@
 #include "Renderer/Material.h"
 
-namespace Crux {
+namespace Frost {
 
 #define MAT_COLOR(r, g, b) Color((r), (g), (b), 1.0f)
 

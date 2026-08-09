@@ -22,7 +22,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_BUILD_TYPE:STRING=
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -198,30 +198,6 @@ CMAKE_STRIP:FILEPATH=/usr/bin/strip
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
-//Build sample projects
-FROST_BUILD_SAMPLES:BOOL=OFF
-
-//Build engine tests
-FROST_BUILD_TESTS:BOOL=ON
-
-//Build engine tools
-FROST_BUILD_TOOLS:BOOL=ON
-
-//Enable debug utilities
-FROST_ENABLE_DEBUG_UTILS:BOOL=ON
-
-//Enable DirectX 12 backend
-FROST_ENABLE_DX12:BOOL=OFF
-
-//Enable OpenGL backend
-FROST_ENABLE_OPENGL:BOOL=OFF
-
-//Enable validation layers
-FROST_ENABLE_VALIDATION:BOOL=OFF
-
-//Enable Vulkan backend
-FROST_ENABLE_VULKAN:BOOL=ON
-
 //Value Computed by CMake
 FrostEngine_BINARY_DIR:STATIC=/home/tinkerspace/FrostEngine/build
 
@@ -230,18 +206,6 @@ FrostEngine_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 FrostEngine_SOURCE_DIR:STATIC=/home/tinkerspace/FrostEngine
-
-//Path to a program.
-Vulkan_GLSLANG_VALIDATOR_EXECUTABLE:FILEPATH=Vulkan_GLSLANG_VALIDATOR_EXECUTABLE-NOTFOUND
-
-//Path to a program.
-Vulkan_GLSLC_EXECUTABLE:FILEPATH=Vulkan_GLSLC_EXECUTABLE-NOTFOUND
-
-//Path to a file.
-Vulkan_INCLUDE_DIR:PATH=Vulkan_INCLUDE_DIR-NOTFOUND
-
-//Path to a library.
-Vulkan_LIBRARY:FILEPATH=Vulkan_LIBRARY-NOTFOUND
 
 
 ########################
@@ -381,12 +345,4 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
-//ADVANCED property for variable: Vulkan_GLSLANG_VALIDATOR_EXECUTABLE
-Vulkan_GLSLANG_VALIDATOR_EXECUTABLE-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: Vulkan_GLSLC_EXECUTABLE
-Vulkan_GLSLC_EXECUTABLE-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: Vulkan_INCLUDE_DIR
-Vulkan_INCLUDE_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: Vulkan_LIBRARY
-Vulkan_LIBRARY-ADVANCED:INTERNAL=1
 

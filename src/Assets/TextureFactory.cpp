@@ -1,7 +1,7 @@
 #include "Assets/TextureFactory.h"
 #include "Core/Math.h"
 
-namespace Crux {
+namespace Frost {
 
 TextureFactory::TextureFactory() : noise_(20260708u) {}
 

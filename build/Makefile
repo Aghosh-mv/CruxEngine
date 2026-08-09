@@ -187,6 +187,102 @@ FrostGame/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostGame.dir/build.make CMakeFiles/FrostGame.dir/build
 .PHONY : FrostGame/fast
 
+src/AI/AISystem.o: src/AI/AISystem.cpp.o
+.PHONY : src/AI/AISystem.o
+
+# target to build an object file
+src/AI/AISystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o
+.PHONY : src/AI/AISystem.cpp.o
+
+src/AI/AISystem.i: src/AI/AISystem.cpp.i
+.PHONY : src/AI/AISystem.i
+
+# target to preprocess a source file
+src/AI/AISystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.i
+.PHONY : src/AI/AISystem.cpp.i
+
+src/AI/AISystem.s: src/AI/AISystem.cpp.s
+.PHONY : src/AI/AISystem.s
+
+# target to generate assembly for a file
+src/AI/AISystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.s
+.PHONY : src/AI/AISystem.cpp.s
+
+src/Animation/AnimationSystem.o: src/Animation/AnimationSystem.cpp.o
+.PHONY : src/Animation/AnimationSystem.o
+
+# target to build an object file
+src/Animation/AnimationSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o
+.PHONY : src/Animation/AnimationSystem.cpp.o
+
+src/Animation/AnimationSystem.i: src/Animation/AnimationSystem.cpp.i
+.PHONY : src/Animation/AnimationSystem.i
+
+# target to preprocess a source file
+src/Animation/AnimationSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.i
+.PHONY : src/Animation/AnimationSystem.cpp.i
+
+src/Animation/AnimationSystem.s: src/Animation/AnimationSystem.cpp.s
+.PHONY : src/Animation/AnimationSystem.s
+
+# target to generate assembly for a file
+src/Animation/AnimationSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.s
+.PHONY : src/Animation/AnimationSystem.cpp.s
+
+src/Assets/AssetPipeline.o: src/Assets/AssetPipeline.cpp.o
+.PHONY : src/Assets/AssetPipeline.o
+
+# target to build an object file
+src/Assets/AssetPipeline.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/AssetPipeline.cpp.o
+.PHONY : src/Assets/AssetPipeline.cpp.o
+
+src/Assets/AssetPipeline.i: src/Assets/AssetPipeline.cpp.i
+.PHONY : src/Assets/AssetPipeline.i
+
+# target to preprocess a source file
+src/Assets/AssetPipeline.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/AssetPipeline.cpp.i
+.PHONY : src/Assets/AssetPipeline.cpp.i
+
+src/Assets/AssetPipeline.s: src/Assets/AssetPipeline.cpp.s
+.PHONY : src/Assets/AssetPipeline.s
+
+# target to generate assembly for a file
+src/Assets/AssetPipeline.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/AssetPipeline.cpp.s
+.PHONY : src/Assets/AssetPipeline.cpp.s
+
+src/Assets/MaterialLibrary.o: src/Assets/MaterialLibrary.cpp.o
+.PHONY : src/Assets/MaterialLibrary.o
+
+# target to build an object file
+src/Assets/MaterialLibrary.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/MaterialLibrary.cpp.o
+.PHONY : src/Assets/MaterialLibrary.cpp.o
+
+src/Assets/MaterialLibrary.i: src/Assets/MaterialLibrary.cpp.i
+.PHONY : src/Assets/MaterialLibrary.i
+
+# target to preprocess a source file
+src/Assets/MaterialLibrary.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/MaterialLibrary.cpp.i
+.PHONY : src/Assets/MaterialLibrary.cpp.i
+
+src/Assets/MaterialLibrary.s: src/Assets/MaterialLibrary.cpp.s
+.PHONY : src/Assets/MaterialLibrary.s
+
+# target to generate assembly for a file
+src/Assets/MaterialLibrary.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/MaterialLibrary.cpp.s
+.PHONY : src/Assets/MaterialLibrary.cpp.s
+
 src/Assets/MeshFactory.o: src/Assets/MeshFactory.cpp.o
 .PHONY : src/Assets/MeshFactory.o
 
@@ -211,6 +307,30 @@ src/Assets/MeshFactory.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/MeshFactory.cpp.s
 .PHONY : src/Assets/MeshFactory.cpp.s
 
+src/Assets/ProceduralAssetSynthesis.o: src/Assets/ProceduralAssetSynthesis.cpp.o
+.PHONY : src/Assets/ProceduralAssetSynthesis.o
+
+# target to build an object file
+src/Assets/ProceduralAssetSynthesis.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/ProceduralAssetSynthesis.cpp.o
+.PHONY : src/Assets/ProceduralAssetSynthesis.cpp.o
+
+src/Assets/ProceduralAssetSynthesis.i: src/Assets/ProceduralAssetSynthesis.cpp.i
+.PHONY : src/Assets/ProceduralAssetSynthesis.i
+
+# target to preprocess a source file
+src/Assets/ProceduralAssetSynthesis.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/ProceduralAssetSynthesis.cpp.i
+.PHONY : src/Assets/ProceduralAssetSynthesis.cpp.i
+
+src/Assets/ProceduralAssetSynthesis.s: src/Assets/ProceduralAssetSynthesis.cpp.s
+.PHONY : src/Assets/ProceduralAssetSynthesis.s
+
+# target to generate assembly for a file
+src/Assets/ProceduralAssetSynthesis.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/ProceduralAssetSynthesis.cpp.s
+.PHONY : src/Assets/ProceduralAssetSynthesis.cpp.s
+
 src/Assets/TextureFactory.o: src/Assets/TextureFactory.cpp.o
 .PHONY : src/Assets/TextureFactory.o
 
@@ -234,6 +354,54 @@ src/Assets/TextureFactory.s: src/Assets/TextureFactory.cpp.s
 src/Assets/TextureFactory.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Assets/TextureFactory.cpp.s
 .PHONY : src/Assets/TextureFactory.cpp.s
+
+src/Audio/AudioSystem.o: src/Audio/AudioSystem.cpp.o
+.PHONY : src/Audio/AudioSystem.o
+
+# target to build an object file
+src/Audio/AudioSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o
+.PHONY : src/Audio/AudioSystem.cpp.o
+
+src/Audio/AudioSystem.i: src/Audio/AudioSystem.cpp.i
+.PHONY : src/Audio/AudioSystem.i
+
+# target to preprocess a source file
+src/Audio/AudioSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.i
+.PHONY : src/Audio/AudioSystem.cpp.i
+
+src/Audio/AudioSystem.s: src/Audio/AudioSystem.cpp.s
+.PHONY : src/Audio/AudioSystem.s
+
+# target to generate assembly for a file
+src/Audio/AudioSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.s
+.PHONY : src/Audio/AudioSystem.cpp.s
+
+src/Core/ECS.o: src/Core/ECS.cpp.o
+.PHONY : src/Core/ECS.o
+
+# target to build an object file
+src/Core/ECS.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.o
+.PHONY : src/Core/ECS.cpp.o
+
+src/Core/ECS.i: src/Core/ECS.cpp.i
+.PHONY : src/Core/ECS.i
+
+# target to preprocess a source file
+src/Core/ECS.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.i
+.PHONY : src/Core/ECS.cpp.i
+
+src/Core/ECS.s: src/Core/ECS.cpp.s
+.PHONY : src/Core/ECS.s
+
+# target to generate assembly for a file
+src/Core/ECS.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.s
+.PHONY : src/Core/ECS.cpp.s
 
 src/Core/Math.o: src/Core/Math.cpp.o
 .PHONY : src/Core/Math.o
@@ -283,6 +451,198 @@ src/Core/Noise.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.s
 .PHONY : src/Core/Noise.cpp.s
 
+src/Editor/AssetBrowser.o: src/Editor/AssetBrowser.cpp.o
+.PHONY : src/Editor/AssetBrowser.o
+
+# target to build an object file
+src/Editor/AssetBrowser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o
+.PHONY : src/Editor/AssetBrowser.cpp.o
+
+src/Editor/AssetBrowser.i: src/Editor/AssetBrowser.cpp.i
+.PHONY : src/Editor/AssetBrowser.i
+
+# target to preprocess a source file
+src/Editor/AssetBrowser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.i
+.PHONY : src/Editor/AssetBrowser.cpp.i
+
+src/Editor/AssetBrowser.s: src/Editor/AssetBrowser.cpp.s
+.PHONY : src/Editor/AssetBrowser.s
+
+# target to generate assembly for a file
+src/Editor/AssetBrowser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.s
+.PHONY : src/Editor/AssetBrowser.cpp.s
+
+src/Editor/CodeEditor.o: src/Editor/CodeEditor.cpp.o
+.PHONY : src/Editor/CodeEditor.o
+
+# target to build an object file
+src/Editor/CodeEditor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o
+.PHONY : src/Editor/CodeEditor.cpp.o
+
+src/Editor/CodeEditor.i: src/Editor/CodeEditor.cpp.i
+.PHONY : src/Editor/CodeEditor.i
+
+# target to preprocess a source file
+src/Editor/CodeEditor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.i
+.PHONY : src/Editor/CodeEditor.cpp.i
+
+src/Editor/CodeEditor.s: src/Editor/CodeEditor.cpp.s
+.PHONY : src/Editor/CodeEditor.s
+
+# target to generate assembly for a file
+src/Editor/CodeEditor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.s
+.PHONY : src/Editor/CodeEditor.cpp.s
+
+src/Editor/Console.o: src/Editor/Console.cpp.o
+.PHONY : src/Editor/Console.o
+
+# target to build an object file
+src/Editor/Console.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o
+.PHONY : src/Editor/Console.cpp.o
+
+src/Editor/Console.i: src/Editor/Console.cpp.i
+.PHONY : src/Editor/Console.i
+
+# target to preprocess a source file
+src/Editor/Console.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.i
+.PHONY : src/Editor/Console.cpp.i
+
+src/Editor/Console.s: src/Editor/Console.cpp.s
+.PHONY : src/Editor/Console.s
+
+# target to generate assembly for a file
+src/Editor/Console.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.s
+.PHONY : src/Editor/Console.cpp.s
+
+src/Editor/Editor.o: src/Editor/Editor.cpp.o
+.PHONY : src/Editor/Editor.o
+
+# target to build an object file
+src/Editor/Editor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o
+.PHONY : src/Editor/Editor.cpp.o
+
+src/Editor/Editor.i: src/Editor/Editor.cpp.i
+.PHONY : src/Editor/Editor.i
+
+# target to preprocess a source file
+src/Editor/Editor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.i
+.PHONY : src/Editor/Editor.cpp.i
+
+src/Editor/Editor.s: src/Editor/Editor.cpp.s
+.PHONY : src/Editor/Editor.s
+
+# target to generate assembly for a file
+src/Editor/Editor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.s
+.PHONY : src/Editor/Editor.cpp.s
+
+src/Editor/Marketplace.o: src/Editor/Marketplace.cpp.o
+.PHONY : src/Editor/Marketplace.o
+
+# target to build an object file
+src/Editor/Marketplace.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o
+.PHONY : src/Editor/Marketplace.cpp.o
+
+src/Editor/Marketplace.i: src/Editor/Marketplace.cpp.i
+.PHONY : src/Editor/Marketplace.i
+
+# target to preprocess a source file
+src/Editor/Marketplace.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.i
+.PHONY : src/Editor/Marketplace.cpp.i
+
+src/Editor/Marketplace.s: src/Editor/Marketplace.cpp.s
+.PHONY : src/Editor/Marketplace.s
+
+# target to generate assembly for a file
+src/Editor/Marketplace.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.s
+.PHONY : src/Editor/Marketplace.cpp.s
+
+src/Editor/PropertyInspector.o: src/Editor/PropertyInspector.cpp.o
+.PHONY : src/Editor/PropertyInspector.o
+
+# target to build an object file
+src/Editor/PropertyInspector.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o
+.PHONY : src/Editor/PropertyInspector.cpp.o
+
+src/Editor/PropertyInspector.i: src/Editor/PropertyInspector.cpp.i
+.PHONY : src/Editor/PropertyInspector.i
+
+# target to preprocess a source file
+src/Editor/PropertyInspector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.i
+.PHONY : src/Editor/PropertyInspector.cpp.i
+
+src/Editor/PropertyInspector.s: src/Editor/PropertyInspector.cpp.s
+.PHONY : src/Editor/PropertyInspector.s
+
+# target to generate assembly for a file
+src/Editor/PropertyInspector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.s
+.PHONY : src/Editor/PropertyInspector.cpp.s
+
+src/Editor/SceneHierarchy.o: src/Editor/SceneHierarchy.cpp.o
+.PHONY : src/Editor/SceneHierarchy.o
+
+# target to build an object file
+src/Editor/SceneHierarchy.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o
+.PHONY : src/Editor/SceneHierarchy.cpp.o
+
+src/Editor/SceneHierarchy.i: src/Editor/SceneHierarchy.cpp.i
+.PHONY : src/Editor/SceneHierarchy.i
+
+# target to preprocess a source file
+src/Editor/SceneHierarchy.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.i
+.PHONY : src/Editor/SceneHierarchy.cpp.i
+
+src/Editor/SceneHierarchy.s: src/Editor/SceneHierarchy.cpp.s
+.PHONY : src/Editor/SceneHierarchy.s
+
+# target to generate assembly for a file
+src/Editor/SceneHierarchy.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.s
+.PHONY : src/Editor/SceneHierarchy.cpp.s
+
+src/Editor/Viewport.o: src/Editor/Viewport.cpp.o
+.PHONY : src/Editor/Viewport.o
+
+# target to build an object file
+src/Editor/Viewport.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o
+.PHONY : src/Editor/Viewport.cpp.o
+
+src/Editor/Viewport.i: src/Editor/Viewport.cpp.i
+.PHONY : src/Editor/Viewport.i
+
+# target to preprocess a source file
+src/Editor/Viewport.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.i
+.PHONY : src/Editor/Viewport.cpp.i
+
+src/Editor/Viewport.s: src/Editor/Viewport.cpp.s
+.PHONY : src/Editor/Viewport.s
+
+# target to generate assembly for a file
+src/Editor/Viewport.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.s
+.PHONY : src/Editor/Viewport.cpp.s
+
 src/Game/Game.o: src/Game/Game.cpp.o
 .PHONY : src/Game/Game.o
 
@@ -306,6 +666,78 @@ src/Game/Game.s: src/Game/Game.cpp.s
 src/Game/Game.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.s
 .PHONY : src/Game/Game.cpp.s
+
+src/Network/NetworkSystem.o: src/Network/NetworkSystem.cpp.o
+.PHONY : src/Network/NetworkSystem.o
+
+# target to build an object file
+src/Network/NetworkSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o
+.PHONY : src/Network/NetworkSystem.cpp.o
+
+src/Network/NetworkSystem.i: src/Network/NetworkSystem.cpp.i
+.PHONY : src/Network/NetworkSystem.i
+
+# target to preprocess a source file
+src/Network/NetworkSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.i
+.PHONY : src/Network/NetworkSystem.cpp.i
+
+src/Network/NetworkSystem.s: src/Network/NetworkSystem.cpp.s
+.PHONY : src/Network/NetworkSystem.s
+
+# target to generate assembly for a file
+src/Network/NetworkSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.s
+.PHONY : src/Network/NetworkSystem.cpp.s
+
+src/Particles/ParticleSystem.o: src/Particles/ParticleSystem.cpp.o
+.PHONY : src/Particles/ParticleSystem.o
+
+# target to build an object file
+src/Particles/ParticleSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o
+.PHONY : src/Particles/ParticleSystem.cpp.o
+
+src/Particles/ParticleSystem.i: src/Particles/ParticleSystem.cpp.i
+.PHONY : src/Particles/ParticleSystem.i
+
+# target to preprocess a source file
+src/Particles/ParticleSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.i
+.PHONY : src/Particles/ParticleSystem.cpp.i
+
+src/Particles/ParticleSystem.s: src/Particles/ParticleSystem.cpp.s
+.PHONY : src/Particles/ParticleSystem.s
+
+# target to generate assembly for a file
+src/Particles/ParticleSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.s
+.PHONY : src/Particles/ParticleSystem.cpp.s
+
+src/Physics/DestructionSystem.o: src/Physics/DestructionSystem.cpp.o
+.PHONY : src/Physics/DestructionSystem.o
+
+# target to build an object file
+src/Physics/DestructionSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Physics/DestructionSystem.cpp.o
+.PHONY : src/Physics/DestructionSystem.cpp.o
+
+src/Physics/DestructionSystem.i: src/Physics/DestructionSystem.cpp.i
+.PHONY : src/Physics/DestructionSystem.i
+
+# target to preprocess a source file
+src/Physics/DestructionSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Physics/DestructionSystem.cpp.i
+.PHONY : src/Physics/DestructionSystem.cpp.i
+
+src/Physics/DestructionSystem.s: src/Physics/DestructionSystem.cpp.s
+.PHONY : src/Physics/DestructionSystem.s
+
+# target to generate assembly for a file
+src/Physics/DestructionSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Physics/DestructionSystem.cpp.s
+.PHONY : src/Physics/DestructionSystem.cpp.s
 
 src/Physics/PhysicsWorld.o: src/Physics/PhysicsWorld.cpp.o
 .PHONY : src/Physics/PhysicsWorld.o
@@ -427,6 +859,30 @@ src/Renderer/Camera.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.s
 .PHONY : src/Renderer/Camera.cpp.s
 
+src/Renderer/ComputeManager.o: src/Renderer/ComputeManager.cpp.o
+.PHONY : src/Renderer/ComputeManager.o
+
+# target to build an object file
+src/Renderer/ComputeManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o
+.PHONY : src/Renderer/ComputeManager.cpp.o
+
+src/Renderer/ComputeManager.i: src/Renderer/ComputeManager.cpp.i
+.PHONY : src/Renderer/ComputeManager.i
+
+# target to preprocess a source file
+src/Renderer/ComputeManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.i
+.PHONY : src/Renderer/ComputeManager.cpp.i
+
+src/Renderer/ComputeManager.s: src/Renderer/ComputeManager.cpp.s
+.PHONY : src/Renderer/ComputeManager.s
+
+# target to generate assembly for a file
+src/Renderer/ComputeManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.s
+.PHONY : src/Renderer/ComputeManager.cpp.s
+
 src/Renderer/Font.o: src/Renderer/Font.cpp.o
 .PHONY : src/Renderer/Font.o
 
@@ -450,6 +906,198 @@ src/Renderer/Font.s: src/Renderer/Font.cpp.s
 src/Renderer/Font.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.s
 .PHONY : src/Renderer/Font.cpp.s
+
+src/Renderer/FrostCluster.o: src/Renderer/FrostCluster.cpp.o
+.PHONY : src/Renderer/FrostCluster.o
+
+# target to build an object file
+src/Renderer/FrostCluster.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostCluster.cpp.o
+.PHONY : src/Renderer/FrostCluster.cpp.o
+
+src/Renderer/FrostCluster.i: src/Renderer/FrostCluster.cpp.i
+.PHONY : src/Renderer/FrostCluster.i
+
+# target to preprocess a source file
+src/Renderer/FrostCluster.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostCluster.cpp.i
+.PHONY : src/Renderer/FrostCluster.cpp.i
+
+src/Renderer/FrostCluster.s: src/Renderer/FrostCluster.cpp.s
+.PHONY : src/Renderer/FrostCluster.s
+
+# target to generate assembly for a file
+src/Renderer/FrostCluster.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostCluster.cpp.s
+.PHONY : src/Renderer/FrostCluster.cpp.s
+
+src/Renderer/FrostNeuralDenoiser.o: src/Renderer/FrostNeuralDenoiser.cpp.o
+.PHONY : src/Renderer/FrostNeuralDenoiser.o
+
+# target to build an object file
+src/Renderer/FrostNeuralDenoiser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostNeuralDenoiser.cpp.o
+.PHONY : src/Renderer/FrostNeuralDenoiser.cpp.o
+
+src/Renderer/FrostNeuralDenoiser.i: src/Renderer/FrostNeuralDenoiser.cpp.i
+.PHONY : src/Renderer/FrostNeuralDenoiser.i
+
+# target to preprocess a source file
+src/Renderer/FrostNeuralDenoiser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostNeuralDenoiser.cpp.i
+.PHONY : src/Renderer/FrostNeuralDenoiser.cpp.i
+
+src/Renderer/FrostNeuralDenoiser.s: src/Renderer/FrostNeuralDenoiser.cpp.s
+.PHONY : src/Renderer/FrostNeuralDenoiser.s
+
+# target to generate assembly for a file
+src/Renderer/FrostNeuralDenoiser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostNeuralDenoiser.cpp.s
+.PHONY : src/Renderer/FrostNeuralDenoiser.cpp.s
+
+src/Renderer/FrostPathTracer.o: src/Renderer/FrostPathTracer.cpp.o
+.PHONY : src/Renderer/FrostPathTracer.o
+
+# target to build an object file
+src/Renderer/FrostPathTracer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPathTracer.cpp.o
+.PHONY : src/Renderer/FrostPathTracer.cpp.o
+
+src/Renderer/FrostPathTracer.i: src/Renderer/FrostPathTracer.cpp.i
+.PHONY : src/Renderer/FrostPathTracer.i
+
+# target to preprocess a source file
+src/Renderer/FrostPathTracer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPathTracer.cpp.i
+.PHONY : src/Renderer/FrostPathTracer.cpp.i
+
+src/Renderer/FrostPathTracer.s: src/Renderer/FrostPathTracer.cpp.s
+.PHONY : src/Renderer/FrostPathTracer.s
+
+# target to generate assembly for a file
+src/Renderer/FrostPathTracer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPathTracer.cpp.s
+.PHONY : src/Renderer/FrostPathTracer.cpp.s
+
+src/Renderer/FrostPhotonMapper.o: src/Renderer/FrostPhotonMapper.cpp.o
+.PHONY : src/Renderer/FrostPhotonMapper.o
+
+# target to build an object file
+src/Renderer/FrostPhotonMapper.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPhotonMapper.cpp.o
+.PHONY : src/Renderer/FrostPhotonMapper.cpp.o
+
+src/Renderer/FrostPhotonMapper.i: src/Renderer/FrostPhotonMapper.cpp.i
+.PHONY : src/Renderer/FrostPhotonMapper.i
+
+# target to preprocess a source file
+src/Renderer/FrostPhotonMapper.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPhotonMapper.cpp.i
+.PHONY : src/Renderer/FrostPhotonMapper.cpp.i
+
+src/Renderer/FrostPhotonMapper.s: src/Renderer/FrostPhotonMapper.cpp.s
+.PHONY : src/Renderer/FrostPhotonMapper.s
+
+# target to generate assembly for a file
+src/Renderer/FrostPhotonMapper.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostPhotonMapper.cpp.s
+.PHONY : src/Renderer/FrostPhotonMapper.cpp.s
+
+src/Renderer/FrostRadiance.o: src/Renderer/FrostRadiance.cpp.o
+.PHONY : src/Renderer/FrostRadiance.o
+
+# target to build an object file
+src/Renderer/FrostRadiance.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostRadiance.cpp.o
+.PHONY : src/Renderer/FrostRadiance.cpp.o
+
+src/Renderer/FrostRadiance.i: src/Renderer/FrostRadiance.cpp.i
+.PHONY : src/Renderer/FrostRadiance.i
+
+# target to preprocess a source file
+src/Renderer/FrostRadiance.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostRadiance.cpp.i
+.PHONY : src/Renderer/FrostRadiance.cpp.i
+
+src/Renderer/FrostRadiance.s: src/Renderer/FrostRadiance.cpp.s
+.PHONY : src/Renderer/FrostRadiance.s
+
+# target to generate assembly for a file
+src/Renderer/FrostRadiance.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostRadiance.cpp.s
+.PHONY : src/Renderer/FrostRadiance.cpp.s
+
+src/Renderer/FrostVirtualTexturing.o: src/Renderer/FrostVirtualTexturing.cpp.o
+.PHONY : src/Renderer/FrostVirtualTexturing.o
+
+# target to build an object file
+src/Renderer/FrostVirtualTexturing.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o
+.PHONY : src/Renderer/FrostVirtualTexturing.cpp.o
+
+src/Renderer/FrostVirtualTexturing.i: src/Renderer/FrostVirtualTexturing.cpp.i
+.PHONY : src/Renderer/FrostVirtualTexturing.i
+
+# target to preprocess a source file
+src/Renderer/FrostVirtualTexturing.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.i
+.PHONY : src/Renderer/FrostVirtualTexturing.cpp.i
+
+src/Renderer/FrostVirtualTexturing.s: src/Renderer/FrostVirtualTexturing.cpp.s
+.PHONY : src/Renderer/FrostVirtualTexturing.s
+
+# target to generate assembly for a file
+src/Renderer/FrostVirtualTexturing.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.s
+.PHONY : src/Renderer/FrostVirtualTexturing.cpp.s
+
+src/Renderer/FrostWaveletGI.o: src/Renderer/FrostWaveletGI.cpp.o
+.PHONY : src/Renderer/FrostWaveletGI.o
+
+# target to build an object file
+src/Renderer/FrostWaveletGI.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o
+.PHONY : src/Renderer/FrostWaveletGI.cpp.o
+
+src/Renderer/FrostWaveletGI.i: src/Renderer/FrostWaveletGI.cpp.i
+.PHONY : src/Renderer/FrostWaveletGI.i
+
+# target to preprocess a source file
+src/Renderer/FrostWaveletGI.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.i
+.PHONY : src/Renderer/FrostWaveletGI.cpp.i
+
+src/Renderer/FrostWaveletGI.s: src/Renderer/FrostWaveletGI.cpp.s
+.PHONY : src/Renderer/FrostWaveletGI.s
+
+# target to generate assembly for a file
+src/Renderer/FrostWaveletGI.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.s
+.PHONY : src/Renderer/FrostWaveletGI.cpp.s
+
+src/Renderer/GPUProfiler.o: src/Renderer/GPUProfiler.cpp.o
+.PHONY : src/Renderer/GPUProfiler.o
+
+# target to build an object file
+src/Renderer/GPUProfiler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o
+.PHONY : src/Renderer/GPUProfiler.cpp.o
+
+src/Renderer/GPUProfiler.i: src/Renderer/GPUProfiler.cpp.i
+.PHONY : src/Renderer/GPUProfiler.i
+
+# target to preprocess a source file
+src/Renderer/GPUProfiler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.i
+.PHONY : src/Renderer/GPUProfiler.cpp.i
+
+src/Renderer/GPUProfiler.s: src/Renderer/GPUProfiler.cpp.s
+.PHONY : src/Renderer/GPUProfiler.s
+
+# target to generate assembly for a file
+src/Renderer/GPUProfiler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.s
+.PHONY : src/Renderer/GPUProfiler.cpp.s
 
 src/Renderer/Gl.o: src/Renderer/Gl.cpp.o
 .PHONY : src/Renderer/Gl.o
@@ -475,6 +1123,54 @@ src/Renderer/Gl.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.s
 .PHONY : src/Renderer/Gl.cpp.s
 
+src/Renderer/LightingSystem.o: src/Renderer/LightingSystem.cpp.o
+.PHONY : src/Renderer/LightingSystem.o
+
+# target to build an object file
+src/Renderer/LightingSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.o
+.PHONY : src/Renderer/LightingSystem.cpp.o
+
+src/Renderer/LightingSystem.i: src/Renderer/LightingSystem.cpp.i
+.PHONY : src/Renderer/LightingSystem.i
+
+# target to preprocess a source file
+src/Renderer/LightingSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.i
+.PHONY : src/Renderer/LightingSystem.cpp.i
+
+src/Renderer/LightingSystem.s: src/Renderer/LightingSystem.cpp.s
+.PHONY : src/Renderer/LightingSystem.s
+
+# target to generate assembly for a file
+src/Renderer/LightingSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.s
+.PHONY : src/Renderer/LightingSystem.cpp.s
+
+src/Renderer/LumenSystem.o: src/Renderer/LumenSystem.cpp.o
+.PHONY : src/Renderer/LumenSystem.o
+
+# target to build an object file
+src/Renderer/LumenSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LumenSystem.cpp.o
+.PHONY : src/Renderer/LumenSystem.cpp.o
+
+src/Renderer/LumenSystem.i: src/Renderer/LumenSystem.cpp.i
+.PHONY : src/Renderer/LumenSystem.i
+
+# target to preprocess a source file
+src/Renderer/LumenSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LumenSystem.cpp.i
+.PHONY : src/Renderer/LumenSystem.cpp.i
+
+src/Renderer/LumenSystem.s: src/Renderer/LumenSystem.cpp.s
+.PHONY : src/Renderer/LumenSystem.s
+
+# target to generate assembly for a file
+src/Renderer/LumenSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/LumenSystem.cpp.s
+.PHONY : src/Renderer/LumenSystem.cpp.s
+
 src/Renderer/Material.o: src/Renderer/Material.cpp.o
 .PHONY : src/Renderer/Material.o
 
@@ -499,6 +1195,30 @@ src/Renderer/Material.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.s
 .PHONY : src/Renderer/Material.cpp.s
 
+src/Renderer/MegaLights.o: src/Renderer/MegaLights.cpp.o
+.PHONY : src/Renderer/MegaLights.o
+
+# target to build an object file
+src/Renderer/MegaLights.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o
+.PHONY : src/Renderer/MegaLights.cpp.o
+
+src/Renderer/MegaLights.i: src/Renderer/MegaLights.cpp.i
+.PHONY : src/Renderer/MegaLights.i
+
+# target to preprocess a source file
+src/Renderer/MegaLights.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.i
+.PHONY : src/Renderer/MegaLights.cpp.i
+
+src/Renderer/MegaLights.s: src/Renderer/MegaLights.cpp.s
+.PHONY : src/Renderer/MegaLights.s
+
+# target to generate assembly for a file
+src/Renderer/MegaLights.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.s
+.PHONY : src/Renderer/MegaLights.cpp.s
+
 src/Renderer/Mesh.o: src/Renderer/Mesh.cpp.o
 .PHONY : src/Renderer/Mesh.o
 
@@ -522,6 +1242,78 @@ src/Renderer/Mesh.s: src/Renderer/Mesh.cpp.s
 src/Renderer/Mesh.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.s
 .PHONY : src/Renderer/Mesh.cpp.s
+
+src/Renderer/NaniteSystem.o: src/Renderer/NaniteSystem.cpp.o
+.PHONY : src/Renderer/NaniteSystem.o
+
+# target to build an object file
+src/Renderer/NaniteSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o
+.PHONY : src/Renderer/NaniteSystem.cpp.o
+
+src/Renderer/NaniteSystem.i: src/Renderer/NaniteSystem.cpp.i
+.PHONY : src/Renderer/NaniteSystem.i
+
+# target to preprocess a source file
+src/Renderer/NaniteSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.i
+.PHONY : src/Renderer/NaniteSystem.cpp.i
+
+src/Renderer/NaniteSystem.s: src/Renderer/NaniteSystem.cpp.s
+.PHONY : src/Renderer/NaniteSystem.s
+
+# target to generate assembly for a file
+src/Renderer/NaniteSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.s
+.PHONY : src/Renderer/NaniteSystem.cpp.s
+
+src/Renderer/OcclusionCulling.o: src/Renderer/OcclusionCulling.cpp.o
+.PHONY : src/Renderer/OcclusionCulling.o
+
+# target to build an object file
+src/Renderer/OcclusionCulling.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o
+.PHONY : src/Renderer/OcclusionCulling.cpp.o
+
+src/Renderer/OcclusionCulling.i: src/Renderer/OcclusionCulling.cpp.i
+.PHONY : src/Renderer/OcclusionCulling.i
+
+# target to preprocess a source file
+src/Renderer/OcclusionCulling.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.i
+.PHONY : src/Renderer/OcclusionCulling.cpp.i
+
+src/Renderer/OcclusionCulling.s: src/Renderer/OcclusionCulling.cpp.s
+.PHONY : src/Renderer/OcclusionCulling.s
+
+# target to generate assembly for a file
+src/Renderer/OcclusionCulling.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.s
+.PHONY : src/Renderer/OcclusionCulling.cpp.s
+
+src/Renderer/RayTracingSystem.o: src/Renderer/RayTracingSystem.cpp.o
+.PHONY : src/Renderer/RayTracingSystem.o
+
+# target to build an object file
+src/Renderer/RayTracingSystem.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o
+.PHONY : src/Renderer/RayTracingSystem.cpp.o
+
+src/Renderer/RayTracingSystem.i: src/Renderer/RayTracingSystem.cpp.i
+.PHONY : src/Renderer/RayTracingSystem.i
+
+# target to preprocess a source file
+src/Renderer/RayTracingSystem.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.i
+.PHONY : src/Renderer/RayTracingSystem.cpp.i
+
+src/Renderer/RayTracingSystem.s: src/Renderer/RayTracingSystem.cpp.s
+.PHONY : src/Renderer/RayTracingSystem.s
+
+# target to generate assembly for a file
+src/Renderer/RayTracingSystem.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.s
+.PHONY : src/Renderer/RayTracingSystem.cpp.s
 
 src/Renderer/Renderer.o: src/Renderer/Renderer.cpp.o
 .PHONY : src/Renderer/Renderer.o
@@ -570,6 +1362,30 @@ src/Renderer/Shader.s: src/Renderer/Shader.cpp.s
 src/Renderer/Shader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.s
 .PHONY : src/Renderer/Shader.cpp.s
+
+src/Renderer/ShaderSource_compute.o: src/Renderer/ShaderSource_compute.cpp.o
+.PHONY : src/Renderer/ShaderSource_compute.o
+
+# target to build an object file
+src/Renderer/ShaderSource_compute.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o
+.PHONY : src/Renderer/ShaderSource_compute.cpp.o
+
+src/Renderer/ShaderSource_compute.i: src/Renderer/ShaderSource_compute.cpp.i
+.PHONY : src/Renderer/ShaderSource_compute.i
+
+# target to preprocess a source file
+src/Renderer/ShaderSource_compute.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.i
+.PHONY : src/Renderer/ShaderSource_compute.cpp.i
+
+src/Renderer/ShaderSource_compute.s: src/Renderer/ShaderSource_compute.cpp.s
+.PHONY : src/Renderer/ShaderSource_compute.s
+
+# target to generate assembly for a file
+src/Renderer/ShaderSource_compute.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.s
+.PHONY : src/Renderer/ShaderSource_compute.cpp.s
 
 src/Renderer/ShaderSource_extra.o: src/Renderer/ShaderSource_extra.cpp.o
 .PHONY : src/Renderer/ShaderSource_extra.o
@@ -643,6 +1459,78 @@ src/Renderer/Texture.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.s
 .PHONY : src/Renderer/Texture.cpp.s
 
+src/Renderer/Upscaler.o: src/Renderer/Upscaler.cpp.o
+.PHONY : src/Renderer/Upscaler.o
+
+# target to build an object file
+src/Renderer/Upscaler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.o
+.PHONY : src/Renderer/Upscaler.cpp.o
+
+src/Renderer/Upscaler.i: src/Renderer/Upscaler.cpp.i
+.PHONY : src/Renderer/Upscaler.i
+
+# target to preprocess a source file
+src/Renderer/Upscaler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.i
+.PHONY : src/Renderer/Upscaler.cpp.i
+
+src/Renderer/Upscaler.s: src/Renderer/Upscaler.cpp.s
+.PHONY : src/Renderer/Upscaler.s
+
+# target to generate assembly for a file
+src/Renderer/Upscaler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.s
+.PHONY : src/Renderer/Upscaler.cpp.s
+
+src/Renderer/VirtualShadowMaps.o: src/Renderer/VirtualShadowMaps.cpp.o
+.PHONY : src/Renderer/VirtualShadowMaps.o
+
+# target to build an object file
+src/Renderer/VirtualShadowMaps.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o
+.PHONY : src/Renderer/VirtualShadowMaps.cpp.o
+
+src/Renderer/VirtualShadowMaps.i: src/Renderer/VirtualShadowMaps.cpp.i
+.PHONY : src/Renderer/VirtualShadowMaps.i
+
+# target to preprocess a source file
+src/Renderer/VirtualShadowMaps.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.i
+.PHONY : src/Renderer/VirtualShadowMaps.cpp.i
+
+src/Renderer/VirtualShadowMaps.s: src/Renderer/VirtualShadowMaps.cpp.s
+.PHONY : src/Renderer/VirtualShadowMaps.s
+
+# target to generate assembly for a file
+src/Renderer/VirtualShadowMaps.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.s
+.PHONY : src/Renderer/VirtualShadowMaps.cpp.s
+
+src/Renderer/VolumetricLighting.o: src/Renderer/VolumetricLighting.cpp.o
+.PHONY : src/Renderer/VolumetricLighting.o
+
+# target to build an object file
+src/Renderer/VolumetricLighting.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VolumetricLighting.cpp.o
+.PHONY : src/Renderer/VolumetricLighting.cpp.o
+
+src/Renderer/VolumetricLighting.i: src/Renderer/VolumetricLighting.cpp.i
+.PHONY : src/Renderer/VolumetricLighting.i
+
+# target to preprocess a source file
+src/Renderer/VolumetricLighting.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VolumetricLighting.cpp.i
+.PHONY : src/Renderer/VolumetricLighting.cpp.i
+
+src/Renderer/VolumetricLighting.s: src/Renderer/VolumetricLighting.cpp.s
+.PHONY : src/Renderer/VolumetricLighting.s
+
+# target to generate assembly for a file
+src/Renderer/VolumetricLighting.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/VolumetricLighting.cpp.s
+.PHONY : src/Renderer/VolumetricLighting.cpp.s
+
 src/Scene/Scene.o: src/Scene/Scene.cpp.o
 .PHONY : src/Scene/Scene.o
 
@@ -666,6 +1554,246 @@ src/Scene/Scene.s: src/Scene/Scene.cpp.s
 src/Scene/Scene.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/Scene.cpp.s
 .PHONY : src/Scene/Scene.cpp.s
+
+src/Scene/SceneGraph.o: src/Scene/SceneGraph.cpp.o
+.PHONY : src/Scene/SceneGraph.o
+
+# target to build an object file
+src/Scene/SceneGraph.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o
+.PHONY : src/Scene/SceneGraph.cpp.o
+
+src/Scene/SceneGraph.i: src/Scene/SceneGraph.cpp.i
+.PHONY : src/Scene/SceneGraph.i
+
+# target to preprocess a source file
+src/Scene/SceneGraph.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.i
+.PHONY : src/Scene/SceneGraph.cpp.i
+
+src/Scene/SceneGraph.s: src/Scene/SceneGraph.cpp.s
+.PHONY : src/Scene/SceneGraph.s
+
+# target to generate assembly for a file
+src/Scene/SceneGraph.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.s
+.PHONY : src/Scene/SceneGraph.cpp.s
+
+src/Scene/SceneSerializer.o: src/Scene/SceneSerializer.cpp.o
+.PHONY : src/Scene/SceneSerializer.o
+
+# target to build an object file
+src/Scene/SceneSerializer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o
+.PHONY : src/Scene/SceneSerializer.cpp.o
+
+src/Scene/SceneSerializer.i: src/Scene/SceneSerializer.cpp.i
+.PHONY : src/Scene/SceneSerializer.i
+
+# target to preprocess a source file
+src/Scene/SceneSerializer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.i
+.PHONY : src/Scene/SceneSerializer.cpp.i
+
+src/Scene/SceneSerializer.s: src/Scene/SceneSerializer.cpp.s
+.PHONY : src/Scene/SceneSerializer.s
+
+# target to generate assembly for a file
+src/Scene/SceneSerializer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.s
+.PHONY : src/Scene/SceneSerializer.cpp.s
+
+src/Scene/SceneStreaming.o: src/Scene/SceneStreaming.cpp.o
+.PHONY : src/Scene/SceneStreaming.o
+
+# target to build an object file
+src/Scene/SceneStreaming.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o
+.PHONY : src/Scene/SceneStreaming.cpp.o
+
+src/Scene/SceneStreaming.i: src/Scene/SceneStreaming.cpp.i
+.PHONY : src/Scene/SceneStreaming.i
+
+# target to preprocess a source file
+src/Scene/SceneStreaming.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.i
+.PHONY : src/Scene/SceneStreaming.cpp.i
+
+src/Scene/SceneStreaming.s: src/Scene/SceneStreaming.cpp.s
+.PHONY : src/Scene/SceneStreaming.s
+
+# target to generate assembly for a file
+src/Scene/SceneStreaming.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s
+.PHONY : src/Scene/SceneStreaming.cpp.s
+
+src/Scripting/KitrisBytecode.o: src/Scripting/KitrisBytecode.cpp.o
+.PHONY : src/Scripting/KitrisBytecode.o
+
+# target to build an object file
+src/Scripting/KitrisBytecode.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o
+.PHONY : src/Scripting/KitrisBytecode.cpp.o
+
+src/Scripting/KitrisBytecode.i: src/Scripting/KitrisBytecode.cpp.i
+.PHONY : src/Scripting/KitrisBytecode.i
+
+# target to preprocess a source file
+src/Scripting/KitrisBytecode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.i
+.PHONY : src/Scripting/KitrisBytecode.cpp.i
+
+src/Scripting/KitrisBytecode.s: src/Scripting/KitrisBytecode.cpp.s
+.PHONY : src/Scripting/KitrisBytecode.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisBytecode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.s
+.PHONY : src/Scripting/KitrisBytecode.cpp.s
+
+src/Scripting/KitrisDebugger.o: src/Scripting/KitrisDebugger.cpp.o
+.PHONY : src/Scripting/KitrisDebugger.o
+
+# target to build an object file
+src/Scripting/KitrisDebugger.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o
+.PHONY : src/Scripting/KitrisDebugger.cpp.o
+
+src/Scripting/KitrisDebugger.i: src/Scripting/KitrisDebugger.cpp.i
+.PHONY : src/Scripting/KitrisDebugger.i
+
+# target to preprocess a source file
+src/Scripting/KitrisDebugger.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.i
+.PHONY : src/Scripting/KitrisDebugger.cpp.i
+
+src/Scripting/KitrisDebugger.s: src/Scripting/KitrisDebugger.cpp.s
+.PHONY : src/Scripting/KitrisDebugger.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisDebugger.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.s
+.PHONY : src/Scripting/KitrisDebugger.cpp.s
+
+src/Scripting/KitrisLexer.o: src/Scripting/KitrisLexer.cpp.o
+.PHONY : src/Scripting/KitrisLexer.o
+
+# target to build an object file
+src/Scripting/KitrisLexer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o
+.PHONY : src/Scripting/KitrisLexer.cpp.o
+
+src/Scripting/KitrisLexer.i: src/Scripting/KitrisLexer.cpp.i
+.PHONY : src/Scripting/KitrisLexer.i
+
+# target to preprocess a source file
+src/Scripting/KitrisLexer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.i
+.PHONY : src/Scripting/KitrisLexer.cpp.i
+
+src/Scripting/KitrisLexer.s: src/Scripting/KitrisLexer.cpp.s
+.PHONY : src/Scripting/KitrisLexer.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisLexer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.s
+.PHONY : src/Scripting/KitrisLexer.cpp.s
+
+src/Scripting/KitrisParser.o: src/Scripting/KitrisParser.cpp.o
+.PHONY : src/Scripting/KitrisParser.o
+
+# target to build an object file
+src/Scripting/KitrisParser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o
+.PHONY : src/Scripting/KitrisParser.cpp.o
+
+src/Scripting/KitrisParser.i: src/Scripting/KitrisParser.cpp.i
+.PHONY : src/Scripting/KitrisParser.i
+
+# target to preprocess a source file
+src/Scripting/KitrisParser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.i
+.PHONY : src/Scripting/KitrisParser.cpp.i
+
+src/Scripting/KitrisParser.s: src/Scripting/KitrisParser.cpp.s
+.PHONY : src/Scripting/KitrisParser.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisParser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.s
+.PHONY : src/Scripting/KitrisParser.cpp.s
+
+src/Scripting/KitrisStdlib.o: src/Scripting/KitrisStdlib.cpp.o
+.PHONY : src/Scripting/KitrisStdlib.o
+
+# target to build an object file
+src/Scripting/KitrisStdlib.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o
+.PHONY : src/Scripting/KitrisStdlib.cpp.o
+
+src/Scripting/KitrisStdlib.i: src/Scripting/KitrisStdlib.cpp.i
+.PHONY : src/Scripting/KitrisStdlib.i
+
+# target to preprocess a source file
+src/Scripting/KitrisStdlib.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.i
+.PHONY : src/Scripting/KitrisStdlib.cpp.i
+
+src/Scripting/KitrisStdlib.s: src/Scripting/KitrisStdlib.cpp.s
+.PHONY : src/Scripting/KitrisStdlib.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisStdlib.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.s
+.PHONY : src/Scripting/KitrisStdlib.cpp.s
+
+src/Scripting/KitrisVM.o: src/Scripting/KitrisVM.cpp.o
+.PHONY : src/Scripting/KitrisVM.o
+
+# target to build an object file
+src/Scripting/KitrisVM.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o
+.PHONY : src/Scripting/KitrisVM.cpp.o
+
+src/Scripting/KitrisVM.i: src/Scripting/KitrisVM.cpp.i
+.PHONY : src/Scripting/KitrisVM.i
+
+# target to preprocess a source file
+src/Scripting/KitrisVM.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.i
+.PHONY : src/Scripting/KitrisVM.cpp.i
+
+src/Scripting/KitrisVM.s: src/Scripting/KitrisVM.cpp.s
+.PHONY : src/Scripting/KitrisVM.s
+
+# target to generate assembly for a file
+src/Scripting/KitrisVM.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.s
+.PHONY : src/Scripting/KitrisVM.cpp.s
+
+src/Scripting/ScriptBridge.o: src/Scripting/ScriptBridge.cpp.o
+.PHONY : src/Scripting/ScriptBridge.o
+
+# target to build an object file
+src/Scripting/ScriptBridge.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o
+.PHONY : src/Scripting/ScriptBridge.cpp.o
+
+src/Scripting/ScriptBridge.i: src/Scripting/ScriptBridge.cpp.i
+.PHONY : src/Scripting/ScriptBridge.i
+
+# target to preprocess a source file
+src/Scripting/ScriptBridge.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.i
+.PHONY : src/Scripting/ScriptBridge.cpp.i
+
+src/Scripting/ScriptBridge.s: src/Scripting/ScriptBridge.cpp.s
+.PHONY : src/Scripting/ScriptBridge.s
+
+# target to generate assembly for a file
+src/Scripting/ScriptBridge.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.s
+.PHONY : src/Scripting/ScriptBridge.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
@@ -705,21 +1833,75 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... FrostEngine"
 	@echo "... FrostGame"
+	@echo "... src/AI/AISystem.o"
+	@echo "... src/AI/AISystem.i"
+	@echo "... src/AI/AISystem.s"
+	@echo "... src/Animation/AnimationSystem.o"
+	@echo "... src/Animation/AnimationSystem.i"
+	@echo "... src/Animation/AnimationSystem.s"
+	@echo "... src/Assets/AssetPipeline.o"
+	@echo "... src/Assets/AssetPipeline.i"
+	@echo "... src/Assets/AssetPipeline.s"
+	@echo "... src/Assets/MaterialLibrary.o"
+	@echo "... src/Assets/MaterialLibrary.i"
+	@echo "... src/Assets/MaterialLibrary.s"
 	@echo "... src/Assets/MeshFactory.o"
 	@echo "... src/Assets/MeshFactory.i"
 	@echo "... src/Assets/MeshFactory.s"
+	@echo "... src/Assets/ProceduralAssetSynthesis.o"
+	@echo "... src/Assets/ProceduralAssetSynthesis.i"
+	@echo "... src/Assets/ProceduralAssetSynthesis.s"
 	@echo "... src/Assets/TextureFactory.o"
 	@echo "... src/Assets/TextureFactory.i"
 	@echo "... src/Assets/TextureFactory.s"
+	@echo "... src/Audio/AudioSystem.o"
+	@echo "... src/Audio/AudioSystem.i"
+	@echo "... src/Audio/AudioSystem.s"
+	@echo "... src/Core/ECS.o"
+	@echo "... src/Core/ECS.i"
+	@echo "... src/Core/ECS.s"
 	@echo "... src/Core/Math.o"
 	@echo "... src/Core/Math.i"
 	@echo "... src/Core/Math.s"
 	@echo "... src/Core/Noise.o"
 	@echo "... src/Core/Noise.i"
 	@echo "... src/Core/Noise.s"
+	@echo "... src/Editor/AssetBrowser.o"
+	@echo "... src/Editor/AssetBrowser.i"
+	@echo "... src/Editor/AssetBrowser.s"
+	@echo "... src/Editor/CodeEditor.o"
+	@echo "... src/Editor/CodeEditor.i"
+	@echo "... src/Editor/CodeEditor.s"
+	@echo "... src/Editor/Console.o"
+	@echo "... src/Editor/Console.i"
+	@echo "... src/Editor/Console.s"
+	@echo "... src/Editor/Editor.o"
+	@echo "... src/Editor/Editor.i"
+	@echo "... src/Editor/Editor.s"
+	@echo "... src/Editor/Marketplace.o"
+	@echo "... src/Editor/Marketplace.i"
+	@echo "... src/Editor/Marketplace.s"
+	@echo "... src/Editor/PropertyInspector.o"
+	@echo "... src/Editor/PropertyInspector.i"
+	@echo "... src/Editor/PropertyInspector.s"
+	@echo "... src/Editor/SceneHierarchy.o"
+	@echo "... src/Editor/SceneHierarchy.i"
+	@echo "... src/Editor/SceneHierarchy.s"
+	@echo "... src/Editor/Viewport.o"
+	@echo "... src/Editor/Viewport.i"
+	@echo "... src/Editor/Viewport.s"
 	@echo "... src/Game/Game.o"
 	@echo "... src/Game/Game.i"
 	@echo "... src/Game/Game.s"
+	@echo "... src/Network/NetworkSystem.o"
+	@echo "... src/Network/NetworkSystem.i"
+	@echo "... src/Network/NetworkSystem.s"
+	@echo "... src/Particles/ParticleSystem.o"
+	@echo "... src/Particles/ParticleSystem.i"
+	@echo "... src/Particles/ParticleSystem.s"
+	@echo "... src/Physics/DestructionSystem.o"
+	@echo "... src/Physics/DestructionSystem.i"
+	@echo "... src/Physics/DestructionSystem.s"
 	@echo "... src/Physics/PhysicsWorld.o"
 	@echo "... src/Physics/PhysicsWorld.i"
 	@echo "... src/Physics/PhysicsWorld.s"
@@ -735,24 +1917,72 @@ help:
 	@echo "... src/Renderer/Camera.o"
 	@echo "... src/Renderer/Camera.i"
 	@echo "... src/Renderer/Camera.s"
+	@echo "... src/Renderer/ComputeManager.o"
+	@echo "... src/Renderer/ComputeManager.i"
+	@echo "... src/Renderer/ComputeManager.s"
 	@echo "... src/Renderer/Font.o"
 	@echo "... src/Renderer/Font.i"
 	@echo "... src/Renderer/Font.s"
+	@echo "... src/Renderer/FrostCluster.o"
+	@echo "... src/Renderer/FrostCluster.i"
+	@echo "... src/Renderer/FrostCluster.s"
+	@echo "... src/Renderer/FrostNeuralDenoiser.o"
+	@echo "... src/Renderer/FrostNeuralDenoiser.i"
+	@echo "... src/Renderer/FrostNeuralDenoiser.s"
+	@echo "... src/Renderer/FrostPathTracer.o"
+	@echo "... src/Renderer/FrostPathTracer.i"
+	@echo "... src/Renderer/FrostPathTracer.s"
+	@echo "... src/Renderer/FrostPhotonMapper.o"
+	@echo "... src/Renderer/FrostPhotonMapper.i"
+	@echo "... src/Renderer/FrostPhotonMapper.s"
+	@echo "... src/Renderer/FrostRadiance.o"
+	@echo "... src/Renderer/FrostRadiance.i"
+	@echo "... src/Renderer/FrostRadiance.s"
+	@echo "... src/Renderer/FrostVirtualTexturing.o"
+	@echo "... src/Renderer/FrostVirtualTexturing.i"
+	@echo "... src/Renderer/FrostVirtualTexturing.s"
+	@echo "... src/Renderer/FrostWaveletGI.o"
+	@echo "... src/Renderer/FrostWaveletGI.i"
+	@echo "... src/Renderer/FrostWaveletGI.s"
+	@echo "... src/Renderer/GPUProfiler.o"
+	@echo "... src/Renderer/GPUProfiler.i"
+	@echo "... src/Renderer/GPUProfiler.s"
 	@echo "... src/Renderer/Gl.o"
 	@echo "... src/Renderer/Gl.i"
 	@echo "... src/Renderer/Gl.s"
+	@echo "... src/Renderer/LightingSystem.o"
+	@echo "... src/Renderer/LightingSystem.i"
+	@echo "... src/Renderer/LightingSystem.s"
+	@echo "... src/Renderer/LumenSystem.o"
+	@echo "... src/Renderer/LumenSystem.i"
+	@echo "... src/Renderer/LumenSystem.s"
 	@echo "... src/Renderer/Material.o"
 	@echo "... src/Renderer/Material.i"
 	@echo "... src/Renderer/Material.s"
+	@echo "... src/Renderer/MegaLights.o"
+	@echo "... src/Renderer/MegaLights.i"
+	@echo "... src/Renderer/MegaLights.s"
 	@echo "... src/Renderer/Mesh.o"
 	@echo "... src/Renderer/Mesh.i"
 	@echo "... src/Renderer/Mesh.s"
+	@echo "... src/Renderer/NaniteSystem.o"
+	@echo "... src/Renderer/NaniteSystem.i"
+	@echo "... src/Renderer/NaniteSystem.s"
+	@echo "... src/Renderer/OcclusionCulling.o"
+	@echo "... src/Renderer/OcclusionCulling.i"
+	@echo "... src/Renderer/OcclusionCulling.s"
+	@echo "... src/Renderer/RayTracingSystem.o"
+	@echo "... src/Renderer/RayTracingSystem.i"
+	@echo "... src/Renderer/RayTracingSystem.s"
 	@echo "... src/Renderer/Renderer.o"
 	@echo "... src/Renderer/Renderer.i"
 	@echo "... src/Renderer/Renderer.s"
 	@echo "... src/Renderer/Shader.o"
 	@echo "... src/Renderer/Shader.i"
 	@echo "... src/Renderer/Shader.s"
+	@echo "... src/Renderer/ShaderSource_compute.o"
+	@echo "... src/Renderer/ShaderSource_compute.i"
+	@echo "... src/Renderer/ShaderSource_compute.s"
 	@echo "... src/Renderer/ShaderSource_extra.o"
 	@echo "... src/Renderer/ShaderSource_extra.i"
 	@echo "... src/Renderer/ShaderSource_extra.s"
@@ -762,9 +1992,48 @@ help:
 	@echo "... src/Renderer/Texture.o"
 	@echo "... src/Renderer/Texture.i"
 	@echo "... src/Renderer/Texture.s"
+	@echo "... src/Renderer/Upscaler.o"
+	@echo "... src/Renderer/Upscaler.i"
+	@echo "... src/Renderer/Upscaler.s"
+	@echo "... src/Renderer/VirtualShadowMaps.o"
+	@echo "... src/Renderer/VirtualShadowMaps.i"
+	@echo "... src/Renderer/VirtualShadowMaps.s"
+	@echo "... src/Renderer/VolumetricLighting.o"
+	@echo "... src/Renderer/VolumetricLighting.i"
+	@echo "... src/Renderer/VolumetricLighting.s"
 	@echo "... src/Scene/Scene.o"
 	@echo "... src/Scene/Scene.i"
 	@echo "... src/Scene/Scene.s"
+	@echo "... src/Scene/SceneGraph.o"
+	@echo "... src/Scene/SceneGraph.i"
+	@echo "... src/Scene/SceneGraph.s"
+	@echo "... src/Scene/SceneSerializer.o"
+	@echo "... src/Scene/SceneSerializer.i"
+	@echo "... src/Scene/SceneSerializer.s"
+	@echo "... src/Scene/SceneStreaming.o"
+	@echo "... src/Scene/SceneStreaming.i"
+	@echo "... src/Scene/SceneStreaming.s"
+	@echo "... src/Scripting/KitrisBytecode.o"
+	@echo "... src/Scripting/KitrisBytecode.i"
+	@echo "... src/Scripting/KitrisBytecode.s"
+	@echo "... src/Scripting/KitrisDebugger.o"
+	@echo "... src/Scripting/KitrisDebugger.i"
+	@echo "... src/Scripting/KitrisDebugger.s"
+	@echo "... src/Scripting/KitrisLexer.o"
+	@echo "... src/Scripting/KitrisLexer.i"
+	@echo "... src/Scripting/KitrisLexer.s"
+	@echo "... src/Scripting/KitrisParser.o"
+	@echo "... src/Scripting/KitrisParser.i"
+	@echo "... src/Scripting/KitrisParser.s"
+	@echo "... src/Scripting/KitrisStdlib.o"
+	@echo "... src/Scripting/KitrisStdlib.i"
+	@echo "... src/Scripting/KitrisStdlib.s"
+	@echo "... src/Scripting/KitrisVM.o"
+	@echo "... src/Scripting/KitrisVM.i"
+	@echo "... src/Scripting/KitrisVM.s"
+	@echo "... src/Scripting/ScriptBridge.o"
+	@echo "... src/Scripting/ScriptBridge.i"
+	@echo "... src/Scripting/ScriptBridge.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

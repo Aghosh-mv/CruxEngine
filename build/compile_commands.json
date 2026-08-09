@@ -1,107 +1,342 @@
 [
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Math.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Math.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Core/Math.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Noise.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Noise.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Core/Noise.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o -c /home/tinkerspace/FrostEngine/src/Platform/Window.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/ECS.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Core/ECS.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o -c /home/tinkerspace/FrostEngine/src/Platform/Window.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Platform/Window.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Gl.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Gl.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Gl.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Shader.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Shader.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Shader.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_pbr.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_pbr.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_pbr.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_extra.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_extra.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_extra.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Mesh.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_compute.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_compute.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Mesh.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Mesh.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Texture.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Texture.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Texture.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Material.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Material.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Material.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Camera.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Camera.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Camera.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Font.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Font.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Font.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Renderer.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Renderer.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Renderer/Renderer.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/MeshFactory.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/MeshFactory.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/LightingSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/LightingSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/ComputeManager.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/ComputeManager.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/GPUProfiler.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/GPUProfiler.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/Upscaler.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/Upscaler.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/VolumetricLighting.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/VolumetricLighting.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/VolumetricLighting.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostRadiance.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostRadiance.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostRadiance.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostCluster.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostCluster.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostCluster.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostPhotonMapper.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostPhotonMapper.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostPhotonMapper.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostWaveletGI.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostWaveletGI.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostPathTracer.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostPathTracer.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostPathTracer.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostNeuralDenoiser.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostNeuralDenoiser.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostNeuralDenoiser.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/FrostVirtualTexturing.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/FrostVirtualTexturing.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/LumenSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/LumenSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/LumenSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/NaniteSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/NaniteSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/VirtualShadowMaps.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/VirtualShadowMaps.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/RayTracingSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/RayTracingSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/MegaLights.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/MegaLights.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/OcclusionCulling.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/OcclusionCulling.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/MeshFactory.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/MeshFactory.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Assets/MeshFactory.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/TextureFactory.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/TextureFactory.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/TextureFactory.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/TextureFactory.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Assets/TextureFactory.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/RigidBody.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/RigidBody.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/ProceduralAssetSynthesis.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/ProceduralAssetSynthesis.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Assets/ProceduralAssetSynthesis.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/MaterialLibrary.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/MaterialLibrary.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Assets/MaterialLibrary.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/AssetPipeline.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/AssetPipeline.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Assets/AssetPipeline.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/RigidBody.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/RigidBody.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Physics/RigidBody.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/WindField.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/WindField.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/WindField.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/WindField.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Physics/WindField.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/PhysicsWorld.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/PhysicsWorld.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/PhysicsWorld.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/PhysicsWorld.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Physics/PhysicsWorld.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scene/Scene.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/Scene.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Physics/DestructionSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Physics/DestructionSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Physics/DestructionSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scene/Scene.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/Scene.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Scene/Scene.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o -c /home/tinkerspace/FrostEngine/src/Game/Game.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/SceneGraph.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scene/SceneGraph.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/SceneSerializer.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scene/SceneSerializer.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/SceneStreaming.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scene/SceneStreaming.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisLexer.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisLexer.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisParser.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisParser.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisVM.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisVM.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisBytecode.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisBytecode.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisStdlib.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisStdlib.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisDebugger.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/KitrisDebugger.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/ScriptBridge.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Scripting/ScriptBridge.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Editor.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/Editor.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/CodeEditor.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/CodeEditor.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Marketplace.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/Marketplace.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Viewport.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/Viewport.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/PropertyInspector.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/PropertyInspector.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/SceneHierarchy.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/SceneHierarchy.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/AssetBrowser.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/AssetBrowser.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Console.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Editor/Console.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o -c /home/tinkerspace/FrostEngine/src/Game/Game.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Game/Game.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
-  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostGame.dir/src/main.cpp.o -c /home/tinkerspace/FrostEngine/src/main.cpp",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Audio/AudioSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Audio/AudioSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Particles/ParticleSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Particles/ParticleSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Animation/AnimationSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Animation/AnimationSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o -c /home/tinkerspace/FrostEngine/src/AI/AISystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/AI/AISystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Network/NetworkSystem.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Network/NetworkSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostGame.dir/src/main.cpp.o -c /home/tinkerspace/FrostEngine/src/main.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/main.cpp"
 }
 ]

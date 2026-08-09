@@ -1,8 +1,8 @@
-#include "CruxEngine/CruxEngine.h"
+#include "FrostEngine/FrostEngine.h"
 #include <cstdio>
 #include <chrono>
 
-namespace Crux {
+namespace Frost {
 
 Engine& Engine::instance() {
     static Engine engine;
@@ -11,18 +11,18 @@ Engine& Engine::instance() {
 
 bool Engine::init(const EngineConfig& config) {
     config_ = config;
-    CRUX_LOG_INFO("Initializing CruxEngine");
+    FROST_LOG_INFO("Initializing FrostEngine");
     running_ = true;
     return true;
 }
 
 void Engine::shutdown() {
-    CRUX_LOG_INFO("Shutting down CruxEngine");
+    FROST_LOG_INFO("Shutting down FrostEngine");
     running_ = false;
 }
 
 void Engine::run() {
-    CRUX_LOG_INFO("Starting main loop...");
+    FROST_LOG_INFO("Starting main loop...");
     while(isRunning()) {
         deltaTime_ = 0.016f;
         totalTime_ += deltaTime_;

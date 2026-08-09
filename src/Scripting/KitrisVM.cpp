@@ -6,7 +6,7 @@
 #include <cstring>
 #include <new>
 
-namespace Crux {
+namespace Frost {
 namespace Kitris {
 
 VM::VM() {
@@ -171,36 +171,36 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
 
         switch (op) {
             case OpCode::LoadConst: {
-                u32 dst = fn->code[ip++];
-                u32 constIdx = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 constIdx = (u32)fn->code[ip++];
                 regs[dst] = fn->constants[constIdx];
                 break;
             }
             case OpCode::LoadNull: {
-                u32 dst = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
                 regs[dst] = Value();
                 break;
             }
             case OpCode::LoadTrue: {
-                u32 dst = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
                 regs[dst] = Value(true);
                 break;
             }
             case OpCode::LoadFalse: {
-                u32 dst = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
                 regs[dst] = Value(false);
                 break;
             }
             case OpCode::Move: {
-                u32 dst = fn->code[ip++];
-                u32 src = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 src = (u32)fn->code[ip++];
                 regs[dst] = regs[src];
                 break;
             }
             case OpCode::Add: {
-                u32 dst = fn->code[ip++];
-                u32 a = fn->code[ip++];
-                u32 b = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 a = (u32)fn->code[ip++];
+                u32 b = (u32)fn->code[ip++];
                 if (regs[a].type == ValueType::Int && regs[b].type == ValueType::Int) {
                     regs[dst] = Value(regs[a].intVal + regs[b].intVal);
                 } else if (regs[a].type == ValueType::Float && regs[b].type == ValueType::Float) {
@@ -211,9 +211,9 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
                 break;
             }
             case OpCode::Sub: {
-                u32 dst = fn->code[ip++];
-                u32 a = fn->code[ip++];
-                u32 b = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 a = (u32)fn->code[ip++];
+                u32 b = (u32)fn->code[ip++];
                 if (regs[a].type == ValueType::Int && regs[b].type == ValueType::Int) {
                     regs[dst] = Value(regs[a].intVal - regs[b].intVal);
                 } else if (regs[a].type == ValueType::Float && regs[b].type == ValueType::Float) {
@@ -222,9 +222,9 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
                 break;
             }
             case OpCode::Mul: {
-                u32 dst = fn->code[ip++];
-                u32 a = fn->code[ip++];
-                u32 b = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 a = (u32)fn->code[ip++];
+                u32 b = (u32)fn->code[ip++];
                 if (regs[a].type == ValueType::Int && regs[b].type == ValueType::Int) {
                     regs[dst] = Value(regs[a].intVal * regs[b].intVal);
                 } else if (regs[a].type == ValueType::Float && regs[b].type == ValueType::Float) {
@@ -233,9 +233,9 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
                 break;
             }
             case OpCode::Div: {
-                u32 dst = fn->code[ip++];
-                u32 a = fn->code[ip++];
-                u32 b = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 a = (u32)fn->code[ip++];
+                u32 b = (u32)fn->code[ip++];
                 if (regs[a].type == ValueType::Int && regs[b].type == ValueType::Int) {
                     regs[dst] = Value(regs[a].intVal / regs[b].intVal);
                 } else if (regs[a].type == ValueType::Float && regs[b].type == ValueType::Float) {
@@ -244,17 +244,17 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
                 break;
             }
             case OpCode::Call: {
-                u32 funcReg = fn->code[ip++];
-                u32 argc = fn->code[ip++];
-                Value* args = &regs[fn->code[ip]];
+                u32 funcReg = (u32)fn->code[ip++];
+                u32 argc = (u32)fn->code[ip++];
+                Value* args = &regs[(u32)fn->code[ip]];
                 ip += argc;
                 Value result = callValue(regs[funcReg], args, argc);
-                u32 dst = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
                 regs[dst] = result;
                 break;
             }
             case OpCode::Return: {
-                u32 src = fn->code[ip++];
+                u32 src = (u32)fn->code[ip++];
                 Value result = regs[src];
                 frameCount_--;
                 if (frameCount_ > 0) {
@@ -269,33 +269,33 @@ VM::InterpretResult VM::runFrame(CallFrame& frame) {
                 break;
             }
             case OpCode::JumpIf: {
-                u32 cond = fn->code[ip++];
+                u32 cond = (u32)fn->code[ip++];
                 i32 offset = (i32)fn->code[ip++];
                 if (regs[cond].isTruthy()) ip = (u32)((i32)ip + offset);
                 break;
             }
             case OpCode::JumpIfNot: {
-                u32 cond = fn->code[ip++];
+                u32 cond = (u32)fn->code[ip++];
                 i32 offset = (i32)fn->code[ip++];
                 if (!regs[cond].isTruthy()) ip = (u32)((i32)ip + offset);
                 break;
             }
             case OpCode::GetField: {
-                u32 dst = fn->code[ip++];
-                u32 obj = fn->code[ip++];
-                u32 fieldIdx = fn->code[ip++];
+                u32 dst = (u32)fn->code[ip++];
+                u32 obj = (u32)fn->code[ip++];
+                u32 fieldIdx = (u32)fn->code[ip++];
                 // Simplified - would lookup field in object
                 break;
             }
             case OpCode::SetField: {
-                u32 obj = fn->code[ip++];
-                u32 fieldIdx = fn->code[ip++];
-                u32 value = fn->code[ip++];
+                u32 obj = (u32)fn->code[ip++];
+                u32 fieldIdx = (u32)fn->code[ip++];
+                u32 value = (u32)fn->code[ip++];
                 // Simplified
                 break;
             }
             case OpCode::Line: {
-                u32 line = fn->code[ip++];
+                u32 line = (u32)fn->code[ip++];
                 // Debug info
                 break;
             }

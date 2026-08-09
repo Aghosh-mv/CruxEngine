@@ -7,7 +7,7 @@
 #include <ctime>
 #include <algorithm>
 
-namespace Crux {
+namespace Frost {
 
 Game* Game::s_instance = nullptr;
 
@@ -135,7 +135,7 @@ bool Game::init(Window& window, Renderer& renderer) {
     camera_.lookAt(gliderPos_);
     renderer_->setCamera(camera_);
 
-    CRUX_LOG_INFO("[Game] Angin ready. Score targets: catch the green orbs!");
+    FROST_LOG_INFO("[Game] Angin ready. Score targets: catch the green orbs!");
     return true;
 }
 
@@ -200,7 +200,7 @@ void Game::spawnTrees() {
         treeMatrices_.pushBack(m);
         treePositions_.pushBack(Vec3(x, h, z));
     }
-    CRUX_LOG_INFO("[World] spawned %zu trees", (usize)treeMatrices_.size());
+    FROST_LOG_INFO("[World] spawned %zu trees", (usize)treeMatrices_.size());
 }
 
 void Game::spawnRocks() {
@@ -220,7 +220,7 @@ void Game::spawnRocks() {
                  quatToMat4(rot) * Mat4::scaling(Vec3(s, s * 0.7f, s));
         rockMatrices_.pushBack(m);
     }
-    CRUX_LOG_INFO("[World] spawned %zu rocks", (usize)rockMatrices_.size());
+    FROST_LOG_INFO("[World] spawned %zu rocks", (usize)rockMatrices_.size());
 }
 
 void Game::spawnOrbs() {
@@ -238,7 +238,7 @@ void Game::spawnOrbs() {
         o.value = 100;
         orbs_.pushBack(o);
     }
-    CRUX_LOG_INFO("[World] spawned %zu orbs", (usize)orbs_.size());
+    FROST_LOG_INFO("[World] spawned %zu orbs", (usize)orbs_.size());
 }
 
 void Game::spawnThermals() {

@@ -2,7 +2,7 @@
 #include "Renderer/Gl.h"
 #include "Core/Log.h"
 
-namespace Crux {
+namespace Frost {
 
 static GLenum toGlFilter(TextureFilter f) {
     switch (f) {
@@ -195,7 +195,7 @@ void FrameBuffer::createInternal(u32 w, u32 h, bool useDepth, u32 samples,
     }
 
     if (Gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        CRUX_LOG_ERROR("[FrameBuffer] framebuffer incomplete");
+        FROST_LOG_ERROR("[FrameBuffer] framebuffer incomplete");
     }
     Gl::BindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -230,7 +230,7 @@ bool FrameBuffer::createDepth(u32 w, u32 h) {
     GLenum none = GL_NONE;
     Gl::DrawBuffers(1, &none);
     bool ok = Gl::CheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
-    if (!ok) CRUX_LOG_ERROR("[FrameBuffer] raw depth framebuffer incomplete");
+    if (!ok) FROST_LOG_ERROR("[FrameBuffer] raw depth framebuffer incomplete");
     Gl::BindFramebuffer(GL_FRAMEBUFFER, 0);
     return ok && fbo_ != 0;
 }

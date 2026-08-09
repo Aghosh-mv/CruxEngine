@@ -1,7 +1,7 @@
 #include "Renderer/Font.h"
 #include <cstring>
 
-namespace Crux {
+namespace Frost {
 
 // 96 glyphs (ASCII 32..127), each 8 rows x 8 cols. '.' empty, '#' filled.
 static const char* kGlyphs[128][8] = {

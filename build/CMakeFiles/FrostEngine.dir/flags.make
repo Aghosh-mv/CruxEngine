@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0
 
-CXX_INCLUDES = -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine
+CXX_INCLUDES = -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer
 
 CXX_FLAGS = -O3 -DNDEBUG -std=c++17
 

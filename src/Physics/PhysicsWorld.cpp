@@ -2,7 +2,7 @@
 #include "Core/Math.h"
 #include "Core/Log.h"
 
-namespace Crux {
+namespace Frost {
 
 PhysicsWorld::PhysicsWorld() {}
 

@@ -1,6 +1,6 @@
 #include "Scene/Scene.h"
 
-namespace Crux {
+namespace Frost {
 
 Mat4 quatToMat4(const Quat& q) {
     Mat4 r = Mat4::identity();

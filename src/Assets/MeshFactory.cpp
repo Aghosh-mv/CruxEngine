@@ -1,7 +1,7 @@
 #include "Assets/MeshFactory.h"
 #include "Core/Math.h"
 
-namespace Crux {
+namespace Frost {
 
 static void pushVertex(Vector<Vertex>& v, const Vec3& p, const Vec3& n, const Vec2& uv,
                        const Vec3& t = Vec3(1, 0, 0)) {

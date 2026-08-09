@@ -1,6 +1,6 @@
 #include "Renderer/Camera.h"
 
-namespace Crux {
+namespace Frost {
 
 void Camera::setPerspective(f32 fovDeg, f32 aspect, f32 near, f32 far) {
     projection_ = Projection::Perspective;

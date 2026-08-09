@@ -1,6 +1,6 @@
 #include "Core/Noise.h"
 
-namespace Crux {
+namespace Frost {
 
 Noise::Noise(u32 seed) : seed_(seed) {}
 

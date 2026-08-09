@@ -2,7 +2,7 @@
 #include "Renderer/Gl.h"
 #include "Core/Log.h"
 
-namespace Crux {
+namespace Frost {
 
 Mesh::~Mesh() { destroy(); }
 

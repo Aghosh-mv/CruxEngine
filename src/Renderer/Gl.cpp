@@ -2,23 +2,23 @@
 #include <GL/glx.h>
 #include <cstdio>
 
-namespace Crux {
+namespace Frost {
 namespace Gl {
 
-#define CRUX_DEFINE_FUNC(NAME, RET, ARGS) RET (*NAME) ARGS = nullptr;
-CRUX_GL_FUNCS(CRUX_DEFINE_FUNC)
-#undef CRUX_DEFINE_FUNC
+#define FROST_DEFINE_FUNC(NAME, RET, ARGS) RET (*NAME) ARGS = nullptr;
+FROST_GL_FUNCS(FROST_DEFINE_FUNC)
+#undef FROST_DEFINE_FUNC
 
 bool loadFunctions() {
     auto load = [](const char* name) -> void* {
         return (void*)glXGetProcAddressARB((const GLubyte*)name);
     };
 
-#define CRUX_LOAD_FUNC(NAME, RET, ARGS) \
+#define FROST_LOAD_FUNC(NAME, RET, ARGS) \
     NAME = (RET (*) ARGS)load("gl" #NAME); \
     if (!NAME) { std::fprintf(stderr, "[GL] missing entry point: gl%s\n", #NAME); return false; }
-    CRUX_GL_FUNCS(CRUX_LOAD_FUNC)
-#undef CRUX_LOAD_FUNC
+    FROST_GL_FUNCS(FROST_LOAD_FUNC)
+#undef FROST_LOAD_FUNC
 
     return true;
 }

@@ -7,7 +7,7 @@
 #include <set>
 #include <algorithm>
 
-namespace Crux {
+namespace Frost {
 namespace Renderer {
 
 struct VulkanInstance {

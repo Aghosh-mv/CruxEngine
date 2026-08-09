@@ -3,7 +3,7 @@
 #include "Core/Log.h"
 #include <cstring>
 
-namespace Crux {
+namespace Frost {
 
 Shader::~Shader() {
     if (program_) Gl::DeleteProgram(program_);
@@ -18,7 +18,7 @@ GLuint Shader::compileStage(GLenum type, const char* src) const {
     if (!ok) {
         char log[2048];
         Gl::GetShaderInfoLog(sh, sizeof(log), nullptr, log);
-        CRUX_LOG_ERROR("[Shader] compile error: %s", log);
+        FROST_LOG_ERROR("[Shader] compile error: %s", log);
         Gl::DeleteShader(sh);
         return 0;
     }
@@ -41,7 +41,7 @@ bool Shader::create(const char* vertexSrc, const char* fragmentSrc, const char* 
     if (!ok) {
         char log[2048];
         Gl::GetProgramInfoLog(program_, sizeof(log), nullptr, log);
-        CRUX_LOG_ERROR("[Shader:%s] link error: %s", name, log);
+        FROST_LOG_ERROR("[Shader:%s] link error: %s", name, log);
         Gl::DeleteProgram(program_); program_ = 0;
         Gl::DeleteShader(vs); Gl::DeleteShader(fs);
         return false;
@@ -67,7 +67,7 @@ bool Shader::createCompute(const char* computeSrc, const char* name) {
     if (!ok) {
         char log[2048];
         Gl::GetProgramInfoLog(program_, sizeof(log), nullptr, log);
-        CRUX_LOG_ERROR("[Shader:%s] link error: %s", name, log);
+        FROST_LOG_ERROR("[Shader:%s] link error: %s", name, log);
         Gl::DeleteProgram(program_); program_ = 0;
         Gl::DeleteShader(cs);
         return false;

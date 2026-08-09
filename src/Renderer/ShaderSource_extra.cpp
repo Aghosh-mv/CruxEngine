@@ -1,6 +1,6 @@
 #include "Renderer/ShaderSource.h"
 
-namespace Crux {
+namespace Frost {
 namespace ShaderSource {
 
 const char* terrainVert = R"(#version 330 core

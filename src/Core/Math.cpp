@@ -1,7 +1,7 @@
 #include "Core/Math.h"
 #include "Core/Mat4.h"
 
-namespace Crux {
+namespace Frost {
 
 Quat Quat::fromEuler(const Vec3& e) {
     f32 cx = std::cos(e.x * 0.5f), sx = std::sin(e.x * 0.5f);
