@@ -19,6 +19,14 @@ namespace Frost {
 
 struct Camera;
 
+struct BVHNode {
+    Vec3 boundsMin;
+    Vec3 boundsMax;
+    u32 leftFirst = 0;
+    u32 primitiveCount = 0;
+    bool isLeaf = false;
+};
+
 // ============================================================================
 // Acceleration structure types
 // ============================================================================
@@ -212,6 +220,20 @@ public:
     const f32* getAOOutput() const { return aoOutput_.data(); }
     const f32* getShadowOutput() const { return shadowOutput_.data(); }
 
+    // Software BVH ray tracing
+    void buildBVH(const Vector<Vec3>& triMin, const Vector<Vec3>& triMax, u32 leafCount);
+    bool intersectsAABB(const Vec3& origin, const Vec3& invDir, const Vec3& bmin, const Vec3& bmax, f32& tNear, f32& tFar) const;
+    bool intersectTriangle(const Vec3& o, const Vec3& d, const Vec3& v0, const Vec3& v1, const Vec3& v2, f32& t, f32& u, f32& v) const;
+    bool traceBVH(const Vec3& origin, const Vec3& dir, f32 tMin, f32 tMax, const Vector<Vec3>& triVerts, const Vector<u32>& triIndices, Vec3& hitPos, Vec3& hitNormal, f32& hitT) const;
+    void rebuildStats();
+    void setLeafPrimitiveCount(u32 count) { leafPrimitiveCount_ = count; }
+    u32 getLeafPrimitiveCount() const { return leafPrimitiveCount_; }
+
+    Vector<BVHNode>& bvhNodes() { return bvhNodes_; }
+    const Vector<BVHNode>& bvhNodes() const { return bvhNodes_; }
+    Vector<u32>& bvhPrimitiveIndices() { return bvhPrimitiveIndices_; }
+    const Vector<u32>& bvhPrimitiveIndices() const { return bvhPrimitiveIndices_; }
+
     // Stats
     struct Stats {
         u32 blasCount;
@@ -225,10 +247,19 @@ public:
         f32 tlasBuildTimeMs;
         f32 rayTraceTimeMs;
         f32 denoiseTimeMs;
+        u32 bvhNodes;
+        u32 bvhLeaves;
+        u64 traversalQueries;
     };
     const Stats& stats() const { return stats_; }
+    Stats& stats() { return stats_; }
 
 private:
+    // Software BVH
+    Vector<BVHNode> bvhNodes_;
+    Vector<u32> bvhPrimitiveIndices_;
+    u32 leafPrimitiveCount_ = 4;
+
     // BLAS build
     void buildBLASInternal(u32 blasIndex);
     void computeBLASBounds(u32 blasIndex);
@@ -240,7 +271,7 @@ private:
     void computeInstanceBounds(const BLASInstance& instance, Vec3& min, Vec3& max);
 
     // BVH construction
-    struct BVHNode {
+    struct BVHNodeInternal {
         Vec3 boundsMin;
         Vec3 boundsMax;
         i32 leftChild;          // -1 = leaf
@@ -250,7 +281,7 @@ private:
         f32 surfaceArea;
     };
 
-    void buildBVH(Vector<BVHNode>& nodes, Vector<Vec3>& centroids,
+    void buildBVH(Vector<BVHNodeInternal>& nodes, Vector<Vec3>& centroids,
                   Vector<Vec3>& boundsMin, Vector<Vec3>& boundsMax,
                   i32 start, i32 end, i32& nodeIndex);
     i32 findSplitAxis(const Vector<Vec3>& centroids, i32 start, i32 end, f32& splitPos);
@@ -313,7 +344,7 @@ private:
     // BLAS storage
     struct BLASEntry {
         Vector<BLASGeometryDesc> geometries;
-        Vector<BVHNode> bvhNodes;
+        Vector<BVHNodeInternal> bvhNodes;
         u32 nodeCount;
         Vec3 boundsMin;
         Vec3 boundsMax;
@@ -325,7 +356,7 @@ private:
 
     // TLAS
     Vector<BLASInstance> instances_;
-    Vector<BVHNode> tlasNodes_;
+    Vector<BVHNodeInternal> tlasNodes_;
     u32 tlasNodeCount_;
     AccelerationStructure tlas_;
     bool tlasDirty_ = true;

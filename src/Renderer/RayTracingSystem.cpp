@@ -196,12 +196,12 @@ void RayTracingSystem::computeBLASBounds(u32 blasIndex) {
 // ============================================================================
 // BVH Construction
 // ============================================================================
-void RayTracingSystem::buildBVH(Vector<BVHNode>& nodes, Vector<Vec3>& centroids,
+void RayTracingSystem::buildBVH(Vector<BVHNodeInternal>& nodes, Vector<Vec3>& centroids,
                                 Vector<Vec3>& boundsMin, Vector<Vec3>& boundsMax,
                                 i32 start, i32 end, i32& nodeIndex) {
     if (start > end) return;
     i32 currentNode = nodeIndex++;
-    BVHNode node;
+    BVHNodeInternal node;
     node.leftChild = -1;
     node.rightChild = -1;
     node.primitiveIndex = -1;
@@ -1239,6 +1239,214 @@ void RayTracingSystem::dispatchRaysFromSBT(u32 width, u32 height) {
 
     // For CPU implementation, we trace rays manually
     dispatchRayGeneration(width, height);
+}
+
+// ============================================================================
+// Software BVH Construction and Traversal
+// ============================================================================
+void RayTracingSystem::buildBVH(const Vector<Vec3>& triMin, const Vector<Vec3>& triMax, u32 leafCount) {
+    bvhNodes_.clear();
+    bvhPrimitiveIndices_.clear();
+
+    u32 triCount = static_cast<u32>(triMin.size());
+    if (triCount == 0) return;
+
+    bvhPrimitiveIndices_.resize(triCount);
+    for (u32 i = 0; i < triCount; i++) bvhPrimitiveIndices_[i] = i;
+
+    Vector<Vec3> localMin(triMin.begin(), triMin.end());
+    Vector<Vec3> localMax(triMax.begin(), triMax.end());
+
+    struct BuildTask {
+        u32 primStart;
+        u32 primEnd;
+        u32 depth;
+    };
+
+    Vector<BuildTask> stack;
+    stack.push_back({0, triCount, 0});
+
+    while (!stack.empty()) {
+        BuildTask task = stack.back();
+        stack.pop_back();
+
+        u32 start = task.primStart;
+        u32 end = task.primEnd;
+        u32 count = end - start;
+        if (count == 0) continue;
+
+        BVHNode node;
+        node.boundsMin = localMin[bvhPrimitiveIndices_[start]];
+        node.boundsMax = localMax[bvhPrimitiveIndices_[start]];
+        for (u32 i = start + 1; i < end; i++) {
+            node.boundsMin = node.boundsMin.min(localMin[bvhPrimitiveIndices_[i]]);
+            node.boundsMax = node.boundsMax.max(localMax[bvhPrimitiveIndices_[i]]);
+        }
+
+        if (count <= leafCount || task.depth >= 128) {
+            node.isLeaf = true;
+            node.leftFirst = start;
+            node.primitiveCount = count;
+            bvhNodes_.push_back(node);
+            continue;
+        }
+
+        Vec3 extent = node.boundsMax - node.boundsMin;
+        u32 axis = 0;
+        if (extent.y > extent.x && extent.y > extent.z) axis = 1;
+        else if (extent.z > extent.x && extent.z > extent.y) axis = 2;
+
+        u32 mid = start + count / 2;
+
+        struct CentroidRef {
+            u32 index;
+            f32 centroid;
+        };
+
+        u32 rangeCount = count;
+        Vector<CentroidRef> refs;
+        refs.resize(rangeCount);
+        for (u32 i = 0; i < rangeCount; i++) {
+            refs[i].index = bvhPrimitiveIndices_[start + i];
+            Vec3 c = (localMin[refs[i].index] + localMax[refs[i].index]) * 0.5f;
+            refs[i].centroid = (axis == 0) ? c.x : (axis == 1) ? c.y : c.z;
+        }
+
+        std::sort(refs.begin(), refs.begin() + rangeCount,
+                  [](const CentroidRef& a, const CentroidRef& b) { return a.centroid < b.centroid; });
+
+        for (u32 i = 0; i < rangeCount; i++) {
+            bvhPrimitiveIndices_[start + i] = refs[i].index;
+        }
+
+        node.isLeaf = false;
+        node.leftFirst = static_cast<u32>(bvhNodes_.size());
+        node.primitiveCount = 0;
+        bvhNodes_.push_back(node);
+
+        stack.push_back({mid, end, task.depth + 1});
+        stack.push_back({start, mid, task.depth + 1});
+    }
+}
+
+bool RayTracingSystem::intersectsAABB(const Vec3& origin, const Vec3& invDir, const Vec3& bmin, const Vec3& bmax, f32& tNear, f32& tFar) const {
+    f32 t1 = (bmin.x - origin.x) * invDir.x;
+    f32 t2 = (bmax.x - origin.x) * invDir.x;
+    tNear = Mathf::min(t1, t2);
+    tFar = Mathf::max(t1, t2);
+
+    f32 t3 = (bmin.y - origin.y) * invDir.y;
+    f32 t4 = (bmax.y - origin.y) * invDir.y;
+    tNear = Mathf::max(tNear, Mathf::min(t3, t4));
+    tFar = Mathf::min(tFar, Mathf::max(t3, t4));
+
+    f32 t5 = (bmin.z - origin.z) * invDir.z;
+    f32 t6 = (bmax.z - origin.z) * invDir.z;
+    tNear = Mathf::max(tNear, Mathf::min(t5, t6));
+    tFar = Mathf::min(tFar, Mathf::max(t5, t6));
+
+    return tNear <= tFar && tFar >= 0.0f;
+}
+
+bool RayTracingSystem::intersectTriangle(const Vec3& o, const Vec3& d, const Vec3& v0, const Vec3& v1, const Vec3& v2, f32& t, f32& u, f32& v) const {
+    Vec3 edge1 = v1 - v0;
+    Vec3 edge2 = v2 - v0;
+    Vec3 h = d.cross(edge2);
+    f32 a = edge1.dot(h);
+    if (a > -0.00001f && a < 0.00001f) return false;
+    f32 invA = 1.0f / a;
+    Vec3 s = o - v0;
+    u = s.dot(h) * invA;
+    if (u < 0.0f || u > 1.0f) return false;
+    Vec3 q = s.cross(edge1);
+    v = d.dot(q) * invA;
+    if (v < 0.0f || u + v > 1.0f) return false;
+    t = edge2.dot(q) * invA;
+    return t > 0.00001f;
+}
+
+bool RayTracingSystem::traceBVH(const Vec3& origin, const Vec3& dir, f32 tMin, f32 tMax,
+                                  const Vector<Vec3>& triVerts, const Vector<u32>& triIndices,
+                                  Vec3& hitPos, Vec3& hitNormal, f32& hitT) const {
+    if (bvhNodes_.empty()) return false;
+
+    Vec3 invDir(1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z);
+
+    hitT = tMax;
+    bool hit = false;
+
+    struct StackEntry {
+        u32 nodeIndex;
+    };
+
+    static constexpr u32 kMaxStack = 128;
+    StackEntry stack[kMaxStack];
+    u32 stackSize = 0;
+
+    stack[stackSize++] = {0};
+
+    while (stackSize > 0) {
+        u32 nodeIdx = stack[--stackSize].nodeIndex;
+        const BVHNode& node = bvhNodes_[nodeIdx];
+
+        f32 tNear, tFar;
+        if (!intersectsAABB(origin, invDir, node.boundsMin, node.boundsMax, tNear, tFar)) continue;
+        if (tNear > hitT) continue;
+
+        if (node.isLeaf) {
+            for (u32 i = 0; i < node.primitiveCount; i++) {
+                u32 primIdx = bvhPrimitiveIndices_[node.leftFirst + i];
+                u32 i0 = triIndices[primIdx * 3 + 0];
+                u32 i1 = triIndices[primIdx * 3 + 1];
+                u32 i2 = triIndices[primIdx * 3 + 2];
+
+                f32 t, u, v;
+                if (intersectTriangle(origin, dir, triVerts[i0], triVerts[i1], triVerts[i2], t, u, v)) {
+                    if (t > tMin && t < hitT) {
+                        hitT = t;
+                        hitPos = origin + dir * t;
+                        Vec3 edge1 = triVerts[i1] - triVerts[i0];
+                        Vec3 edge2 = triVerts[i2] - triVerts[i0];
+                        hitNormal = edge1.cross(edge2).normalized();
+                        hit = true;
+                    }
+                }
+            }
+        } else {
+            u32 left = node.leftFirst;
+            u32 right = node.leftFirst + 1;
+            if (stackSize < kMaxStack - 1) {
+                f32 tNearL, tFarL, tNearR, tFarR;
+                bool hitL = intersectsAABB(origin, invDir, bvhNodes_[left].boundsMin, bvhNodes_[left].boundsMax, tNearL, tFarL);
+                bool hitR = intersectsAABB(origin, invDir, bvhNodes_[right].boundsMin, bvhNodes_[right].boundsMax, tNearR, tFarR);
+                if (hitL && hitR) {
+                    if (tNearL < tNearR) {
+                        stack[stackSize++] = {right};
+                        stack[stackSize++] = {left};
+                    } else {
+                        stack[stackSize++] = {left};
+                        stack[stackSize++] = {right};
+                    }
+                } else if (hitL) {
+                    stack[stackSize++] = {left};
+                } else if (hitR) {
+                    stack[stackSize++] = {right};
+                }
+            } else if (stackSize < kMaxStack) {
+                stack[stackSize++] = {left};
+            }
+        }
+    }
+
+    return hit;
+}
+
+void RayTracingSystem::rebuildStats() {
+    stats_.bvhNodes = static_cast<u32>(bvhNodes_.size());
+    stats_.bvhLeaves = 0;
+    for (u32 i = 0; i < bvhNodes_.size(); i++) {
+        if (bvhNodes_[i].isLeaf) stats_.bvhLeaves++;
+    }
 }
 
 } // namespace Frost
