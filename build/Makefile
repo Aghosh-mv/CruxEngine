@@ -379,6 +379,30 @@ src/Audio/AudioSystem.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.s
 .PHONY : src/Audio/AudioSystem.cpp.s
 
+src/Core/Chronos.o: src/Core/Chronos.cpp.o
+.PHONY : src/Core/Chronos.o
+
+# target to build an object file
+src/Core/Chronos.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.o
+.PHONY : src/Core/Chronos.cpp.o
+
+src/Core/Chronos.i: src/Core/Chronos.cpp.i
+.PHONY : src/Core/Chronos.i
+
+# target to preprocess a source file
+src/Core/Chronos.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.i
+.PHONY : src/Core/Chronos.cpp.i
+
+src/Core/Chronos.s: src/Core/Chronos.cpp.s
+.PHONY : src/Core/Chronos.s
+
+# target to generate assembly for a file
+src/Core/Chronos.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.s
+.PHONY : src/Core/Chronos.cpp.s
+
 src/Core/ECS.o: src/Core/ECS.cpp.o
 .PHONY : src/Core/ECS.o
 
@@ -450,6 +474,30 @@ src/Core/Math.s: src/Core/Math.cpp.s
 src/Core/Math.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.s
 .PHONY : src/Core/Math.cpp.s
+
+src/Core/Noema.o: src/Core/Noema.cpp.o
+.PHONY : src/Core/Noema.o
+
+# target to build an object file
+src/Core/Noema.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o
+.PHONY : src/Core/Noema.cpp.o
+
+src/Core/Noema.i: src/Core/Noema.cpp.i
+.PHONY : src/Core/Noema.i
+
+# target to preprocess a source file
+src/Core/Noema.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.i
+.PHONY : src/Core/Noema.cpp.i
+
+src/Core/Noema.s: src/Core/Noema.cpp.s
+.PHONY : src/Core/Noema.s
+
+# target to generate assembly for a file
+src/Core/Noema.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.s
+.PHONY : src/Core/Noema.cpp.s
 
 src/Core/Noise.o: src/Core/Noise.cpp.o
 .PHONY : src/Core/Noise.o
@@ -1819,6 +1867,30 @@ src/Scripting/ScriptBridge.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.s
 .PHONY : src/Scripting/ScriptBridge.cpp.s
 
+src/Simulation/SimLOD.o: src/Simulation/SimLOD.cpp.o
+.PHONY : src/Simulation/SimLOD.o
+
+# target to build an object file
+src/Simulation/SimLOD.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o
+.PHONY : src/Simulation/SimLOD.cpp.o
+
+src/Simulation/SimLOD.i: src/Simulation/SimLOD.cpp.i
+.PHONY : src/Simulation/SimLOD.i
+
+# target to preprocess a source file
+src/Simulation/SimLOD.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.i
+.PHONY : src/Simulation/SimLOD.cpp.i
+
+src/Simulation/SimLOD.s: src/Simulation/SimLOD.cpp.s
+.PHONY : src/Simulation/SimLOD.s
+
+# target to generate assembly for a file
+src/Simulation/SimLOD.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.s
+.PHONY : src/Simulation/SimLOD.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -1881,6 +1953,9 @@ help:
 	@echo "... src/Audio/AudioSystem.o"
 	@echo "... src/Audio/AudioSystem.i"
 	@echo "... src/Audio/AudioSystem.s"
+	@echo "... src/Core/Chronos.o"
+	@echo "... src/Core/Chronos.i"
+	@echo "... src/Core/Chronos.s"
 	@echo "... src/Core/ECS.o"
 	@echo "... src/Core/ECS.i"
 	@echo "... src/Core/ECS.s"
@@ -1890,6 +1965,9 @@ help:
 	@echo "... src/Core/Math.o"
 	@echo "... src/Core/Math.i"
 	@echo "... src/Core/Math.s"
+	@echo "... src/Core/Noema.o"
+	@echo "... src/Core/Noema.i"
+	@echo "... src/Core/Noema.s"
 	@echo "... src/Core/Noise.o"
 	@echo "... src/Core/Noise.i"
 	@echo "... src/Core/Noise.s"
@@ -2061,6 +2139,9 @@ help:
 	@echo "... src/Scripting/ScriptBridge.o"
 	@echo "... src/Scripting/ScriptBridge.i"
 	@echo "... src/Scripting/ScriptBridge.s"
+	@echo "... src/Simulation/SimLOD.o"
+	@echo "... src/Simulation/SimLOD.i"
+	@echo "... src/Simulation/SimLOD.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

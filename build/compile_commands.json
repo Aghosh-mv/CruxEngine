@@ -21,6 +21,16 @@
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Chronos.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Core/Chronos.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o -c /home/tinkerspace/FrostEngine/src/Core/Noema.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Core/Noema.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
   "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o -c /home/tinkerspace/FrostEngine/src/Platform/Window.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Platform/Window.cpp"
 },
@@ -338,6 +348,11 @@
   "directory": "/home/tinkerspace/FrostEngine/build",
   "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Network/NetworkSystem.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Network/NetworkSystem.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o -c /home/tinkerspace/FrostEngine/src/Simulation/SimLOD.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Simulation/SimLOD.cpp"
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",

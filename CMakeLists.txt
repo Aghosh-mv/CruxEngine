@@ -20,6 +20,8 @@ set(FROST_CORE_SOURCES
     src/Core/Noise.cpp
     src/Core/ECS.cpp
     src/Core/FrostMono.cpp
+    src/Core/Chronos.cpp
+    src/Core/Noema.cpp
 )
 
 # ============================================================================
@@ -158,6 +160,13 @@ set(FROST_EDITOR_SOURCES
 )
 
 # ============================================================================
+# Source files - Simulation
+# ============================================================================
+set(FROST_SIMULATION_SOURCES
+    src/Simulation/SimLOD.cpp
+)
+
+# ============================================================================
 # Source files - Game
 # ============================================================================
 set(FROST_GAME_SOURCES
@@ -182,6 +191,7 @@ set(FROST_SOURCES
     ${FROST_ANIMATION_SOURCES}
     ${FROST_AI_SOURCES}
     ${FROST_NETWORK_SOURCES}
+    ${FROST_SIMULATION_SOURCES}
 )
 
 add_library(FrostEngine STATIC ${FROST_SOURCES})
