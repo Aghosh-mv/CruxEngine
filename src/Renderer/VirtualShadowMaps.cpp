@@ -28,19 +28,30 @@ bool VirtualShadowMaps::init(u32 screenWidth, u32 screenHeight) {
     screenWidth_ = screenWidth;
     screenHeight_ = screenHeight;
 
+    // Initialize cascade clipmap page table
+    pageSize_ = config_.pageSize;
+    pagesPerDim_ = config_.pagesPerDim;
+    clipmaps_.clear();
+    pageTable_.clear();
+    lastTouched_.clear();
+    pages_.clear();
+    residentPageCount_ = 0;
+    totalPagesRequested_ = 0;
+    totalPagesEvicted_ = 0;
+
     // Initialize page table
     initializePageTable();
 
     // Initialize clipmaps
     for (u32 level = 0; level < VSM_CLIPMAP_LEVELS; level++) {
-        clipmaps_[level].level = level;
-        clipmaps_[level].activePageCount = 0;
-        clipmaps_[level].needsUpdate = true;
-        clipmaps_[level].innerRadius = config_.clipmapBaseResolution *
+        clipmapRings_[level].level = level;
+        clipmapRings_[level].activePageCount = 0;
+        clipmapRings_[level].needsUpdate = true;
+        clipmapRings_[level].innerRadius = config_.clipmapBaseResolution *
                                         std::pow(config_.clipmapSpacingFactor, (f32)level) * 0.5f;
-        clipmaps_[level].outerRadius = clipmaps_[level].innerRadius * config_.clipmapSpacingFactor;
-        clipmaps_[level].pageResolution = (f32)config_.pageSize;
-        clipmaps_[level].texelSize = config_.clipmapBaseResolution *
+        clipmapRings_[level].outerRadius = clipmapRings_[level].innerRadius * config_.clipmapSpacingFactor;
+        clipmapRings_[level].pageResolution = (f32)config_.pageSize;
+        clipmapRings_[level].texelSize = config_.clipmapBaseResolution *
                                       std::pow(config_.clipmapSpacingFactor, (f32)level);
     }
 
@@ -64,11 +75,13 @@ bool VirtualShadowMaps::init(u32 screenWidth, u32 screenHeight) {
 void VirtualShadowMaps::shutdown() {
     if (!initialized_) return;
 
-    pages_.clear();
+    reset();
+
+    shadowPages_.clear();
     historyPages_.clear();
 
     for (u32 level = 0; level < VSM_CLIPMAP_LEVELS; level++) {
-        clipmaps_[level].pages.clear();
+        clipmapRings_[level].pages.clear();
     }
 
     initialized_ = false;
@@ -83,16 +96,16 @@ void VirtualShadowMaps::resize(u32 screenWidth, u32 screenHeight) {
 // Page Table Management
 // ============================================================================
 void VirtualShadowMaps::initializePageTable() {
-    pages_.resize(VSM_MAX_PAGES);
+    shadowPages_.resize(VSM_MAX_PAGES);
     pageCapacity_ = VSM_MAX_PAGES;
     pageCount_ = 0;
 
     for (u32 i = 0; i < VSM_MAX_PAGES; i++) {
-        pages_[i].pageIndex = i;
-        pages_[i].state = PageState::Unallocated;
-        pages_[i].dirty = false;
-        pages_[i].frameLastRendered = 0;
-        pages_[i].frameLastAccessed = 0;
+        shadowPages_[i].pageIndex = i;
+        shadowPages_[i].state = PageState::Unallocated;
+        shadowPages_[i].dirty = false;
+        shadowPages_[i].frameLastRendered = 0;
+        shadowPages_[i].frameLastAccessed = 0;
     }
 }
 
@@ -100,9 +113,9 @@ u32 VirtualShadowMaps::allocatePage(u32 clipmapLevel, u32 tileX, u32 tileY,
                                      u32 lightIndex, PageType type) {
     // Find a free page
     for (u32 i = 0; i < pageCapacity_; i++) {
-        if (pages_[i].state == PageState::Unallocated ||
-            pages_[i].state == PageState::Evicted) {
-            ShadowPage& page = pages_[i];
+        if (shadowPages_[i].state == PageState::Unallocated ||
+            shadowPages_[i].state == PageState::Evicted) {
+            ShadowPage& page = shadowPages_[i];
             page.pageIndex = i;
             page.clipmapLevel = clipmapLevel;
             page.tileX = tileX;
@@ -129,7 +142,7 @@ u32 VirtualShadowMaps::allocatePage(u32 clipmapLevel, u32 tileX, u32 tileY,
 void VirtualShadowMaps::deallocatePage(u32 pageIndex) {
     if (pageIndex >= pageCapacity_) return;
 
-    ShadowPage& page = pages_[pageIndex];
+    ShadowPage& page = shadowPages_[pageIndex];
     if (page.state == PageState::Unallocated) return;
 
     page.state = PageState::Evicted;
@@ -140,13 +153,13 @@ void VirtualShadowMaps::deallocatePage(u32 pageIndex) {
 
 void VirtualShadowMaps::markPageDirty(u32 pageIndex) {
     if (pageIndex >= pageCapacity_) return;
-    pages_[pageIndex].dirty = true;
-    pages_[pageIndex].state = PageState::Dirty;
+    shadowPages_[pageIndex].dirty = true;
+    shadowPages_[pageIndex].state = PageState::Dirty;
 }
 
 u32 VirtualShadowMaps::findPage(u32 clipmapLevel, u32 tileX, u32 tileY) const {
     for (u32 i = 0; i < pageCapacity_; i++) {
-        const ShadowPage& page = pages_[i];
+        const ShadowPage& page = shadowPages_[i];
         if (page.state == PageState::Unallocated || page.state == PageState::Evicted) continue;
         if (page.clipmapLevel == clipmapLevel && page.tileX == tileX && page.tileY == tileY) {
             return i;
@@ -195,7 +208,7 @@ void VirtualShadowMaps::allocatePages() {
 
     // Update allocation stats
     for (u32 i = 0; i < pageCapacity_; i++) {
-        switch (pages_[i].state) {
+        switch (shadowPages_[i].state) {
         case PageState::Allocated:
             stats_.allocatedPages++;
             break;
@@ -214,7 +227,7 @@ void VirtualShadowMaps::allocatePages() {
 void VirtualShadowMaps::renderShadowMaps() {
     // Render dirty pages
     for (u32 i = 0; i < pageCapacity_; i++) {
-        ShadowPage& page = pages_[i];
+        ShadowPage& page = shadowPages_[i];
         if (page.state != PageState::Dirty && !page.dirty) continue;
         if (page.state == PageState::Unallocated || page.state == PageState::Evicted) continue;
 
@@ -235,8 +248,8 @@ void VirtualShadowMaps::renderShadowMaps() {
     // Compute moment shadow maps if enabled
     if (config_.useMomentShadowMaps) {
         for (u32 i = 0; i < pageCapacity_; i++) {
-            if (pages_[i].state == PageState::Rendered) {
-                computeMomentShadowMap(pages_[i]);
+            if (shadowPages_[i].state == PageState::Rendered) {
+                computeMomentShadowMap(shadowPages_[i]);
             }
         }
     }
@@ -264,8 +277,14 @@ void VirtualShadowMaps::endFrame() {
 // Clipmap Management
 // ============================================================================
 void VirtualShadowMaps::updateClipmaps() {
+    Vec3 lightDir = Vec3(0.0f, -1.0f, 0.0f);
+    for (u32 i = 0; i < lightCount_; i++) {
+        if (lights_[i].active) { lightDir = lights_[i].direction; break; }
+    }
+    computeClipmaps(lightDir, cameraPosition_, config_.farPlane * 0.5f);
+
     for (u32 level = 0; level < config_.clipmapLevels; level++) {
-        ClipmapRing& ring = clipmaps_[level];
+        ClipmapRing& ring = clipmapRings_[level];
 
         // Update ring center based on camera position
         ring.centerOffset = cameraPosition_;
@@ -282,7 +301,7 @@ void VirtualShadowMaps::updateClipmaps() {
 }
 
 void VirtualShadowMaps::updateClipmapPages(u32 level, const Vec3& cameraPos) {
-    ClipmapRing& ring = clipmaps_[level];
+    ClipmapRing& ring = clipmapRings_[level];
     ring.pages.clear();
     ring.activePageCount = 0;
 
@@ -329,7 +348,7 @@ void VirtualShadowMaps::updateClipmapPages(u32 level, const Vec3& cameraPos) {
             // Allocate page
             u32 pageIndex = allocatePage(level, tileX, tileY, 0, PageType::DirectLight);
             if (pageIndex != UINT32_MAX) {
-                ShadowPage& page = pages_[pageIndex];
+                ShadowPage& page = shadowPages_[pageIndex];
                 page.boundsMin = pageMin;
                 page.boundsMax = pageMax;
                 page.lightDirection = Vec3(0, -1, 0);
@@ -343,7 +362,7 @@ void VirtualShadowMaps::updateClipmapPages(u32 level, const Vec3& cameraPos) {
 
 void VirtualShadowMaps::buildClipmapViewProjection(u32 level, const Vec3& cameraPos, Mat4& viewProj) {
     // Build orthographic projection for clipmap level
-    f32 halfExtent = clipmaps_[level].outerRadius;
+    f32 halfExtent = clipmapRings_[level].outerRadius;
     f32 nearPlane = 0.1f;
     f32 farPlane = halfExtent * 2.0f;
 
@@ -366,7 +385,7 @@ void VirtualShadowMaps::buildClipmapViewProjection(u32 level, const Vec3& camera
 }
 
 Vec3 VirtualShadowMaps::computeClipmapOrigin(u32 level, const Vec3& cameraPos) const {
-    f32 texelSize = clipmaps_[level].texelSize;
+    f32 texelSize = clipmapRings_[level].texelSize;
     f32 pageWorldSize = texelSize * config_.pageSize;
 
     // Snap to page grid
@@ -564,7 +583,7 @@ void VirtualShadowMaps::temporalReprojection() {
     computeReprojectionMatrix(viewProjMatrix_, previousViewProj_, reproject);
 
     for (u32 i = 0; i < pageCapacity_; i++) {
-        ShadowPage& page = pages_[i];
+        ShadowPage& page = shadowPages_[i];
         if (page.state == PageState::Unallocated || page.state == PageState::Evicted) continue;
 
         // Try to reproject from history
@@ -598,7 +617,7 @@ bool VirtualShadowMaps::reprojectPage(const ShadowPage& currentPage, ShadowPage&
     u32 historyPageIdx = findPage(currentPage.clipmapLevel, historyTileX, historyTileY);
     if (historyPageIdx == UINT32_MAX) return false;
 
-    historyPage = pages_[historyPageIdx];
+    historyPage = shadowPages_[historyPageIdx];
     return true;
 }
 
@@ -661,7 +680,7 @@ void VirtualShadowMaps::rasterizeClusterShadow(const Cluster& cluster, const Mat
         // Project and rasterize to page texture
         // Simplified: just mark page as needing update
         if (pageIndex < pageCapacity_) {
-            pages_[pageIndex].dirty = true;
+            shadowPages_[pageIndex].dirty = true;
         }
     }
 }
@@ -672,7 +691,7 @@ void VirtualShadowMaps::rasterizeClusterShadow(const Cluster& cluster, const Mat
 f32 VirtualShadowMaps::getShadowAtPosition(const Vec3& worldPos, u32 lightIndex) const {
     // Find the appropriate page for this world position
     for (u32 i = 0; i < pageCapacity_; i++) {
-        const ShadowPage& page = pages_[i];
+        const ShadowPage& page = shadowPages_[i];
         if (page.state == PageState::Unallocated || page.state == PageState::Evicted) continue;
         if (page.lightIndex != lightIndex) continue;
 
@@ -798,7 +817,7 @@ void VirtualShadowMaps::removeShadowCastingLight(u32 lightIndex) {
 
     // Deallocate pages for this light
     for (u32 i = 0; i < pageCapacity_; i++) {
-        if (pages_[i].lightIndex == lightIndex) {
+        if (shadowPages_[i].lightIndex == lightIndex) {
             deallocatePage(i);
         }
     }
@@ -820,8 +839,8 @@ void VirtualShadowMaps::updateLightTransform(u32 lightIndex, const Vec3& positio
 
     // Mark all pages for this light as dirty
     for (u32 i = 0; i < pageCapacity_; i++) {
-        if (pages_[i].lightIndex == lightIndex) {
-            pages_[i].dirty = true;
+        if (shadowPages_[i].lightIndex == lightIndex) {
+            shadowPages_[i].dirty = true;
         }
     }
 }
@@ -831,7 +850,7 @@ void VirtualShadowMaps::updateLightTransform(u32 lightIndex, const Vec3& positio
 // ============================================================================
 void VirtualShadowMaps::garbageCollectPages() {
     for (u32 i = 0; i < pageCapacity_; i++) {
-        ShadowPage& page = pages_[i];
+        ShadowPage& page = shadowPages_[i];
         if (page.state == PageState::Unallocated) continue;
 
         u32 framesSinceAccess = frameIndex_ - page.frameLastAccessed;
@@ -848,7 +867,7 @@ void VirtualShadowMaps::prioritizePageUpdates() {
     u32 updatesRemaining = config_.maxPagesPerFrame;
 
     for (u32 i = 0; i < pageCapacity_ && updatesRemaining > 0; i++) {
-        ShadowPage& page = pages_[i];
+        ShadowPage& page = shadowPages_[i];
         if (page.state != PageState::Dirty && !page.dirty) continue;
 
         // Check distance to camera
@@ -864,7 +883,7 @@ void VirtualShadowMaps::prioritizePageUpdates() {
 
     // Update remaining dirty pages
     for (u32 i = 0; i < pageCapacity_ && updatesRemaining > 0; i++) {
-        ShadowPage& page = pages_[i];
+        ShadowPage& page = shadowPages_[i];
         if (page.state != PageState::Dirty && !page.dirty) continue;
 
         page.state = PageState::Dirty;
@@ -876,23 +895,266 @@ void VirtualShadowMaps::updateStats() {
     allocStats_.totalAllocated = stats_.allocatedPages;
     allocStats_.totalCached = stats_.cachedPages;
     allocStats_.totalDirty = stats_.dirtyPages;
+
+    stats_.residentPages = residentPageCount_;
+    stats_.activeClipmaps = (u32)clipmaps_.size();
+    stats_.pageTableEntries = (u64)pageTable_.size();
 }
 
 const ShadowPage* VirtualShadowMaps::getPage(u32 pageIndex) const {
     if (pageIndex >= pageCapacity_) return nullptr;
-    if (pages_[pageIndex].state == PageState::Unallocated) return nullptr;
-    return &pages_[pageIndex];
+    if (shadowPages_[pageIndex].state == PageState::Unallocated) return nullptr;
+    return &shadowPages_[pageIndex];
 }
 
 u32 VirtualShadowMaps::getActivePageCount() const {
     u32 count = 0;
     for (u32 i = 0; i < pageCapacity_; i++) {
-        if (pages_[i].state != PageState::Unallocated && pages_[i].state != PageState::Evicted) {
+        if (shadowPages_[i].state != PageState::Unallocated && shadowPages_[i].state != PageState::Evicted) {
             count++;
         }
     }
     return count;
 }
+
+// ============================================================================
+// Cascade Clipmap Support
+// ============================================================================
+const VSMConfig& VirtualShadowMaps::getConfig() const {
+    return config_;
+}
+
+void VirtualShadowMaps::computeClipmaps(const Vec3& lightDir, const Vec3& center, f32 radius) {
+    clipmaps_.clear();
+
+    u32 levels = config_.clipmapLevels;
+    if (levels == 0) levels = 1;
+
+    Vec3 L = lightDir.normalized();
+    if (L.lengthSquared() < 0.5f) L = Vec3(0.0f, -1.0f, 0.0f);
+
+    Vec3 refUp = Vec3::up();
+    if (Mathf::abs(L.dot(refUp)) > 0.9f) refUp = Vec3::forward();
+    Vec3 right = refUp.cross(L).normalized();
+    if (right.lengthSquared() < 0.5f) right = Vec3::right();
+    Vec3 up = right.cross(L).normalized();
+
+    f32 totalTexels = (f32)(config_.pageSize * config_.pagesPerDim);
+    f32 texelWorld = (2.0f * radius) / Mathf::max(totalTexels, 1.0f);
+
+    f32 lightDist = config_.farPlane * 4.0f;
+    Vec3 lightPos = center - L * lightDist;
+    Mat4 view = Mat4::lookAt(lightPos, center, up);
+
+    for (u32 i = 0; i < levels; i++) {
+        CascadeClipmap cc;
+        cc.splitFar = config_.firstSplit * std::pow(config_.splitFactor, (f32)i);
+        cc.splitNear = (i == 0) ? 0.0f : config_.firstSplit * std::pow(config_.splitFactor, (f32)(i - 1));
+        cc.active = cc.splitFar <= config_.farPlane + Mathf::EPSILON;
+        cc.mapIndex = i;
+
+        f32 frac = Mathf::clamp(cc.splitFar / Mathf::max(config_.farPlane, 1.0f), 0.05f, 1.0f);
+        cc.texelSize = texelWorld * frac;
+
+        f32 halfExtent = Mathf::max(radius * frac, cc.texelSize * (f32)config_.pageSize);
+
+        Mat4 proj = Mat4::identity();
+        proj.m[0] = 1.0f / halfExtent;
+        proj.m[5] = 1.0f / halfExtent;
+        f32 near = 0.1f;
+        f32 far = lightDist;
+        proj.m[10] = 1.0f / (near - far);
+        proj.m[14] = near / (near - far);
+
+        cc.viewProjection = proj * view;
+        clipmaps_.push_back(cc);
+    }
+}
+
+void VirtualShadowMaps::allocatePagesForBounds(const Vec3& center, f32 radius) {
+    if (clipmaps_.empty()) return;
+
+    u32 dim = config_.pagesPerDim;
+    if (dim == 0) dim = 1;
+
+    for (usize i = 0; i < clipmaps_.size(); i++) {
+        const CascadeClipmap& cc = clipmaps_[i];
+        if (!cc.active) continue;
+
+        f32 halfExtent = cc.texelSize * (f32)(config_.pageSize * dim) * 0.5f;
+        if (halfExtent <= 0.0f) continue;
+
+        Vec4 proj = cc.viewProjection * Vec4(center, 1.0f);
+        if (proj.w <= 0.0f) continue;
+        f32 nx = proj.x / proj.w;
+        f32 ny = proj.y / proj.w;
+
+        f32 nRadius = Mathf::clamp(radius / halfExtent, 0.0f, 2.0f);
+
+        i32 minPx = (i32)std::floor(((nx - nRadius) + 1.0f) * 0.5f * (f32)dim);
+        i32 maxPx = (i32)std::floor(((nx + nRadius) + 1.0f) * 0.5f * (f32)dim);
+        i32 minPy = (i32)std::floor(((ny - nRadius) + 1.0f) * 0.5f * (f32)dim);
+        i32 maxPy = (i32)std::floor(((ny + nRadius) + 1.0f) * 0.5f * (f32)dim);
+
+        minPx = std::max(minPx, 0);
+        minPy = std::max(minPy, 0);
+        maxPx = std::min(maxPx, (i32)dim - 1);
+        maxPy = std::min(maxPy, (i32)dim - 1);
+
+        for (i32 py = minPy; py <= maxPy; py++) {
+            for (i32 px = minPx; px <= maxPx; px++) {
+                requestPage((u32)px, (u32)py, cc.mapIndex);
+            }
+        }
+    }
+
+    stats_.residentPages = residentPageCount_;
+}
+
+void VirtualShadowMaps::requestPage(u32 x, u32 y, u32 level) {
+    u64 key = ((u64)level << 48) | ((u64)x << 24) | ((u64)y << 12) | 0u;
+    totalPagesRequested_++;
+    stats_.pagesRequested++;
+
+    auto it = pageTable_.find(key);
+    if (it != pageTable_.end()) {
+        u32 slot = it.value();
+        if (slot < pages_.size()) {
+            pages_[slot].state = PageState::Resident;
+            pages_[slot].lastTouchedFrame = (u64)frameIndex_;
+        }
+        return;
+    }
+
+    usize slot = pages_.size();
+    for (usize i = 0; i < pages_.size(); i++) {
+        if (pages_[i].state == PageState::Free) { slot = i; break; }
+    }
+
+    if (slot == pages_.size()) {
+        Page p;
+        p.x = x;
+        p.y = y;
+        p.level = level;
+        p.state = PageState::Resident;
+        p.lastTouchedFrame = (u64)frameIndex_;
+        pages_.push_back(p);
+    } else {
+        Page& p = pages_[slot];
+        p.x = x;
+        p.y = y;
+        p.level = level;
+        p.state = PageState::Resident;
+        p.lastTouchedFrame = (u64)frameIndex_;
+    }
+
+    pageTable_[key] = (u32)slot;
+    lastTouched_.push_back(key);
+    residentPageCount_++;
+}
+
+void VirtualShadowMaps::evictOldestPages(u32 maxResident) {
+    while (residentPageCount_ > maxResident && !lastTouched_.empty()) {
+        usize oldestPos = 0;
+        u64 oldestKey = lastTouched_[0];
+        u64 oldestFrame = UINT64_MAX;
+        bool found = false;
+
+        for (usize i = 0; i < lastTouched_.size(); i++) {
+            auto it = pageTable_.find(lastTouched_[i]);
+            if (it == pageTable_.end()) continue;
+            u32 slot = it.value();
+            if (slot >= pages_.size()) continue;
+            Page& pg = pages_[slot];
+            if (pg.state != PageState::Resident) continue;
+            if (pg.lastTouchedFrame < oldestFrame) {
+                oldestFrame = pg.lastTouchedFrame;
+                oldestKey = lastTouched_[i];
+                oldestPos = i;
+                found = true;
+            }
+        }
+        if (!found) break;
+
+        auto it = pageTable_.find(oldestKey);
+        if (it == pageTable_.end()) break;
+        u32 slot = it.value();
+
+        pageTable_.erase(oldestKey);
+        lastTouched_.erase(oldestPos);
+
+        if (slot < pages_.size()) {
+            pages_[slot].state = PageState::Free;
+            pages_[slot].lastTouchedFrame = 0;
+        }
+        residentPageCount_--;
+        totalPagesEvicted_++;
+        stats_.pagesEvicted++;
+    }
+}
+
+const HashMap<u64, u32>& VirtualShadowMaps::getPageTable() const {
+    return pageTable_;
+}
+
+const Vector<Page>& VirtualShadowMaps::getPages() const {
+    return pages_;
+}
+
+void VirtualShadowMaps::placePage(u32 pageIndex, u32& atlasX, u32& atlasY) {
+    u32 dim = (pagesPerDim_ > 0) ? pagesPerDim_ : config_.pagesPerDim;
+    if (dim == 0) dim = 1;
+    u32 ps = (pageSize_ > 0) ? pageSize_ : config_.pageSize;
+
+    u32 row = pageIndex / dim;
+    u32 col = pageIndex % dim;
+    atlasX = col * ps;
+    atlasY = row * ps;
+    atlasX_ = atlasX;
+    atlasY_ = atlasY;
+}
+
+u32 VirtualShadowMaps::selectCascade(const Vec3& worldPos, const Vec3& camPos, f32 camNear) const {
+    if (clipmaps_.empty()) return 0;
+
+    f32 dist = (worldPos - camPos).length();
+    for (usize i = 0; i < clipmaps_.size(); i++) {
+        const CascadeClipmap& cc = clipmaps_[i];
+        if (!cc.active) continue;
+
+        f32 lo = cc.splitNear;
+        if (i == 0) lo = Mathf::max(lo, Mathf::max(camNear, 0.0f));
+        if (dist >= lo && dist < cc.splitFar) return cc.mapIndex;
+    }
+
+    return clipmaps_[clipmaps_.size() - 1].mapIndex;
+}
+
+void VirtualShadowMaps::reset() {
+    pageTable_.clear();
+    lastTouched_.clear();
+    pages_.clear();
+    clipmaps_.clear();
+
+    residentPageCount_ = 0;
+    totalPagesRequested_ = 0;
+    totalPagesEvicted_ = 0;
+    atlasX_ = 0;
+    atlasY_ = 0;
+
+    stats_.residentPages = 0;
+    stats_.pagesEvicted = 0;
+    stats_.pagesRequested = 0;
+    stats_.activeClipmaps = 0;
+    stats_.pageTableEntries = 0;
+}
+
+u32 VirtualShadowMaps::getResidentPages() const { return stats_.residentPages; }
+u32 VirtualShadowMaps::getPagesEvicted() const { return stats_.pagesEvicted; }
+u32 VirtualShadowMaps::getPagesRequested() const { return stats_.pagesRequested; }
+u32 VirtualShadowMaps::getActiveClipmaps() const { return stats_.activeClipmaps; }
+u64 VirtualShadowMaps::getPageTableEntries() const { return stats_.pageTableEntries; }
+
 
 void VirtualShadowMaps::computeReprojectionMatrix(const Mat4& currentVP, const Mat4& historyVP,
                                                     Mat4& reprojection) {

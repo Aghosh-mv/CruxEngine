@@ -45,6 +45,15 @@ void NaniteSystem::shutdown() {
     materialBatches_.clear();
     fallbackMeshes_.clear();
     hierarchicalDepthBuffer_.clear();
+    gpuMeshlets_.clear();
+    gpuInstances_.clear();
+    drawList_.clear();
+    clusterPositions_.clear();
+    clusterIndexData_.clear();
+    depthBuffer_.clear();
+    visibleClusterFlags_.clear();
+    bufferId_ = 0;
+    instanceBufferId_ = 0;
 
     initialized_ = false;
 }
@@ -934,6 +943,339 @@ const Vector<u32>& NaniteSystem::getFallbackIndices(u32 meshId) const {
 
 void NaniteSystem::endFrame() {
     managePersistence();
+}
+
+// ============================================================================
+// GPU-side cluster generation
+// ============================================================================
+static constexpr f32 kFarDepth = 3.402823466e+38f;
+
+Vector<GPUMeshlet> NaniteSystem::buildMeshletList(const Vector<f32>& positions,
+                                                  const Vector<u32>& indices,
+                                                  f32 maxTrianglesPerCluster) {
+    Vector<GPUMeshlet> built;
+
+    u32 totalTriangles = static_cast<u32>(indices.size() / 3);
+    if (totalTriangles == 0) return built;
+
+    u32 maxTris = static_cast<u32>(maxTrianglesPerCluster);
+    if (maxTris == 0) maxTris = 1;
+
+    u32 vertexCount = static_cast<u32>(positions.size() / 3);
+    u32 triStart = 0;
+
+    while (triStart < totalTriangles) {
+        u32 triCount = Mathf::min(maxTris, totalTriangles - triStart);
+
+        GPUMeshlet meshlet;
+        meshlet.vertexOffset = static_cast<u32>(clusterPositions_.size() / 3);
+        meshlet.indexOffset = static_cast<u32>(clusterIndexData_.size());
+        meshlet.vertexCount = 0;
+        meshlet.triangleCount = triCount;
+        meshlet.boundsCenter = Vec3(0.0f);
+        meshlet.boundsRadius = 0.0f;
+
+        Vector<u32> uniqueVertices;
+        Vec3 boundsMin(1e30f);
+        Vec3 boundsMax(-1e30f);
+
+        for (u32 t = 0; t < triCount; t++) {
+            for (u32 v = 0; v < 3; v++) {
+                u32 globalIdx = indices[(triStart + t) * 3 + v];
+
+                i32 existing = -1;
+                for (u32 u = 0; u < uniqueVertices.size(); u++) {
+                    if (uniqueVertices[u] == globalIdx) {
+                        existing = (i32)u;
+                        break;
+                    }
+                }
+
+                u32 localIdx;
+                if (existing >= 0) {
+                    localIdx = (u32)existing;
+                } else {
+                    localIdx = static_cast<u32>(uniqueVertices.size());
+                    uniqueVertices.push_back(globalIdx);
+                    if (globalIdx < vertexCount) {
+                        Vec3 p(positions[globalIdx * 3],
+                               positions[globalIdx * 3 + 1],
+                               positions[globalIdx * 3 + 2]);
+                        boundsMin = boundsMin.min(p);
+                        boundsMax = boundsMax.max(p);
+                    }
+                }
+
+                clusterIndexData_.push_back(localIdx);
+            }
+        }
+
+        for (u32 u = 0; u < uniqueVertices.size(); u++) {
+            u32 gIdx = uniqueVertices[u];
+            if (gIdx < vertexCount) {
+                clusterPositions_.push_back(positions[gIdx * 3]);
+                clusterPositions_.push_back(positions[gIdx * 3 + 1]);
+                clusterPositions_.push_back(positions[gIdx * 3 + 2]);
+            } else {
+                clusterPositions_.push_back(0.0f);
+                clusterPositions_.push_back(0.0f);
+                clusterPositions_.push_back(0.0f);
+            }
+        }
+
+        meshlet.vertexCount = static_cast<u32>(uniqueVertices.size());
+        if (uniqueVertices.size() > 0) {
+            meshlet.boundsCenter = (boundsMin + boundsMax) * 0.5f;
+            meshlet.boundsRadius = (boundsMax - boundsMin).length() * 0.5f;
+        }
+
+        gpuMeshlets_.push_back(meshlet);
+        built.push_back(meshlet);
+        triStart += triCount;
+    }
+
+    return built;
+}
+
+void NaniteSystem::createGPUResources(u32 meshletCount, u32 instanceCount) {
+    if (gpuMeshlets_.size() < meshletCount) gpuMeshlets_.resize(meshletCount);
+    if (gpuInstances_.size() < instanceCount) gpuInstances_.resize(instanceCount);
+
+    bufferId_ = 0;
+    instanceBufferId_ = 0;
+
+    stats_.gpuBytesUploaded =
+        (u64)gpuMeshlets_.size() * (u64)sizeof(GPUMeshlet) +
+        (u64)gpuInstances_.size() * (u64)sizeof(GPUInstance) +
+        (u64)clusterIndexData_.size() * (u64)sizeof(u32);
+}
+
+void NaniteSystem::resetFrame() {
+    drawList_.clear();
+    depthBuffer_.clear();
+    stats_.clustersVisible = 0;
+    stats_.trianglesRasterized = 0;
+    stats_.drawsGenerated = 0;
+    stats_.lodSelected = 0;
+}
+
+bool NaniteSystem::cullCluster(const Mat4& viewProj, const f32* frustumPlanes,
+                               const GPUMeshlet& meshlet,
+                               const GPUInstance& instance) const {
+    Vec4 worldCenter4 = instance.transform * Vec4(meshlet.boundsCenter, 1.0f);
+    Vec3 center = worldCenter4.xyz();
+    if (Mathf::abs(worldCenter4.w) > 0.0001f) {
+        center = center / worldCenter4.w;
+    }
+
+    Vec3 colX(instance.transform.m[0], instance.transform.m[1], instance.transform.m[2]);
+    Vec3 colY(instance.transform.m[4], instance.transform.m[5], instance.transform.m[6]);
+    Vec3 colZ(instance.transform.m[8], instance.transform.m[9], instance.transform.m[10]);
+    f32 scaleSq = Mathf::max(colX.lengthSquared(),
+                             Mathf::max(colY.lengthSquared(), colZ.lengthSquared()));
+    if (scaleSq < 1.0f) scaleSq = 1.0f;
+    f32 radius = meshlet.boundsRadius * Mathf::sqrt(scaleSq);
+
+    FrustumPlane planes[6];
+    if (frustumPlanes != nullptr) {
+        for (u32 p = 0; p < 6; p++) {
+            planes[p].normal = Vec3(frustumPlanes[p * 4 + 0],
+                                    frustumPlanes[p * 4 + 1],
+                                    frustumPlanes[p * 4 + 2]);
+            planes[p].d = frustumPlanes[p * 4 + 3];
+        }
+    } else {
+        const f32* m = viewProj.m;
+        planes[0].normal = Vec3(m[3] + m[0], m[7] + m[4], m[11] + m[8]);
+        planes[0].d = m[15] + m[12];
+        planes[1].normal = Vec3(m[3] - m[0], m[7] - m[4], m[11] - m[8]);
+        planes[1].d = m[15] - m[12];
+        planes[2].normal = Vec3(m[3] + m[1], m[7] + m[5], m[11] + m[9]);
+        planes[2].d = m[15] + m[13];
+        planes[3].normal = Vec3(m[3] - m[1], m[7] - m[5], m[11] - m[9]);
+        planes[3].d = m[15] - m[13];
+        planes[4].normal = Vec3(m[3] + m[2], m[7] + m[6], m[11] + m[10]);
+        planes[4].d = m[15] + m[14];
+        planes[5].normal = Vec3(m[3] - m[2], m[7] - m[6], m[11] - m[10]);
+        planes[5].d = m[15] - m[14];
+
+        for (u32 p = 0; p < 6; p++) {
+            f32 len = planes[p].normal.length();
+            if (len > 0.0f) {
+                planes[p].normal = planes[p].normal / len;
+                planes[p].d /= len;
+            }
+        }
+    }
+
+    for (u32 p = 0; p < 6; p++) {
+        f32 dist = planes[p].normal.dot(center) + planes[p].d;
+        if (dist < -radius) return false;
+    }
+
+    return true;
+}
+
+void NaniteSystem::rasterizeClusterDepth(Mat4 viewProj, u32 viewportW, u32 viewportH,
+                                         const GPUMeshlet& meshlet,
+                                         const GPUInstance& instance,
+                                         Vector<f32>& depthBuffer,
+                                         Vector<u32>& visibleClusterFlags) {
+    if (viewportW == 0 || viewportH == 0) return;
+    if (meshlet.indexOffset > clusterIndexData_.size()) return;
+    if (meshlet.vertexOffset > clusterPositions_.size() / 3) return;
+
+    usize meshletIndex = 0;
+    if (gpuMeshlets_.data() != nullptr) {
+        ptrdiff_t diff = &meshlet - gpuMeshlets_.data();
+        if (diff >= 0 && (usize)diff < gpuMeshlets_.size()) {
+            meshletIndex = (usize)diff;
+        }
+    }
+
+    u32 triCount = static_cast<u32>((clusterIndexData_.size() - meshlet.indexOffset) / 3);
+    if (triCount > meshlet.triangleCount) triCount = meshlet.triangleCount;
+    if (triCount == 0) return;
+
+    Mat4 mvp = viewProj * instance.transform;
+
+    for (u32 t = 0; t < triCount; t++) {
+        u32 i0 = clusterIndexData_[meshlet.indexOffset + t * 3 + 0];
+        u32 i1 = clusterIndexData_[meshlet.indexOffset + t * 3 + 1];
+        u32 i2 = clusterIndexData_[meshlet.indexOffset + t * 3 + 2];
+
+        u32 b0 = (meshlet.vertexOffset + i0) * 3;
+        u32 b1 = (meshlet.vertexOffset + i1) * 3;
+        u32 b2 = (meshlet.vertexOffset + i2) * 3;
+        if (b0 + 2 >= clusterPositions_.size() ||
+            b1 + 2 >= clusterPositions_.size() ||
+            b2 + 2 >= clusterPositions_.size()) continue;
+
+        Vec3 v0(clusterPositions_[b0], clusterPositions_[b0 + 1], clusterPositions_[b0 + 2]);
+        Vec3 v1(clusterPositions_[b1], clusterPositions_[b1 + 1], clusterPositions_[b1 + 2]);
+        Vec3 v2(clusterPositions_[b2], clusterPositions_[b2 + 1], clusterPositions_[b2 + 2]);
+
+        Vec4 c0 = mvp * Vec4(v0, 1.0f);
+        Vec4 c1 = mvp * Vec4(v1, 1.0f);
+        Vec4 c2 = mvp * Vec4(v2, 1.0f);
+
+        if (c0.w <= 0.0f || c1.w <= 0.0f || c2.w <= 0.0f) continue;
+
+        f32 x0 = (c0.x / c0.w * 0.5f + 0.5f) * (f32)viewportW;
+        f32 y0 = (c0.y / c0.w * 0.5f + 0.5f) * (f32)viewportH;
+        f32 z0 = c0.z / c0.w;
+        f32 x1 = (c1.x / c1.w * 0.5f + 0.5f) * (f32)viewportW;
+        f32 y1 = (c1.y / c1.w * 0.5f + 0.5f) * (f32)viewportH;
+        f32 z1 = c1.z / c1.w;
+        f32 x2 = (c2.x / c2.w * 0.5f + 0.5f) * (f32)viewportW;
+        f32 y2 = (c2.y / c2.w * 0.5f + 0.5f) * (f32)viewportH;
+        f32 z2 = c2.z / c2.w;
+
+        f32 minX = Mathf::min(Mathf::min(x0, x1), x2);
+        f32 maxX = Mathf::max(Mathf::max(x0, x1), x2);
+        f32 minY = Mathf::min(Mathf::min(y0, y1), y2);
+        f32 maxY = Mathf::max(Mathf::max(y0, y1), y2);
+
+        i32 ix0 = Mathf::max((i32)std::floor(minX), 0);
+        i32 ix1 = Mathf::min((i32)std::ceil(maxX), (i32)viewportW - 1);
+        i32 iy0 = Mathf::max((i32)std::floor(minY), 0);
+        i32 iy1 = Mathf::min((i32)std::ceil(maxY), (i32)viewportH - 1);
+
+        if (ix0 > ix1 || iy0 > iy1) continue;
+
+        f32 area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
+        if (Mathf::abs(area) < 0.0001f) continue;
+        f32 invArea = 1.0f / area;
+
+        for (i32 y = iy0; y <= iy1; y++) {
+            f32 py = (f32)y + 0.5f;
+            usize row = (usize)y * (usize)viewportW;
+            for (i32 x = ix0; x <= ix1; x++) {
+                f32 px = (f32)x + 0.5f;
+
+                f32 w0 = (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1);
+                f32 w1 = (px - x2) * (y0 - y2) - (py - y2) * (x0 - x2);
+                f32 w2 = (px - x0) * (y1 - y0) - (py - y0) * (x1 - x0);
+
+                if ((w0 >= 0.0f && w1 >= 0.0f && w2 >= 0.0f) ||
+                    (w0 <= 0.0f && w1 <= 0.0f && w2 <= 0.0f)) {
+                    f32 depth = (z0 * w0 + z1 * w1 + z2 * w2) * invArea;
+                    usize idx = row + (usize)x;
+                    if (idx < depthBuffer.size() && depth < depthBuffer[idx]) {
+                        depthBuffer[idx] = depth;
+                    }
+                }
+            }
+        }
+    }
+
+    if (meshletIndex < visibleClusterFlags.size()) {
+        visibleClusterFlags[meshletIndex] = 1;
+    }
+}
+
+void NaniteSystem::processFrame(const Mat4& viewProj, const f32* frustumPlanes,
+                                u32 viewportW, u32 viewportH, u32 frameIndex) {
+    resetFrame();
+    frameIndex_ = frameIndex;
+
+    usize pixelCount = (usize)viewportW * (usize)viewportH;
+    depthBuffer_.resize(pixelCount);
+    for (usize i = 0; i < pixelCount; i++) depthBuffer_[i] = kFarDepth;
+
+    visibleClusterFlags_.resize(gpuMeshlets_.size());
+    for (usize i = 0; i < visibleClusterFlags_.size(); i++) visibleClusterFlags_[i] = 0;
+
+    for (u32 i = 0; i < gpuInstances_.size(); i++) {
+        const GPUInstance& instance = gpuInstances_[i];
+        if (instance.enabled == 0) continue;
+
+        u32 clusterStart = Mathf::min(instance.clusterOffset, (u32)gpuMeshlets_.size());
+        u32 clusterEnd = Mathf::min(clusterStart + instance.clusterCount, (u32)gpuMeshlets_.size());
+
+        for (u32 m = clusterStart; m < clusterEnd; m++) {
+            const GPUMeshlet& meshlet = gpuMeshlets_[m];
+
+            if (!cullCluster(viewProj, frustumPlanes, meshlet, instance)) continue;
+
+            rasterizeClusterDepth(viewProj, viewportW, viewportH, meshlet, instance,
+                                  depthBuffer_, visibleClusterFlags_);
+
+            ClusterDraw draw;
+            draw.instanceId = i;
+            draw.clusterId = m;
+            draw.materialId = 0;
+            drawList_.push_back(draw);
+
+            stats_.clustersVisible++;
+            stats_.trianglesRasterized += meshlet.triangleCount;
+            stats_.drawsGenerated++;
+        }
+    }
+}
+
+u32 NaniteSystem::selectLOD(u32 clusterCount, const Vector<f32>& clusterRadii,
+                            f32 maxError, f32 viewDistance) {
+    u32 available = clusterRadii.size() < clusterCount ? (u32)clusterRadii.size() : clusterCount;
+
+    Vector<f32> radii;
+    for (u32 i = 0; i < available; i++) {
+        radii.push_back(clusterRadii[i]);
+    }
+    std::sort(radii.begin(), radii.end(),
+              [](f32 a, f32 b) { return a > b; });
+
+    f32 distance = Mathf::abs(viewDistance);
+    if (distance < 0.0001f) distance = 0.0001f;
+
+    u32 count = 0;
+    for (u32 i = 0; i < radii.size(); i++) {
+        if (radii[i] / distance > maxError) count++;
+        else break;
+    }
+
+    stats_.lodSelected = count;
+    return count;
 }
 
 // ============================================================================

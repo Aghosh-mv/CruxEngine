@@ -1147,6 +1147,30 @@ src/Renderer/FrostWaveletGI.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.s
 .PHONY : src/Renderer/FrostWaveletGI.cpp.s
 
+src/Renderer/FrostZenith.o: src/Renderer/FrostZenith.cpp.o
+.PHONY : src/Renderer/FrostZenith.o
+
+# target to build an object file
+src/Renderer/FrostZenith.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o
+.PHONY : src/Renderer/FrostZenith.cpp.o
+
+src/Renderer/FrostZenith.i: src/Renderer/FrostZenith.cpp.i
+.PHONY : src/Renderer/FrostZenith.i
+
+# target to preprocess a source file
+src/Renderer/FrostZenith.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.i
+.PHONY : src/Renderer/FrostZenith.cpp.i
+
+src/Renderer/FrostZenith.s: src/Renderer/FrostZenith.cpp.s
+.PHONY : src/Renderer/FrostZenith.s
+
+# target to generate assembly for a file
+src/Renderer/FrostZenith.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.s
+.PHONY : src/Renderer/FrostZenith.cpp.s
+
 src/Renderer/GPUProfiler.o: src/Renderer/GPUProfiler.cpp.o
 .PHONY : src/Renderer/GPUProfiler.o
 
@@ -2049,6 +2073,9 @@ help:
 	@echo "... src/Renderer/FrostWaveletGI.o"
 	@echo "... src/Renderer/FrostWaveletGI.i"
 	@echo "... src/Renderer/FrostWaveletGI.s"
+	@echo "... src/Renderer/FrostZenith.o"
+	@echo "... src/Renderer/FrostZenith.i"
+	@echo "... src/Renderer/FrostZenith.s"
 	@echo "... src/Renderer/GPUProfiler.o"
 	@echo "... src/Renderer/GPUProfiler.i"
 	@echo "... src/Renderer/GPUProfiler.s"

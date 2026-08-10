@@ -64,6 +64,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/RayTracingSystem.cpp
     src/Renderer/MegaLights.cpp
     src/Renderer/OcclusionCulling.cpp
+    src/Renderer/FrostZenith.cpp
 )
 
 # ============================================================================

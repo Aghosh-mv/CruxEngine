@@ -163,6 +163,38 @@ struct OcclusionNode {
 };
 
 // ============================================================================
+// GPU-side cluster representation
+// ============================================================================
+struct GPUMeshlet {
+    u32 vertexOffset;
+    u32 indexOffset;
+    u32 vertexCount;
+    u32 triangleCount;
+    Vec3 boundsCenter;
+    f32 boundsRadius;
+};
+
+struct GPUInstance {
+    Mat4 transform;
+    Vec3 boundsCenter;
+    f32 boundsRadius;
+    u32 clusterOffset;
+    u32 clusterCount;
+    u32 enabled;
+};
+
+struct ClusterDraw {
+    u32 instanceId;
+    u32 clusterId;
+    u32 materialId;
+};
+
+struct FrustumPlane {
+    Vec3 normal;
+    f32 d;
+};
+
+// ============================================================================
 // Nanite System
 // ============================================================================
 class NaniteSystem {
@@ -215,8 +247,44 @@ public:
         u32 drawCalls;
         f32 cullingTimeMs;
         f32 renderTimeMs;
+        u32 clustersVisible = 0;
+        u64 trianglesRasterized = 0;
+        u32 drawsGenerated = 0;
+        u32 lodSelected = 0;
+        u64 gpuBytesUploaded = 0;
     };
     const Stats& stats() const { return stats_; }
+
+    // GPU-side cluster generation
+    Vector<GPUMeshlet> buildMeshletList(const Vector<f32>& positions,
+                                        const Vector<u32>& indices,
+                                        f32 maxTrianglesPerCluster);
+    void createGPUResources(u32 meshletCount, u32 instanceCount);
+
+    // Software rasterization fallback
+    void rasterizeClusterDepth(Mat4 viewProj, u32 viewportW, u32 viewportH,
+                               const GPUMeshlet& meshlet, const GPUInstance& instance,
+                               Vector<f32>& depthBuffer, Vector<u32>& visibleClusterFlags);
+    bool cullCluster(const Mat4& viewProj, const f32* frustumPlanes,
+                     const GPUMeshlet& meshlet, const GPUInstance& instance) const;
+
+    // GPU-driven frame processing
+    void processFrame(const Mat4& viewProj, const f32* frustumPlanes,
+                      u32 viewportW, u32 viewportH, u32 frameIndex);
+    u32 selectLOD(u32 clusterCount, const Vector<f32>& clusterRadii,
+                  f32 maxError, f32 viewDistance);
+    void resetFrame();
+
+    const Vector<ClusterDraw>& getDrawList() const { return drawList_; }
+    const Vector<GPUMeshlet>& getMeshlets() const { return gpuMeshlets_; }
+    const Vector<GPUInstance>& getInstances() const { return gpuInstances_; }
+    const Vector<u32>& getClusterIndexData() const { return clusterIndexData_; }
+    const Vector<f32>& getDepthBuffer() const { return depthBuffer_; }
+    u32 clustersVisible() const { return stats_.clustersVisible; }
+    u64 trianglesRasterized() const { return stats_.trianglesRasterized; }
+    u32 drawsGenerated() const { return stats_.drawsGenerated; }
+    u32 lodSelected() const { return stats_.lodSelected; }
+    u64 gpuBytesUploaded() const { return stats_.gpuBytesUploaded; }
 
 private:
     // Cluster generation
@@ -292,6 +360,17 @@ private:
     Vector<OcclusionNode> occlusionHierarchy_;
     Vector<VisibleCluster> visibleClusters_;
     Vector<MaterialBatch> materialBatches_;
+
+    // GPU cluster data
+    Vector<GPUMeshlet> gpuMeshlets_;
+    Vector<GPUInstance> gpuInstances_;
+    Vector<ClusterDraw> drawList_;
+    Vector<f32> clusterPositions_;
+    Vector<u32> clusterIndexData_;
+    Vector<f32> depthBuffer_;
+    Vector<u32> visibleClusterFlags_;
+    u32 bufferId_ = 0;
+    u32 instanceBufferId_ = 0;
 
     // Occlusion data
     Vector<f32> hierarchicalDepthBuffer_;

@@ -1,7 +1,7 @@
-CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o: \
- /home/tinkerspace/FrostEngine/src/Renderer/VirtualShadowMaps.cpp \
+CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o: \
+ /home/tinkerspace/FrostEngine/src/Renderer/FrostZenith.cpp \
  /usr/include/stdc-predef.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/VirtualShadowMaps.h \
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/FrostZenith.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Types.h \
  /usr/include/c++/11/cstdint \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -190,11 +190,21 @@ CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o: \
  /usr/include/c++/11/bits/charconv.h \
  /usr/include/c++/11/bits/basic_string.tcc \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/String.h \
- /usr/include/c++/11/cstdarg \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Types.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/UniquePtr.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Light.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/NaniteSystem.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Camera.h
+ /usr/include/c++/11/cstdarg /usr/include/c++/11/atomic \
+ /usr/include/c++/11/bits/atomic_base.h \
+ /usr/include/c++/11/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/11/condition_variable /usr/include/c++/11/chrono \
+ /usr/include/c++/11/ratio /usr/include/c++/11/ctime \
+ /usr/include/c++/11/bits/parse_numbers.h \
+ /usr/include/c++/11/bits/std_mutex.h /usr/include/c++/11/system_error \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/error_constants.h \
+ /usr/include/c++/11/bits/unique_lock.h \
+ /usr/include/c++/11/bits/shared_ptr.h \
+ /usr/include/c++/11/bits/shared_ptr_base.h \
+ /usr/include/c++/11/bits/allocated_ptr.h \
+ /usr/include/c++/11/bits/unique_ptr.h \
+ /usr/include/c++/11/ext/concurrence.h /usr/include/c++/11/deque \
+ /usr/include/c++/11/bits/stl_deque.h /usr/include/c++/11/bits/deque.tcc \
+ /usr/include/c++/11/mutex /usr/include/c++/11/thread \
+ /usr/include/c++/11/bits/std_thread.h \
+ /usr/include/c++/11/bits/this_thread_sleep.h

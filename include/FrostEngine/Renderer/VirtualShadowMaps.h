@@ -11,6 +11,7 @@
 
 #include "Core/Types.h"
 #include "Core/Vector.h"
+#include "Core/HashMap.h"
 #include "Core/Vec3.h"
 #include "Core/Mat4.h"
 #include "Core/Math.h"
@@ -36,8 +37,10 @@ static constexpr u32 VSM_MAX_LIGHTS = 64;                 // max shadow-casting 
 // Page states
 // ============================================================================
 enum class PageState : u8 {
+    Free = 0,
     Unallocated = 0,
     Allocated,
+    Resident,
     Rendering,
     Rendered,
     Cached,
@@ -51,6 +54,17 @@ enum class PageType : u8 {
     SpotLight,              // spot light shadow
     AreaLight,              // area light shadow
     ContactShadow           // short-range contact shadow
+};
+
+// ============================================================================
+// Physical page slot in the virtual page table
+// ============================================================================
+struct Page {
+    u32 x = 0;
+    u32 y = 0;
+    u32 level = 0;
+    PageState state = PageState::Free;
+    u64 lastTouchedFrame = 0;
 };
 
 // ============================================================================
@@ -93,6 +107,18 @@ struct ClipmapRing {
 };
 
 // ============================================================================
+// Cascade clipmap ring
+// ============================================================================
+struct CascadeClipmap {
+    f32 splitNear = 0.0f;
+    f32 splitFar = 0.0f;
+    f32 texelSize = 0.0f;
+    Mat4 viewProjection;
+    u32 mapIndex = 0;
+    bool active = true;
+};
+
+// ============================================================================
 // Moment Shadow Map data
 // ============================================================================
 struct MomentData {
@@ -122,7 +148,11 @@ struct ContactShadowConfig {
 struct VSMConfig {
     u32 virtualResolution = VSM_VIRTUAL_RESOLUTION;
     u32 pageSize = VSM_PAGE_SIZE;
-    u32 clipmapLevels = VSM_CLIPMAP_LEVELS;
+    u32 clipmapLevels = 4;
+    u32 pagesPerDim = 16;
+    f32 farPlane = 500.0f;
+    f32 firstSplit = 10.0f;
+    f32 splitFactor = 3.0f;
     f32 clipmapBaseResolution = 0.5f;   // meters per texel at level 0
     f32 clipmapSpacingFactor = 2.0f;
     f32 pageLifeTime = 300.0f;          // frames before eviction
@@ -169,8 +199,28 @@ public:
     void endFrame();
 
     // Configuration
-    void setConfig(const VSMConfig& cfg) { config_ = cfg; }
+    void setConfig(const VSMConfig& cfg) { config_ = cfg; pageSize_ = cfg.pageSize; pagesPerDim_ = cfg.pagesPerDim; }
     const VSMConfig& config() const { return config_; }
+    const VSMConfig& getConfig() const;
+
+    // Cascade clipmaps
+    void computeClipmaps(const Vec3& lightDir, const Vec3& center, f32 radius);
+    void allocatePagesForBounds(const Vec3& center, f32 radius);
+    void evictOldestPages(u32 maxResident);
+    void requestPage(u32 x, u32 y, u32 level);
+    u32 selectCascade(const Vec3& worldPos, const Vec3& camPos, f32 camNear) const;
+    void placePage(u32 pageIndex, u32& atlasX, u32& atlasY);
+    void reset();
+
+    const HashMap<u64, u32>& getPageTable() const;
+    const Vector<Page>& getPages() const;
+
+    // Cascade clipmap stats accessors
+    u32 getResidentPages() const;
+    u32 getPagesEvicted() const;
+    u32 getPagesRequested() const;
+    u32 getActiveClipmaps() const;
+    u64 getPageTableEntries() const;
 
     // Light management
     u32 addShadowCastingLight(const Vec3& position, const Vec3& direction,
@@ -231,6 +281,11 @@ public:
         f32 shadowRenderTimeMs;
         f32 contactShadowTimeMs;
         f32 temporalResolveTimeMs;
+        u32 residentPages;
+        u32 pagesEvicted;
+        u32 pagesRequested;
+        u32 activeClipmaps;
+        u64 pageTableEntries;
     };
     const Stats& stats() const { return stats_; }
 
@@ -274,12 +329,25 @@ private:
     u32 frameIndex_ = 0;
 
     // Page table
-    Vector<ShadowPage> pages_;
+    Vector<ShadowPage> shadowPages_;
     u32 pageCount_ = 0;
     u32 pageCapacity_ = 0;
 
+    // Cascade clipmap page table
+    Vector<CascadeClipmap> clipmaps_;
+    HashMap<u64, u32> pageTable_;
+    Vector<u64> lastTouched_;
+    Vector<Page> pages_;
+    u32 pageSize_ = 128;
+    u32 pagesPerDim_ = 16;
+    u32 atlasX_ = 0;
+    u32 atlasY_ = 0;
+    u32 residentPageCount_ = 0;
+    u64 totalPagesRequested_ = 0;
+    u64 totalPagesEvicted_ = 0;
+
     // Clipmaps
-    ClipmapRing clipmaps_[VSM_CLIPMAP_LEVELS];
+    ClipmapRing clipmapRings_[VSM_CLIPMAP_LEVELS];
 
     // Light data
     struct ShadowLight {

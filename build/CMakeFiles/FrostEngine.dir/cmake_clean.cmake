@@ -79,6 +79,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.o"
