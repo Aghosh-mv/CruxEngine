@@ -1332,4 +1332,307 @@ f32 FrostPhotonMapper::computePhotonMapCoverage() const {
     return volume > 0 ? (f32)photonCount_ / volume : 0;
 }
 
+// ============================================================================
+// Extended Photon Map — Spatial Hashing, Caustics, Volumetric Scattering
+// ============================================================================
+
+u64 FrostPhotonMapper::spatialHash(const Vec3& pos) const {
+    f32 invCell = 1.0f / photonCfg_.cellSize;
+    i32 cx = (i32)std::floor(pos.x * invCell);
+    i32 cy = (i32)std::floor(pos.y * invCell);
+    i32 cz = (i32)std::floor(pos.z * invCell);
+    u32 ux = (u32)cx;
+    u32 uy = (u32)cy;
+    u32 uz = (u32)cz;
+    return ((u64)ux) | ((u64)uy << 21) | ((u64)uz << 42);
+}
+
+void FrostPhotonMapper::shootPhotons(const Vec3& lightPos, const Vec3& lightPower,
+                                      u32 count, u32 frameIndex) {
+    std::mt19937 rng(42 + frameIndex * 7919);
+    std::uniform_real_distribution<f32> dist(0.0f, 1.0f);
+
+    f32 powerPerPhoton = 1.0f / (f32)count;
+
+    for (u32 i = 0; i < count; i++) {
+        // Uniform random direction on unit sphere
+        f32 theta = dist(rng) * Mathf::TWO_PI;
+        f32 phi = std::acos(2.0f * dist(rng) - 1.0f);
+        f32 sinPhi = std::sin(phi);
+        Vec3 dir(sinPhi * std::cos(theta), sinPhi * std::sin(theta), std::cos(phi));
+
+        // Trace ray into scene
+        Vec3 hitPos, hitNormal;
+        f32 t;
+        u32 materialID, meshID;
+
+        if (!intersectScene(lightPos, dir, t, hitPos, hitNormal, materialID, meshID))
+            continue;
+
+        if (materialID >= materialCount_) continue;
+        const PhotonMaterial& mat = sceneMaterials_[materialID];
+
+        f32 NdotL = Mathf::max(hitNormal.dot(-dir), 0.0f);
+        if (NdotL <= 0.0f) continue;
+
+        // Photon power at first diffuse hit: power * albedo * NdotL / (2*PI)
+        Vec3 photonPower = lightPower * powerPerPhoton * mat.albedo * NdotL / (Mathf::TWO_PI);
+
+        Photon photon;
+        photon.position = hitPos + hitNormal * 0.001f;
+        photon.direction = dir;
+        photon.power = photonPower;
+        photon.normal = hitNormal;
+        photon.flags = 0;
+        photon.bounceCount = 1;
+        photon.depth = 1;
+        photon.wavelength = 0.55f;
+        photon.caustic = false;
+        photon.volumetric = false;
+
+        // Trace caustic path: specular -> diffuse
+        Vec3 curDir = dir;
+        Vec3 curPos = hitPos + hitNormal * 0.001f;
+        Vec3 curPower = photonPower;
+        Vec3 curNormal = hitNormal;
+
+        if (mat.isSpecular && photonCfg_.enableCaustics) {
+            for (u32 b = 0; b < photonCfg_.maxDepth; b++) {
+                Vec3 reflDir = curDir - curNormal * (2.0f * curDir.dot(curNormal));
+                curDir = reflDir;
+                curPos = curPos + reflDir * 0.001f;
+
+                Vec3 nextHitPos, nextHitNormal;
+                f32 nextT;
+                u32 nextMatID, nextMeshID;
+
+                if (!intersectScene(curPos, curDir, nextT, nextHitPos, nextHitNormal,
+                                    nextMatID, nextMeshID))
+                    break;
+                if (nextMatID >= materialCount_) break;
+
+                const PhotonMaterial& nextMat = sceneMaterials_[nextMatID];
+                f32 nextNdotL = Mathf::max(nextHitNormal.dot(-curDir), 0.0f);
+
+                if (!nextMat.isSpecular) {
+                    // Caustic: specular path ending at diffuse
+                    curPower = curPower * nextMat.albedo * nextNdotL / (Mathf::TWO_PI);
+                    photon.position = nextHitPos + nextHitNormal * 0.001f;
+                    photon.direction = curDir;
+                    photon.power = curPower;
+                    photon.normal = nextHitNormal;
+                    photon.caustic = true;
+                    photon.flags |= 2;
+                    photon.depth = b + 2;
+                    break;
+                }
+
+                curPower = curPower * nextMat.albedo;
+                curNormal = nextHitNormal;
+            }
+        }
+
+        // Mark volumetric participation
+        if (photonCfg_.enableVolumetric) {
+            photon.volumetric = true;
+            photon.flags |= 4;
+        }
+
+        // Store photon
+        photons_.push_back(photon);
+        photonCount_ = (u32)photons_.size();
+
+        // Insert into spatial hash
+        u64 hash = spatialHash(photon.position);
+        photonMap_[hash].push_back(photonCount_ - 1);
+
+        // Update extended stats
+        stats_.emitted++;
+        stats_.photonsEmitted++;
+        stats_.photonsStored++;
+        if (photon.caustic) {
+            stats_.causticCount++;
+            stats_.causticPhotons++;
+        }
+        if (photon.volumetric) {
+            stats_.volumetricPhotons++;
+        }
+    }
+}
+
+void FrostPhotonMapper::gatherPhotons(const Vec3& pos, const Vec3& normal, f32 radius,
+                                       Vec3& irradiance, Vec3& causticIrradiance,
+                                       Vec3& volumetricIrradiance) const {
+    irradiance = Vec3(0);
+    causticIrradiance = Vec3(0);
+    volumetricIrradiance = Vec3(0);
+
+    f32 invCell = 1.0f / photonCfg_.cellSize;
+    i32 cx = (i32)std::floor(pos.x * invCell);
+    i32 cy = (i32)std::floor(pos.y * invCell);
+    i32 cz = (i32)std::floor(pos.z * invCell);
+
+    f32 radiusSq = radius * radius;
+
+    // Query 27 neighbor cells
+    for (i32 dx = -1; dx <= 1; dx++) {
+        for (i32 dy = -1; dy <= 1; dy++) {
+            for (i32 dz = -1; dz <= 1; dz++) {
+                i32 nx = cx + dx;
+                i32 ny = cy + dy;
+                i32 nz = cz + dz;
+
+                u32 ux = (u32)nx;
+                u32 uy = (u32)ny;
+                u32 uz = (u32)nz;
+                u64 cellHash = ((u64)ux) | ((u64)uy << 21) | ((u64)uz << 42);
+
+                auto it = photonMap_.find(cellHash);
+                if (it == photonMap_.end()) continue;
+
+                const Vector<u32>& cellPhotons = it.value();
+                for (u32 i = 0; i < cellPhotons.size(); i++) {
+                    u32 pIdx = cellPhotons[i];
+                    if (pIdx >= photons_.size()) continue;
+
+                    const Photon& photon = photons_[pIdx];
+                    f32 distSq = (photon.position - pos).lengthSquared();
+                    if (distSq > radiusSq) continue;
+
+                    f32 dist = Mathf::sqrt(distSq);
+                    f32 NdotL = Mathf::max(normal.dot(-photon.direction), 0.0f);
+                    if (NdotL <= 0.0f) continue;
+
+                    f32 falloff = 1.0f - dist / radius;
+                    f32 weight = falloff * falloff * NdotL;
+
+                    if (photon.caustic) {
+                        causticIrradiance += photon.power * weight;
+                    } else if (photon.volumetric) {
+                        volumetricIrradiance += photon.power * weight;
+                    } else {
+                        irradiance += photon.power * weight;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void FrostPhotonMapper::traceVolumetricScattering(const Vec3& origin, const Vec3& dir,
+                                                    f32 maxDist, const Vec3& lightPos,
+                                                    const Vec3& lightPower,
+                                                    Vec3& scatteredLight) const {
+    scatteredLight = Vec3(0);
+
+    f32 stepSize = maxDist / (f32)photonCfg_.volumetricSteps;
+    f32 transmittance = 1.0f;
+    f32 invCell = 1.0f / photonCfg_.cellSize;
+
+    for (u32 step = 0; step < photonCfg_.volumetricSteps; step++) {
+        f32 t = ((f32)step + 0.5f) * stepSize;
+        Vec3 samplePos = origin + dir * t;
+
+        // Look up photons in the cell containing this sample point
+        i32 cx = (i32)std::floor(samplePos.x * invCell);
+        i32 cy = (i32)std::floor(samplePos.y * invCell);
+        i32 cz = (i32)std::floor(samplePos.z * invCell);
+
+        Vec3 inScattered(0);
+
+        // Gather from 27 neighbor cells for in-scattering
+        for (i32 sdx = -1; sdx <= 1; sdx++) {
+            for (i32 sdy = -1; sdy <= 1; sdy++) {
+                for (i32 sdz = -1; sdz <= 1; sdz++) {
+                    u32 ux = (u32)(cx + sdx);
+                    u32 uy = (u32)(cy + sdy);
+                    u32 uz = (u32)(cz + sdz);
+                    u64 cellHash = ((u64)ux) | ((u64)uy << 21) | ((u64)uz << 42);
+
+                    auto it = photonMap_.find(cellHash);
+                    if (it == photonMap_.end()) continue;
+
+                    f32 radius = photonCfg_.cellSize;
+                    f32 radiusSq = radius * radius;
+                    const Vector<u32>& cellPhotons = it.value();
+
+                    for (u32 i = 0; i < cellPhotons.size(); i++) {
+                        u32 pIdx = cellPhotons[i];
+                        if (pIdx >= photons_.size()) continue;
+
+                        const Photon& photon = photons_[pIdx];
+                        f32 distSq = (photon.position - samplePos).lengthSquared();
+                        if (distSq > radiusSq) continue;
+
+                        f32 dist = Mathf::sqrt(distSq);
+                        f32 falloff = 1.0f - dist / radius;
+                        inScattered += photon.power * falloff * falloff;
+                    }
+                }
+            }
+        }
+
+        // Isotropic phase function: accumulate scattered light
+        scatteredLight += inScattered * transmittance * photonCfg_.volumetricScattering * stepSize;
+
+        // Beer-Lambert absorption along the ray
+        transmittance *= std::exp(-photonCfg_.absorptionCoeff * stepSize);
+
+        if (transmittance < 0.001f) break;
+    }
+}
+
+f32 FrostPhotonMapper::estimateDensity(const Vec3& pos, f32 radius) const {
+    f32 invCell = 1.0f / photonCfg_.cellSize;
+    i32 cx = (i32)std::floor(pos.x * invCell);
+    i32 cy = (i32)std::floor(pos.y * invCell);
+    i32 cz = (i32)std::floor(pos.z * invCell);
+
+    u32 count = 0;
+    f32 radiusSq = radius * radius;
+
+    for (i32 dx = -1; dx <= 1; dx++) {
+        for (i32 dy = -1; dy <= 1; dy++) {
+            for (i32 dz = -1; dz <= 1; dz++) {
+                i32 nx = cx + dx;
+                i32 ny = cy + dy;
+                i32 nz = cz + dz;
+
+                u32 ux = (u32)nx;
+                u32 uy = (u32)ny;
+                u32 uz = (u32)nz;
+                u64 cellHash = ((u64)ux) | ((u64)uy << 21) | ((u64)uz << 42);
+
+                auto it = photonMap_.find(cellHash);
+                if (it == photonMap_.end()) continue;
+
+                const Vector<u32>& cellPhotons = it.value();
+                for (u32 i = 0; i < cellPhotons.size(); i++) {
+                    u32 pIdx = cellPhotons[i];
+                    if (pIdx >= photons_.size()) continue;
+
+                    f32 distSq = (photons_[pIdx].position - pos).lengthSquared();
+                    if (distSq <= radiusSq) count++;
+                }
+            }
+        }
+    }
+
+    f32 volume = (4.0f / 3.0f) * Mathf::PI * radius * radius * radius;
+    return volume > 0 ? (f32)count / volume : 0.0f;
+}
+
+void FrostPhotonMapper::clearPhotons() {
+    photons_.clear();
+    photonMap_.clear();
+    photonCount_ = 0;
+    nextPhotonSlot_ = 0;
+    stats_.photonsStored = 0;
+    stats_.photonsEmitted = 0;
+    stats_.causticPhotons = 0;
+    stats_.volumetricPhotons = 0;
+    stats_.gatherQueries = 0;
+    stats_.avgPhotonsPerQuery = 0.0f;
+}
+
 } // namespace Frost

@@ -13,6 +13,7 @@
 #include "Core/Mat4.h"
 #include "Core/Math.h"
 #include "Core/Vector.h"
+#include "Core/HashMap.h"
 
 namespace Frost {
 
@@ -35,9 +36,14 @@ struct Photon {
     f32 wavelengthR;        // spectral wavelength (for dispersion)
     f32 wavelengthG;
     f32 wavelengthB;
+    f32 wavelength = 0.55f;     // dominant wavelength (nm-normalized)
+    u32 depth = 0;              // bounce depth
+    bool caustic = false;       // true if caustic photon (specular->diffuse)
+    bool volumetric = false;    // true if participating in volumetric scattering
 
     Photon() : position(0), direction(0), power(0), normal(0),
-               flags(0), bounceCount(0), wavelengthR(1), wavelengthG(1), wavelengthB(1) {}
+               flags(0), bounceCount(0), wavelengthR(1), wavelengthG(1), wavelengthB(1),
+               wavelength(0.55f), depth(0), caustic(false), volumetric(false) {}
 };
 
 // K-d tree node for efficient photon lookup
@@ -73,6 +79,12 @@ struct PhotonStats {
     f32 avgBounces;
     f32 buildTimeMs;
     f32 renderTimeMs;
+    u32 photonsEmitted = 0;
+    u32 photonsStored = 0;
+    u32 causticPhotons = 0;
+    u32 volumetricPhotons = 0;
+    u64 gatherQueries = 0;
+    f32 avgPhotonsPerQuery = 0.0f;
 };
 
 // Surface material for photon tracing
@@ -116,6 +128,18 @@ struct PhotonLightSource {
     PhotonLightSource() : position(0), direction(0, -1, 0), color(1),
                           intensity(100), radius(1), photonsToEmit(100000),
                           isDirectional(false), enabled(true) {}
+};
+
+// Photon map configuration for spatial hashing and volumetric scattering
+struct PhotonMapConfig {
+    u32 maxPhotons = 1000000;       // maximum stored photons
+    f32 cellSize = 1.0f;            // spatial hash cell size
+    u32 maxDepth = 8;               // max bounces for photon tracing
+    bool enableCaustics = true;     // enable caustic photon tracing
+    bool enableVolumetric = false;  // enable volumetric scattering
+    f32 volumetricScattering = 0.1f; // volumetric scattering coefficient
+    f32 absorptionCoeff = 0.02f;    // Beer-Lambert absorption coefficient
+    u32 volumetricSteps = 16;       // ray march steps for volumetric
 };
 
 // ============================================================================
@@ -170,6 +194,37 @@ public:
     // Statistics
     const PhotonStats& stats() const { return stats_; }
     u32 photonCount() const { return photonCount_; }
+
+    // Extended photon map: shoot photons from a point light with spectral tracing
+    void shootPhotons(const Vec3& lightPos, const Vec3& lightPower, u32 count, u32 frameIndex);
+
+    // Gather photons from spatial hash map into diffuse/caustic/volumetric channels
+    void gatherPhotons(const Vec3& pos, const Vec3& normal, f32 radius,
+                       Vec3& irradiance, Vec3& causticIrradiance,
+                       Vec3& volumetricIrradiance) const;
+
+    // Trace volumetric in-scattering along a ray segment (Beer-Lambert march)
+    void traceVolumetricScattering(const Vec3& origin, const Vec3& dir, f32 maxDist,
+                                   const Vec3& lightPos, const Vec3& lightPower,
+                                   Vec3& scatteredLight) const;
+
+    // Estimate photon density at a point
+    f32 estimateDensity(const Vec3& pos, f32 radius) const;
+
+    // Photon map configuration
+    void setPhotonMapConfig(const PhotonMapConfig& config) { photonCfg_ = config; }
+    const PhotonMapConfig& getPhotonMapConfig() const { return photonCfg_; }
+
+    // Clear all stored photons and spatial hash
+    void clearPhotons();
+
+    // Extended stat accessors
+    u32 photonsEmitted() const { return stats_.photonsEmitted; }
+    u32 photonsStored() const { return stats_.photonsStored; }
+    u32 causticPhotons() const { return stats_.causticPhotons; }
+    u32 volumetricPhotons() const { return stats_.volumetricPhotons; }
+    u64 gatherQueriesCount() const { return stats_.gatherQueries; }
+    f32 avgPhotonsPerQueryStat() const { return stats_.avgPhotonsPerQuery; }
 
 private:
     // Photon emission
@@ -249,6 +304,10 @@ private:
     // Statistics
     PhotonStats stats_;
 
+    // Extended photon map (spatial hash for fast radius queries)
+    HashMap<u64, Vector<u32>> photonMap_;
+    PhotonMapConfig photonCfg_;
+
     bool initialized_;
 
     // Advanced query methods
@@ -277,6 +336,9 @@ private:
     f32 computeFresnel(Vec3 incident, Vec3 normal, f32 eta) const;
     void getDetailedStats(u32& photonCount, u32& kdNodes, u32& avgBounces, f32& totalPower, f32& coverage) const;
     f32 computePhotonMapCoverage() const;
+
+    // Spatial hash helper
+    u64 spatialHash(const Vec3& pos) const;
 };
 
 } // namespace Frost
