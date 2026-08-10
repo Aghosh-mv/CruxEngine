@@ -29,6 +29,10 @@ struct UpscalerConfig {
     bool enableCAS = true;
     bool enableRCAS = true;
     bool enableDynamicResolution = false;
+    f32 temporalBlend = 0.9f;
+    bool enableMotionCompensation = true;
+    bool enableSharpening = true;
+    u32 lanczosRadius = 3;
 };
 
 struct UpscalerStats {
@@ -42,6 +46,9 @@ struct UpscalerStats {
     f32 haltonY;
     f32 currentFPS;
     f32 targetFPS;
+    u32 framesUpscaled;
+    u32 motionVectorsComputed;
+    f32 avgPSNR;
 };
 
 struct MotionVector {
@@ -115,6 +122,26 @@ public:
     f32 getTargetScale() const;
     Vec2 getResolutionScale() const;
 
+    void temporalUpscale(const Vector<Vec3>& lowRes, Vector<Vec3>& highRes,
+                         u32 lowW, u32 lowH, u32 highW, u32 highH);
+    void motionCompensate(const Vector<Vec3>& current, const Vector<Vec2>& motion,
+                          Vector<Vec3>& output, u32 width, u32 height);
+    void lanczosResample(const Vector<Vec3>& input, Vector<Vec3>& output,
+                         u32 inW, u32 inH, u32 outW, u32 outH);
+    void sharpenImage(Vector<Vec3>& image, u32 width, u32 height, f32 strength);
+    void computeMotionVectors(const Vector<f32>& currentDepth, const Vector<f32>& previousDepth,
+                              const Mat4& currentVP, const Mat4& previousVP,
+                              u32 width, u32 height);
+    void upscale(const Vector<Vec3>& input, Vector<Vec3>& output,
+                 u32 inW, u32 inH, u32 outW, u32 outH);
+    void setUpscalerConfig(const UpscalerConfig& config);
+    UpscalerConfig getUpscalerConfig() const;
+    void reset();
+
+    u32 getFramesUpscaled() const;
+    u32 getMotionVectorsComputed() const;
+    f32 getAvgPSNR() const;
+
 private:
     UpscalerConfig config_;
     UpscalerStats stats_;
@@ -132,6 +159,11 @@ private:
     f32 dynamicScale_;
     f32 haltonAccumX_;
     f32 haltonAccumY_;
+    UpscalerConfig upscalerCfg_;
+    Vector<Vec3> temporalHistory_;
+    Vector<Vec2> temporalMotionVectors_;
+    Vector<f32> depthHistory_;
+    u32 frameCount_;
 };
 
 }
