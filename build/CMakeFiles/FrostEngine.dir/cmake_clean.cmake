@@ -93,6 +93,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/LumenSystem.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o"

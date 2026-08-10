@@ -1315,6 +1315,30 @@ src/Renderer/Material.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Material.cpp.s
 .PHONY : src/Renderer/Material.cpp.s
 
+src/Renderer/MaterialGraph.o: src/Renderer/MaterialGraph.cpp.o
+.PHONY : src/Renderer/MaterialGraph.o
+
+# target to build an object file
+src/Renderer/MaterialGraph.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o
+.PHONY : src/Renderer/MaterialGraph.cpp.o
+
+src/Renderer/MaterialGraph.i: src/Renderer/MaterialGraph.cpp.i
+.PHONY : src/Renderer/MaterialGraph.i
+
+# target to preprocess a source file
+src/Renderer/MaterialGraph.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.i
+.PHONY : src/Renderer/MaterialGraph.cpp.i
+
+src/Renderer/MaterialGraph.s: src/Renderer/MaterialGraph.cpp.s
+.PHONY : src/Renderer/MaterialGraph.s
+
+# target to generate assembly for a file
+src/Renderer/MaterialGraph.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.s
+.PHONY : src/Renderer/MaterialGraph.cpp.s
+
 src/Renderer/MegaLights.o: src/Renderer/MegaLights.cpp.o
 .PHONY : src/Renderer/MegaLights.o
 
@@ -2142,6 +2166,9 @@ help:
 	@echo "... src/Renderer/Material.o"
 	@echo "... src/Renderer/Material.i"
 	@echo "... src/Renderer/Material.s"
+	@echo "... src/Renderer/MaterialGraph.o"
+	@echo "... src/Renderer/MaterialGraph.i"
+	@echo "... src/Renderer/MaterialGraph.s"
 	@echo "... src/Renderer/MegaLights.o"
 	@echo "... src/Renderer/MegaLights.i"
 	@echo "... src/Renderer/MegaLights.s"
