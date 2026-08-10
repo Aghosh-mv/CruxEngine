@@ -81,6 +81,28 @@ struct LightData {
     }
 };
 
+struct LightConfig {
+    u32 maxPointLights = 256;
+    u32 maxSpotLights = 64;
+    u32 maxDirectionalLights = 4;
+    u32 shadowMapSize = 2048;
+    u32 cascades = 4;
+    f32 shadowBias = 0.001f;
+    f32 cascadeSplitLambda = 0.75f;
+    bool enableCSM = true;
+    bool enableShadows = true;
+};
+
+struct LightingStats {
+    u32 totalLights = 0;
+    u32 pointLights = 0;
+    u32 spotLights = 0;
+    u32 directionalLights = 0;
+    u32 shadowMaps = 0;
+    u32 cascadesComputed = 0;
+    f32 shadowMapMemoryMB = 0.0f;
+};
+
 class LightingSystem {
 public:
     static constexpr u32 MAX_LIGHTS = 256;
@@ -97,15 +119,26 @@ public:
     }
 
     u32 addLight(const LightData& light) {
-        if (lightCount_ >= MAX_LIGHTS) return 0xFFFFFFFF;
-        u32 idx = lightCount_++;
+        u32 idx;
+        if (!freeSlots_.empty()) {
+            idx = freeSlots_.back();
+            freeSlots_.pop_back();
+        } else {
+            if (lightCount_ >= MAX_LIGHTS) return 0xFFFFFFFF;
+            idx = lightCount_++;
+        }
         lights_[idx] = light;
+        lights_[idx].enabled = true;
+        activeLightCount_++;
         return idx;
     }
 
     void removeLight(u32 idx) {
         if (idx >= lightCount_) return;
-        lights_[idx] = lights_[--lightCount_];
+        if (!lights_[idx].enabled) return;
+        lights_[idx].enabled = false;
+        freeSlots_.push_back(idx);
+        activeLightCount_--;
     }
 
     LightData& light(u32 idx) { return lights_[idx]; }
@@ -162,10 +195,130 @@ public:
         return (groundColor * (1.0f - up) + skyColor * up) * intensity;
     }
 
+    // ---- Typed light management ----
+
+    u32 addPointLight(const Vec3& position, const Vec3& color, f32 intensity, f32 range) {
+        LightData l;
+        l.type = LightType::Point;
+        l.position = position;
+        l.color = color;
+        l.intensity = intensity;
+        l.range = range;
+        l.castShadow = lightingCfg_.enableShadows;
+        return addLight(l);
+    }
+
+    u32 addSpotLight(const Vec3& position, const Vec3& direction, const Vec3& color,
+                     f32 intensity, f32 range, f32 innerCone, f32 outerCone) {
+        LightData l;
+        l.type = LightType::Spot;
+        l.position = position;
+        l.direction = direction.normalized();
+        l.color = color;
+        l.intensity = intensity;
+        l.range = range;
+        l.innerConeAngle = innerCone;
+        l.outerConeAngle = outerCone;
+        l.castShadow = lightingCfg_.enableShadows;
+        return addLight(l);
+    }
+
+    u32 addDirectionalLight(const Vec3& direction, const Vec3& color, f32 intensity) {
+        LightData l;
+        l.type = LightType::Directional;
+        l.direction = direction.normalized();
+        l.color = color;
+        l.intensity = intensity;
+        l.castShadow = lightingCfg_.enableShadows;
+        return addLight(l);
+    }
+
+    void updateLight(u32 lightId, const Vec3& position, const Vec3& color, f32 intensity) {
+        if (lightId >= lightCount_) return;
+        LightData& l = lights_[lightId];
+        l.position = position;
+        l.color = color;
+        l.intensity = intensity;
+    }
+
+    u32 getActiveLightCount() const { return activeLightCount_; }
+
+    // ---- Cascaded Shadow Maps ----
+
+    void computeCascadeSplits(f32 nearPlane, f32 farPlane, u32 cascadeCount) {
+        cascadeSplits_.clear();
+        cascadeSplits_.resize(cascadeCount + 1);
+        f32 range = farPlane - nearPlane;
+        f32 ratio = farPlane / nearPlane;
+        for (u32 i = 0; i < cascadeCount; i++) {
+            f32 p = static_cast<f32>(i + 1) / static_cast<f32>(cascadeCount);
+            f32 logSplit = nearPlane * std::pow(ratio, p);
+            f32 uniformSplit = nearPlane + range * p;
+            f32 split = lightingCfg_.cascadeSplitLambda * logSplit +
+                        (1.0f - lightingCfg_.cascadeSplitLambda) * uniformSplit;
+            cascadeSplits_[i] = split;
+        }
+        cascadeSplits_[cascadeCount] = farPlane;
+    }
+
+    Mat4 computeCascadeViewProj(u32 cascadeIndex, const Vec3& lightDir,
+                                f32 splitNear, f32 splitFar,
+                                const Mat4& cameraView, const Mat4& cameraProj);
+
+    Vector<u32> testLightVisibility(const Vec3& pos, f32 radius) const;
+
+    const Vector<f32>& getCascadeSplits() const { return cascadeSplits_; }
+    const Vector<Mat4>& getCascadeViewProjs() const { return cascadeViewProjs_; }
+
+    // ---- Stats ----
+
+    LightingStats getStats() const {
+        LightingStats stats;
+        stats.totalLights = lightCount_;
+        stats.shadowMaps = shadowMapsUsed_;
+        stats.cascadesComputed = static_cast<u32>(cascadeViewProjs_.size());
+        for (u32 i = 0; i < lightCount_; i++) {
+            if (!lights_[i].enabled) continue;
+            switch (lights_[i].type) {
+                case LightType::Point: stats.pointLights++; break;
+                case LightType::Spot: stats.spotLights++; break;
+                case LightType::Directional: stats.directionalLights++; break;
+                default: break;
+            }
+        }
+        f32 sizePerMap = static_cast<f32>(lightingCfg_.shadowMapSize) *
+                         static_cast<f32>(lightingCfg_.shadowMapSize) * 4.0f;
+        stats.shadowMapMemoryMB = (sizePerMap * static_cast<f32>(stats.shadowMaps)) / (1024.0f * 1024.0f);
+        return stats;
+    }
+
+    // ---- Config ----
+
+    void setLightingConfig(const LightConfig& config) { lightingCfg_ = config; }
+    const LightConfig& getLightingConfig() const { return lightingCfg_; }
+
+    void clearLights() {
+        for (u32 i = 0; i < lightCount_; i++) {
+            lights_[i] = LightData{};
+        }
+        lightCount_ = 0;
+        activeLightCount_ = 0;
+        freeSlots_.clear();
+        shadowMapsUsed_ = 0;
+        cascadeViewProjs_.clear();
+        cascadeSplits_.clear();
+    }
+
 private:
     LightData sun_;
     LightData lights_[MAX_LIGHTS];
     u32 lightCount_ = 0;
+    Vector<u32> freeSlots_;
+    u32 activeLightCount_ = 0;
+    LightConfig lightingCfg_;
+    Vector<Mat4> cascadeViewProjs_;
+    Vector<f32> cascadeSplits_;
+    u32 shadowMapsUsed_ = 0;
 };
 
 // ---- Environment Probe for IBL ----

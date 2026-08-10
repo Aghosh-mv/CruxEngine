@@ -10532,6 +10532,7 @@ CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o: ../src/Renderer/GPUPr
   ../include/FrostEngine/Core/String.h \
   /usr/include/c++/11/cstdarg \
   ../include/FrostEngine/Core/Math.h \
+  ../include/FrostEngine/Core/HashMap.h \
   /usr/include/c++/11/mutex \
   /usr/include/c++/11/chrono \
   /usr/include/c++/11/ratio \
