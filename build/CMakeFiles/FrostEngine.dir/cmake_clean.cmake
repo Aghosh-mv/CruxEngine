@@ -21,6 +21,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Core/FrostWarden.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Core/FrostWarden.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o"

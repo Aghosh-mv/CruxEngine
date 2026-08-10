@@ -19,6 +19,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Core/Chronos.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Chronos.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/ECS.cpp" "CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/FrostMono.cpp" "CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Core/FrostWarden.cpp" "CMakeFiles/FrostEngine.dir/src/Core/FrostWarden.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/FrostWarden.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/Math.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/Noema.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/Noise.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o.d"

@@ -23,6 +23,7 @@ set(FROST_CORE_SOURCES
     src/Core/Chronos.cpp
     src/Core/Noema.cpp
     src/Core/SystemManager.cpp
+    src/Core/FrostWarden.cpp
 )
 
 # ============================================================================
