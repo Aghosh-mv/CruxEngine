@@ -27,7 +27,7 @@ void Parser::error(const char* msg) {
     const Token& tok = current();
     char lineBuf[32];
     snprintf(lineBuf, sizeof(lineBuf), "%u", tok.line);
-    String errMsg = String("[line ") + lineBuf + String("] Error: ") + msg;
+    String errMsg = String("[line ") + String(lineBuf) + String("] Error: ") + msg;
     if (tok.text.length() > 0) {
         errMsg = errMsg + String(" near '") + tok.text + String("'");
     }

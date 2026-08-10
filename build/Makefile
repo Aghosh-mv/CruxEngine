@@ -403,6 +403,30 @@ src/Core/ECS.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/ECS.cpp.s
 .PHONY : src/Core/ECS.cpp.s
 
+src/Core/FrostMono.o: src/Core/FrostMono.cpp.o
+.PHONY : src/Core/FrostMono.o
+
+# target to build an object file
+src/Core/FrostMono.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.o
+.PHONY : src/Core/FrostMono.cpp.o
+
+src/Core/FrostMono.i: src/Core/FrostMono.cpp.i
+.PHONY : src/Core/FrostMono.i
+
+# target to preprocess a source file
+src/Core/FrostMono.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.i
+.PHONY : src/Core/FrostMono.cpp.i
+
+src/Core/FrostMono.s: src/Core/FrostMono.cpp.s
+.PHONY : src/Core/FrostMono.s
+
+# target to generate assembly for a file
+src/Core/FrostMono.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/FrostMono.cpp.s
+.PHONY : src/Core/FrostMono.cpp.s
+
 src/Core/Math.o: src/Core/Math.cpp.o
 .PHONY : src/Core/Math.o
 
@@ -1860,6 +1884,9 @@ help:
 	@echo "... src/Core/ECS.o"
 	@echo "... src/Core/ECS.i"
 	@echo "... src/Core/ECS.s"
+	@echo "... src/Core/FrostMono.o"
+	@echo "... src/Core/FrostMono.i"
+	@echo "... src/Core/FrostMono.s"
 	@echo "... src/Core/Math.o"
 	@echo "... src/Core/Math.i"
 	@echo "... src/Core/Math.s"

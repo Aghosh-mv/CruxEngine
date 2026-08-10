@@ -19,6 +19,7 @@ set(FROST_CORE_SOURCES
     src/Core/Math.cpp
     src/Core/Noise.cpp
     src/Core/ECS.cpp
+    src/Core/FrostMono.cpp
 )
 
 # ============================================================================
