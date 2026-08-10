@@ -22,6 +22,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Core/Math.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Math.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/Noema.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Core/Noise.cpp" "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Core/SystemManager.cpp" "CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Editor/AssetBrowser.cpp" "CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Editor/CodeEditor.cpp" "CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Editor/Console.cpp" "CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o.d"

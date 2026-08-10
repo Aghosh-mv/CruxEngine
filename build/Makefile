@@ -523,6 +523,30 @@ src/Core/Noise.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.s
 .PHONY : src/Core/Noise.cpp.s
 
+src/Core/SystemManager.o: src/Core/SystemManager.cpp.o
+.PHONY : src/Core/SystemManager.o
+
+# target to build an object file
+src/Core/SystemManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.o
+.PHONY : src/Core/SystemManager.cpp.o
+
+src/Core/SystemManager.i: src/Core/SystemManager.cpp.i
+.PHONY : src/Core/SystemManager.i
+
+# target to preprocess a source file
+src/Core/SystemManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.i
+.PHONY : src/Core/SystemManager.cpp.i
+
+src/Core/SystemManager.s: src/Core/SystemManager.cpp.s
+.PHONY : src/Core/SystemManager.s
+
+# target to generate assembly for a file
+src/Core/SystemManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.s
+.PHONY : src/Core/SystemManager.cpp.s
+
 src/Editor/AssetBrowser.o: src/Editor/AssetBrowser.cpp.o
 .PHONY : src/Editor/AssetBrowser.o
 
@@ -2019,6 +2043,9 @@ help:
 	@echo "... src/Core/Noise.o"
 	@echo "... src/Core/Noise.i"
 	@echo "... src/Core/Noise.s"
+	@echo "... src/Core/SystemManager.o"
+	@echo "... src/Core/SystemManager.i"
+	@echo "... src/Core/SystemManager.s"
 	@echo "... src/Editor/AssetBrowser.o"
 	@echo "... src/Editor/AssetBrowser.i"
 	@echo "... src/Editor/AssetBrowser.s"

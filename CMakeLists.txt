@@ -22,6 +22,7 @@ set(FROST_CORE_SOURCES
     src/Core/FrostMono.cpp
     src/Core/Chronos.cpp
     src/Core/Noema.cpp
+    src/Core/SystemManager.cpp
 )
 
 # ============================================================================

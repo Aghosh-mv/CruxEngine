@@ -27,6 +27,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Core/Noema.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Core/Noise.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Core/SystemManager.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o"
