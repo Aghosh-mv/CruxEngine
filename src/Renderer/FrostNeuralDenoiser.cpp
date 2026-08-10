@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 #include <random>
+#include <chrono>
 
 namespace Frost {
 
@@ -21,7 +22,7 @@ namespace Frost {
 FrostNeuralDenoiser::FrostNeuralDenoiser()
     : width_(0), height_(0), temporalBlend_(0.8f), edgeStrength_(1.0f),
       useNeural_(true), neuralAvailable_(false), lastDenoiseTimeMs_(0),
-      frameCount_(0) {
+      frameCount_(0), denoiserCfg_(), stats_() {
 }
 
 FrostNeuralDenoiser::~FrostNeuralDenoiser() {
@@ -91,6 +92,21 @@ void FrostNeuralDenoiser::shutdown() {
 void FrostNeuralDenoiser::reset() {
     frameCount_ = 0;
     temporalState_.hasPrevFrame = false;
+
+    // Clear new feature and temporal buffers
+    featureAlbedo_.clear();
+    featureNormal_.clear();
+    featureDepth_.clear();
+    temporalHistory_.clear();
+    motionVectors_.clear();
+    temporalWeights_.clear();
+    previousDepth_.clear();
+
+    // Reset stats
+    stats_.framesDenoised = 0;
+    stats_.featuresExtracted = 0;
+    stats_.denoiseTimeMs = 0;
+    stats_.avgNoiseReduction = 0;
 }
 
 // ============================================================================
@@ -974,6 +990,302 @@ f32 FrostNeuralDenoiser::computeNetworkComplexity() const {
     }
 
     return totalParams / 1000000.0f;  // in millions
+}
+
+// ============================================================================
+// Feature Extraction
+// ============================================================================
+
+void FrostNeuralDenoiser::extractFeatures(const Vector<Vec3>& albedo,
+                                           const Vector<Vec3>& normals,
+                                           const Vector<f32>& depth,
+                                           u32 width, u32 height) {
+    u32 pixelCount = width * height;
+
+    // Store input features into dedicated buffers
+    featureAlbedo_.resize(pixelCount);
+    featureNormal_.resize(pixelCount);
+    featureDepth_.resize(pixelCount);
+
+    for (u32 i = 0; i < pixelCount; i++) {
+        featureAlbedo_[i] = albedo[i];
+        featureNormal_[i] = normals[i];
+        featureDepth_[i] = depth[i];
+    }
+
+    // Compute screen-space motion vectors from depth differences
+    // Compare each pixel's depth with its neighbors to detect motion
+    motionVectors_.resize(pixelCount);
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 idx = y * width + x;
+            f32 dx = 0.0f;
+            f32 dy = 0.0f;
+
+            // Check horizontal neighbor
+            if (x > 0) {
+                f32 depthDiff = depth[idx] - depth[idx - 1];
+                if (fabsf(depthDiff) > denoiserCfg_.motionThreshold) {
+                    dx = -depthDiff;
+                }
+            }
+            // Check vertical neighbor
+            if (y > 0) {
+                f32 depthDiff = depth[idx] - depth[idx - width];
+                if (fabsf(depthDiff) > denoiserCfg_.motionThreshold) {
+                    dy = -depthDiff;
+                }
+            }
+
+            motionVectors_[idx] = Vec3(dx, dy, 0.0f);
+        }
+    }
+
+    stats_.featuresExtracted = pixelCount * 3;
+}
+
+// ============================================================================
+// Bilateral Filter (new public API)
+// ============================================================================
+
+void FrostNeuralDenoiser::bilateralFilter(const Vector<Vec3>& input,
+                                           Vector<Vec3>& output,
+                                           u32 width, u32 height) {
+    output.resize(width * height);
+
+    u32 radius = denoiserCfg_.bilateralRadius;
+    f32 spatialSigma = denoiserCfg_.spatialSigma;
+    f32 rangeSigma = denoiserCfg_.rangeSigma;
+    f32 spatialSigma2 = 2.0f * spatialSigma * spatialSigma;
+    f32 rangeSigma2 = 2.0f * rangeSigma * rangeSigma;
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 idx = y * width + x;
+            Vec3 sumColor(0);
+            f32 sumWeight = 0;
+
+            for (u32 dy = 0; dy <= radius * 2; dy++) {
+                for (u32 dx = 0; dx <= radius * 2; dx++) {
+                    i32 nx = (i32)x + (i32)dx - (i32)radius;
+                    i32 ny = (i32)y + (i32)dy - (i32)radius;
+
+                    if (nx < 0 || nx >= (i32)width || ny < 0 || ny >= (i32)height) continue;
+
+                    u32 nIdx = (u32)ny * width + (u32)nx;
+
+                    // Spatial weight (Gaussian)
+                    f32 spatialDist = (f32)(dx * dx + dy * dy);
+                    f32 spatialWeight = expf(-spatialDist / spatialSigma2);
+
+                    // Color similarity weight (Gaussian)
+                    Vec3 colorDiff = input[idx] - input[nIdx];
+                    f32 colorDist = colorDiff.length();
+                    f32 rangeWeight = expf(-colorDist * colorDist / rangeSigma2);
+
+                    f32 weight = spatialWeight * rangeWeight;
+
+                    sumColor += input[nIdx] * weight;
+                    sumWeight += weight;
+                }
+            }
+
+            output[idx] = sumWeight > 0 ? sumColor / sumWeight : input[idx];
+        }
+    }
+}
+
+// ============================================================================
+// Temporal Accumulation (new overload)
+// ============================================================================
+
+void FrostNeuralDenoiser::temporalAccumulate(const Vector<Vec3>& current,
+                                              Vector<Vec3>& output,
+                                              u32 width, u32 height) {
+    u32 pixelCount = width * height;
+    output.resize(pixelCount);
+
+    if (!denoiserCfg_.enableTemporal || frameCount_ == 0) {
+        // No history available — output current frame directly
+        for (u32 i = 0; i < pixelCount; i++) {
+            output[i] = current[i];
+        }
+        // Store current frame as history for next time
+        temporalHistory_.resize(pixelCount);
+        for (u32 i = 0; i < pixelCount; i++) {
+            temporalHistory_[i] = current[i];
+        }
+        return;
+    }
+
+    // Ensure temporal history matches current resolution
+    if (temporalHistory_.size() != pixelCount) {
+        temporalHistory_ = current;
+        for (u32 i = 0; i < pixelCount; i++) {
+            output[i] = current[i];
+        }
+        return;
+    }
+
+    f32 blend = denoiserCfg_.temporalBlend;
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 idx = y * width + x;
+
+            // Use motion vectors to determine trust in history
+            f32 motionLen = motionVectors_[idx].length();
+            f32 motionFactor = 1.0f;
+            if (motionLen > denoiserCfg_.motionThreshold) {
+                // High motion — reduce history weight (less trustworthy)
+                motionFactor = denoiserCfg_.motionThreshold / motionLen;
+                if (motionFactor < 0.0f) motionFactor = 0.0f;
+                if (motionFactor > 1.0f) motionFactor = 1.0f;
+            }
+
+            // Effective blend: full blend for static, reduced for moving
+            f32 effectiveBlend = blend * motionFactor;
+
+            output[idx] = current[idx] * (1.0f - effectiveBlend) +
+                          temporalHistory_[idx] * effectiveBlend;
+        }
+    }
+
+    // Update history for next frame
+    for (u32 i = 0; i < pixelCount; i++) {
+        temporalHistory_[i] = output[i];
+    }
+}
+
+// ============================================================================
+// Compute Motion Vectors
+// ============================================================================
+
+void FrostNeuralDenoiser::computeMotionVectors(const Vector<f32>& currentDepth,
+                                                const Vector<f32>& previousDepth,
+                                                u32 width, u32 height) {
+    u32 pixelCount = width * height;
+    motionVectors_.resize(pixelCount);
+
+    if (previousDepth.size() != pixelCount) {
+        for (u32 i = 0; i < pixelCount; i++) {
+            motionVectors_[i] = Vec3(0);
+        }
+        return;
+    }
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 idx = y * width + x;
+            f32 dx = 0.0f;
+            f32 dy = 0.0f;
+
+            // Compute depth difference — large changes indicate motion
+            f32 depthDelta = currentDepth[idx] - previousDepth[idx];
+
+            if (fabsf(depthDelta) > denoiserCfg_.motionThreshold) {
+                // Try to find where this pixel moved by checking neighbors
+                // in the previous frame's depth
+                f32 bestDelta = depthDelta;
+                u32 bestX = x;
+                u32 bestY = y;
+
+                // Search a small neighborhood in the previous depth
+                for (i32 sy = -2; sy <= 2; sy++) {
+                    for (i32 sx = -2; sx <= 2; sx++) {
+                        i32 px = (i32)x + sx;
+                        i32 py = (i32)y + sy;
+                        if (px < 0 || px >= (i32)width || py < 0 || py >= (i32)height) continue;
+                        u32 pIdx = (u32)py * width + (u32)px;
+                        f32 localDelta = fabsf(currentDepth[idx] - previousDepth[pIdx]);
+                        if (localDelta < fabsf(bestDelta)) {
+                            bestDelta = currentDepth[idx] - previousDepth[pIdx];
+                            bestX = (u32)px;
+                            bestY = (u32)py;
+                        }
+                    }
+                }
+
+                dx = (f32)bestX - (f32)x;
+                dy = (f32)bestY - (f32)y;
+            }
+
+            motionVectors_[idx] = Vec3(dx, dy, 0.0f);
+        }
+    }
+
+    // Store current depth as previous for next frame
+    previousDepth_ = currentDepth;
+}
+
+// ============================================================================
+// Full Denoise Pipeline
+// ============================================================================
+
+void FrostNeuralDenoiser::denoiseImage(const Vector<Vec3>& noisyImage,
+                                        Vector<Vec3>& denoisedImage,
+                                        u32 width, u32 height) {
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    u32 pixelCount = width * height;
+    denoisedImage.resize(pixelCount);
+
+    // Step 1: Extract features (albedo, normal, depth already in feature buffers)
+    // Features should be set via extractFeatures before calling this,
+    // or we use the noisy image directly as a proxy
+    stats_.featuresExtracted = pixelCount;
+
+    // Step 2: Spatial bilateral filter
+    Vector<Vec3> spatialResult;
+    if (denoiserCfg_.enableSpatial) {
+        bilateralFilter(noisyImage, spatialResult, width, height);
+    } else {
+        spatialResult = noisyImage;
+    }
+
+    // Step 3: Temporal accumulation
+    Vector<Vec3> temporalResult;
+    temporalAccumulate(spatialResult, temporalResult, width, height);
+
+    // Step 4: Output
+    for (u32 i = 0; i < pixelCount; i++) {
+        denoisedImage[i] = temporalResult[i];
+    }
+
+    // Update stats
+    auto endTime = std::chrono::high_resolution_clock::now();
+    f32 elapsed = std::chrono::duration<f32, std::milli>(endTime - startTime).count();
+    lastDenoiseTimeMs_ = elapsed;
+    stats_.denoiseTimeMs = elapsed;
+    stats_.framesDenoised++;
+
+    // Compute average noise reduction (compare input vs output)
+    f32 totalDiff = 0.0f;
+    for (u32 i = 0; i < pixelCount; i++) {
+        totalDiff += (noisyImage[i] - denoisedImage[i]).length();
+    }
+    f32 avgDiff = pixelCount > 0 ? totalDiff / (f32)pixelCount : 0.0f;
+    if (stats_.framesDenoised <= 1) {
+        stats_.avgNoiseReduction = avgDiff;
+    } else {
+        stats_.avgNoiseReduction = stats_.avgNoiseReduction * 0.95f + avgDiff * 0.05f;
+    }
+
+    frameCount_++;
+}
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+void FrostNeuralDenoiser::setDenoiserConfig(const DenoiserConfig& config) {
+    denoiserCfg_ = config;
+
+    // Sync temporal blend with existing member if it differs
+    if (denoiserCfg_.temporalBlend != temporalBlend_) {
+        temporalBlend_ = denoiserCfg_.temporalBlend;
+    }
 }
 
 } // namespace Frost

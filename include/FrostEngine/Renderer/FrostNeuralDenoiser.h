@@ -98,6 +98,25 @@ struct BilateralSettings {
                           kernelRadius(4) {}
 };
 
+// Denoiser configuration
+struct DenoiserConfig {
+    u32 featureMapWidth;
+    u32 featureMapHeight;
+    f32 temporalBlend;
+    f32 spatialSigma;
+    f32 rangeSigma;
+    u32 bilateralRadius;
+    bool enableTemporal;
+    bool enableSpatial;
+    f32 motionThreshold;
+
+    DenoiserConfig()
+        : featureMapWidth(0), featureMapHeight(0),
+          temporalBlend(0.9f), spatialSigma(1.5f), rangeSigma(0.1f),
+          bilateralRadius(3), enableTemporal(true), enableSpatial(true),
+          motionThreshold(0.01f) {}
+};
+
 // Temporal accumulation state
 struct TemporalState {
     Vector<Vec3> prevFeatures;      // previous frame features
@@ -109,6 +128,17 @@ struct TemporalState {
     bool hasPrevFrame;
 
     TemporalState() : prevWidth(0), prevHeight(0), hasPrevFrame(false) {}
+};
+
+// Denoiser statistics
+struct DenoiserStats {
+    u32 framesDenoised;
+    u32 featuresExtracted;
+    f32 denoiseTimeMs;
+    f32 avgNoiseReduction;
+
+    DenoiserStats() : framesDenoised(0), featuresExtracted(0),
+                      denoiseTimeMs(0), avgNoiseReduction(0) {}
 };
 
 // ============================================================================
@@ -147,7 +177,33 @@ public:
     void setEdgeStoppingStrength(f32 strength) { edgeStrength_ = strength; }
     void setUseNeural(bool use) { useNeural_ = use; }
 
+    // Feature extraction
+    void extractFeatures(const Vector<Vec3>& albedo, const Vector<Vec3>& normals,
+                         const Vector<f32>& depth, u32 width, u32 height);
+
+    // Bilateral filter (new public API)
+    void bilateralFilter(const Vector<Vec3>& input, Vector<Vec3>& output,
+                         u32 width, u32 height);
+
+    // Temporal accumulation (new overload with current/output/width/height)
+    void temporalAccumulate(const Vector<Vec3>& current, Vector<Vec3>& output,
+                            u32 width, u32 height);
+
+    // Full denoise pipeline
+    void denoiseImage(const Vector<Vec3>& noisyImage, Vector<Vec3>& denoisedImage,
+                      u32 width, u32 height);
+
+    // Compute screen-space motion vectors from depth differences
+    void computeMotionVectors(const Vector<f32>& currentDepth,
+                              const Vector<f32>& previousDepth,
+                              u32 width, u32 height);
+
+    // Configuration
+    void setDenoiserConfig(const DenoiserConfig& config);
+    const DenoiserConfig& getDenoiserConfig() const { return denoiserCfg_; }
+
     // Statistics
+    const DenoiserStats& getStats() const { return stats_; }
     f32 lastDenoiseTimeMs() const { return lastDenoiseTimeMs_; }
     u32 frameCount() const { return frameCount_; }
     bool neuralAvailable() const { return neuralAvailable_; }
@@ -226,6 +282,19 @@ private:
     u32 frameCount_;
     bool initialized_;
     Vector<Vec3> inputBuffer_;
+
+    // Denoiser configuration and feature buffers
+    DenoiserConfig denoiserCfg_;
+    Vector<Vec3> featureAlbedo_;
+    Vector<Vec3> featureNormal_;
+    Vector<f32> featureDepth_;
+    Vector<Vec3> temporalHistory_;
+    Vector<Vec3> motionVectors_;
+    Vector<f32> temporalWeights_;
+    DenoiserStats stats_;
+
+    // Previous depth for motion vector computation
+    Vector<f32> previousDepth_;
 
     // Advanced operations
     void computeFeaturePyramid();
