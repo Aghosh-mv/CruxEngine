@@ -3,8 +3,10 @@
 #include "Core/Math.h"
 #include "Core/Vector.h"
 #include "Core/String.h"
+#include "Core/HashMap.h"
 #include <mutex>
 #include <cstring>
+#include <chrono>
 
 namespace Frost {
 
@@ -17,6 +19,10 @@ struct GPUProfilerConfig {
     f32 vramUpdateInterval = 0.5f;
     bool trackHotSpots = true;
     bool trackMemory = true;
+    u32 maxTimers = 256;
+    u32 maxMemoryRegions = 64;
+    bool enableMemoryTracking = true;
+    bool enableTimeline = true;
 };
 
 struct TimingScope {
@@ -44,6 +50,10 @@ struct FrameStats {
     f32 gpuTimeHistory[120];
     u32 historyIndex;
     u32 historyCount;
+    u32 framesProfiled;
+    f32 avgFrameTimeMs;
+    f32 peakFrameTimeMs;
+    u64 totalMemoryBytes;
 };
 
 struct RenderPassStats {
@@ -103,7 +113,7 @@ public:
     void shutdown();
     void update(f32 dt);
     void beginFrame();
-    void endFrame();
+    f32 endFrame();
 
     u32 beginScope(const char* name);
     void endScope(u32 scopeId);
@@ -160,6 +170,28 @@ public:
     GPUPerformanceMetrics getPerformanceMetrics() const;
     void updatePerformanceMetrics();
 
+    f32 beginTimer(const String& name);
+    f32 endTimer(const String& name);
+    f32 getTimerMs(const String& name);
+    f32 getTimerAverage(const String& name, u32 frames);
+    f32 getTimerMin(const String& name, u32 frames);
+    f32 getTimerMax(const String& name, u32 frames);
+
+    u32 allocateMemoryRegion(const String& name, u64 sizeBytes);
+    void freeMemoryRegion(u32 regionId);
+    void updateMemoryUsage(u32 regionId, u64 usedBytes);
+    u64 getTotalMemoryUsage();
+
+    const Vector<f32>& getFrameTimeHistory();
+    u32 getFramesProfiled() const;
+    f32 getAvgFrameTimeMs() const;
+    f32 getPeakFrameTimeMs() const;
+    u64 getTotalMemoryBytes() const;
+
+    void setProfilerConfig(const GPUProfilerConfig& cfg);
+    const GPUProfilerConfig& getProfilerConfig() const;
+    void reset();
+
 private:
     GPUProfilerConfig config_;
     TimingScope scopes_[64];
@@ -179,6 +211,42 @@ private:
     f32 cpuEstimate_;
     f32 gpuEstimate_;
     mutable std::mutex mutex_;
+
+    GPUProfilerConfig profilerCfg_;
+    Vector<f32> timingHistory_;
+    Vector<f32> memoryHistory_;
+    Vector<String> timerNames_;
+    Vector<String> memoryRegionNames_;
+    f32 totalGPUTimeMs_;
+    std::chrono::high_resolution_clock::time_point frameStartTime_;
+
+    struct TimerEntry {
+        f32 lastMs = 0.0f;
+        f32 totalMs = 0.0f;
+        f32 minMs = 1e10f;
+        f32 maxMs = 0.0f;
+        u32 count = 0;
+        bool active = false;
+        std::chrono::high_resolution_clock::time_point startTime;
+    };
+    static constexpr u32 MAX_TIMERS = 256;
+    static constexpr u32 MAX_HISTORY = 120;
+    HashMap<String, u32> timerIndex_;
+    TimerEntry timerEntries_[256];
+    u32 timerCount_ = 0;
+    f32 timerHistory_[256][120];
+    u32 timerHistoryIndex_[256];
+    u32 timerHistoryCount_[256];
+
+    struct MemoryRegion {
+        String name;
+        u64 totalBytes = 0;
+        u64 usedBytes = 0;
+        bool active = false;
+    };
+    static constexpr u32 MAX_MEMORY_REGIONS = 64;
+    MemoryRegion memoryRegions_[64];
+    u32 memoryRegionCount_ = 0;
 };
 
 }
