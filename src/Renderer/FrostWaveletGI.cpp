@@ -21,7 +21,10 @@ FrostWaveletGI::FrostWaveletGI()
     : quality_(WaveletQuality::Medium), giBufferWidth_(128), giBufferHeight_(128),
       waveletLevels_(6), threshold_(WAVELET_THRESHOLD_DEFAULT), temporalBlend_(0.8f),
       coefficientScale_(255.0f), significantCoeffCount_(0), totalCoeffCount_(0),
-      lastUpdateTimeMs_(0), frameNumber_(0), initialized_(false) {
+      lastUpdateTimeMs_(0), frameNumber_(0),
+      temporalIndex_(0), waveletPasses_(0), temporalReprojections_(0),
+      adaptiveSamples_(0), denoiseTimeMs_(0), avgNoiseLevel_(0),
+      initialized_(false) {
 }
 
 FrostWaveletGI::~FrostWaveletGI() {
@@ -48,6 +51,9 @@ void FrostWaveletGI::shutdown() {
     reconstructedGI_.clear();
     coefficients_.clear();
     compressedCoeffs_.clear();
+    temporalHistory_.clear();
+    noiseEstimate_.clear();
+    sampleCount_.clear();
 
     for (u32 i = 0; i < CLIPMAP_LEVELS; i++) {
         clipmapLevels_[i].coefficients.clear();
@@ -61,6 +67,12 @@ void FrostWaveletGI::reset() {
     for (auto& p : prevGIBuffer_) p = Vec3(0);
     for (auto& p : reconstructedGI_) p = Vec3(0);
     frameNumber_ = 0;
+    clearTemporal();
+    waveletPasses_ = 0;
+    temporalReprojections_ = 0;
+    adaptiveSamples_ = 0;
+    denoiseTimeMs_ = 0;
+    avgNoiseLevel_ = 0;
 }
 
 // ============================================================================
@@ -774,7 +786,252 @@ f32 FrostWaveletGI::computeClipmapCoverage(Vec3 cameraPos) const {
 }
 
 // ============================================================================
-// Temporal Wavelet Operations
+// Denoising Pipeline
+// ============================================================================
+
+void FrostWaveletGI::clearTemporal() {
+    temporalHistory_.clear();
+    noiseEstimate_.clear();
+    sampleCount_.clear();
+    temporalIndex_ = 0;
+}
+
+void FrostWaveletGI::estimateNoise(const Vector<Vec3>& image, u32 width, u32 height) {
+    u32 total = width * height;
+    noiseEstimate_.resize(total);
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 idx = y * width + x;
+
+            // Compute 3x3 median
+            Vector<f32> neighbors;
+            for (i32 dy = -1; dy <= 1; dy++) {
+                for (i32 dx = -1; dx <= 1; dx++) {
+                    i32 sx = (i32)x + dx;
+                    i32 sy = (i32)y + dy;
+                    if (sx >= 0 && sx < (i32)width && sy >= 0 && sy < (i32)height) {
+                        Vec3 c = image[(u32)sy * width + (u32)sx];
+                        neighbors.push_back(c.x + c.y + c.z);
+                    }
+                }
+            }
+
+            // Sort to find median
+            for (u32 i = 0; i < neighbors.size() - 1; i++) {
+                for (u32 j = i + 1; j < neighbors.size(); j++) {
+                    if (neighbors[j] < neighbors[i]) {
+                        f32 tmp = neighbors[i];
+                        neighbors[i] = neighbors[j];
+                        neighbors[j] = tmp;
+                    }
+                }
+            }
+            f32 median = neighbors[neighbors.size() / 2];
+
+            // Noise = abs difference from median
+            Vec3 pixel = image[idx];
+            f32 luminance = pixel.x + pixel.y + pixel.z;
+            noiseEstimate_[idx] = fabsf(luminance - median);
+        }
+    }
+
+    // Compute average noise level
+    f32 totalNoise = 0;
+    for (u32 i = 0; i < total; i++) {
+        totalNoise += noiseEstimate_[i];
+    }
+    avgNoiseLevel_ = total > 0 ? totalNoise / (f32)total : 0;
+}
+
+void FrostWaveletGI::denoiseWavelet(Vector<Vec3>& image, u32 width, u32 height, u32 passes) {
+    waveletPasses_ = passes;
+
+    for (u32 pass = 0; pass < passes; pass++) {
+        // Forward 2D Haar wavelet transform
+        haarForward2D(image, width, height);
+
+        // Compute MAD of detail coefficients for soft thresholding
+        Vector<f32> detailMagnitudes;
+        u32 totalPixels = width * height;
+
+        // Collect detail coefficients (skip the low-freq approximation at top-left)
+        for (u32 y = 0; y < height; y++) {
+            for (u32 x = 0; x < width; x++) {
+                // Detail coefficients are in the high-frequency sub-bands
+                bool isDetail = (x >= width / 2) || (y >= height / 2);
+                if (isDetail) {
+                    Vec3 v = image[y * width + x];
+                    detailMagnitudes.push_back(sqrtf(v.x * v.x + v.y * v.y + v.z * v.z));
+                }
+            }
+        }
+
+        // Compute median absolute deviation
+        f32 threshold = 0;
+        if (detailMagnitudes.size() > 0) {
+            // Sort for median
+            for (u32 i = 0; i < detailMagnitudes.size() - 1; i++) {
+                for (u32 j = i + 1; j < detailMagnitudes.size(); j++) {
+                    if (detailMagnitudes[j] < detailMagnitudes[i]) {
+                        f32 tmp = detailMagnitudes[i];
+                        detailMagnitudes[i] = detailMagnitudes[j];
+                        detailMagnitudes[j] = tmp;
+                    }
+                }
+            }
+            f32 median = detailMagnitudes[detailMagnitudes.size() / 2];
+
+            // MAD-based threshold (0.6745 is the consistency constant for Gaussian noise)
+            threshold = waveletCfg_.edgeThreshold * median * 0.6745f;
+        }
+
+        // Soft thresholding on detail coefficients
+        for (u32 y = 0; y < height; y++) {
+            for (u32 x = 0; x < width; x++) {
+                bool isDetail = (x >= width / 2) || (y >= height / 2);
+                if (isDetail) {
+                    Vec3& v = image[y * width + x];
+                    f32 mag = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+                    if (mag > threshold && mag > 0) {
+                        // Soft threshold: shrink toward zero
+                        f32 scale = (mag - threshold) / mag;
+                        v = v * scale;
+                    } else {
+                        v = Vec3(0);
+                    }
+                }
+            }
+        }
+
+        // Inverse 2D Haar wavelet transform
+        haarInverse2D(image, width, height);
+    }
+}
+
+void FrostWaveletGI::temporalReproject(const Vec3& current, const Vec2& currentUV,
+                                        const Vec2& historyUV, Vec3& history, bool& valid) {
+    // Check if history UV is within [0,1]
+    if (historyUV.x < 0.0f || historyUV.x > 1.0f ||
+        historyUV.y < 0.0f || historyUV.y > 1.0f) {
+        history = current;
+        valid = false;
+        return;
+    }
+
+    valid = true;
+
+    // Initialize temporal history buffer if needed
+    if (temporalHistory_.empty()) {
+        history = current;
+        return;
+    }
+
+    // Look up reprojected history sample
+    u32 histIdx = temporalIndex_ % (waveletCfg_.temporalFrames > 0 ? waveletCfg_.temporalFrames : 1);
+    if (histIdx < temporalHistory_.size()) {
+        Vec3 histSample = temporalHistory_[histIdx];
+
+        // Blend current with reprojected history
+        f32 blend = waveletCfg_.temporalBlend;
+        history = current * (1.0f - blend) + histSample * blend;
+
+        // Store current into history ring buffer
+        temporalHistory_[histIdx] = current;
+    } else {
+        history = current;
+        temporalHistory_.push_back(current);
+    }
+
+    temporalReprojections_++;
+}
+
+bool FrostWaveletGI::adaptiveSample(const Vec3& color, u32 x, u32 y, u32 width) {
+    if (!waveletCfg_.adaptiveSampling) return false;
+
+    u32 idx = y * width + x;
+
+    // Ensure sampleCount_ is large enough
+    if (sampleCount_.size() <= idx) {
+        sampleCount_.resize(idx + 1, 0);
+    }
+
+    sampleCount_[idx]++;
+    adaptiveSamples_++;
+
+    // If we've exceeded max samples, stop
+    if (sampleCount_[idx] >= waveletCfg_.adaptiveMaxSamples) return false;
+
+    // If below min samples, always need more
+    if (sampleCount_[idx] < waveletCfg_.adaptiveMinSamples) return true;
+
+    // Compare color to local average of neighbors
+    f32 luminance = color.x + color.y + color.z;
+    f32 neighborSum = 0;
+    u32 neighborCount = 0;
+
+    for (i32 dy = -1; dy <= 1; dy++) {
+        for (i32 dx = -1; dx <= 1; dx++) {
+            if (dx == 0 && dy == 0) continue;
+            i32 sx = (i32)x + dx;
+            i32 sy = (i32)y + dy;
+            if (sx >= 0 && sy >= 0) {
+                u32 nIdx = (u32)sy * width + (u32)sx;
+                if (nIdx < noiseEstimate_.size()) {
+                    neighborSum += noiseEstimate_[nIdx];
+                    neighborCount++;
+                }
+            }
+        }
+    }
+
+    if (neighborCount > 0) {
+        f32 avgNoise = neighborSum / (f32)neighborCount;
+        // Need more samples if this pixel's noise exceeds the threshold relative to neighbors
+        return avgNoise > waveletCfg_.noiseThreshold;
+    }
+
+    return false;
+}
+
+void FrostWaveletGI::applyDenoising(Vector<Vec3>& image, u32 width, u32 height) {
+    // 1. Estimate noise at each pixel
+    estimateNoise(image, width, height);
+
+    // 2. Apply wavelet denoising passes
+    denoiseWavelet(image, width, height, waveletCfg_.denoisePasses);
+
+    // 3. Temporal reprojection (blend with history)
+    if (!temporalHistory_.empty()) {
+        u32 totalPixels = width * height;
+        Vec3 history(0);
+        bool valid = false;
+
+        // Reproject the center pixel as a representative sample
+        Vec2 centerUV(0.5f, 0.5f);
+        Vec2 historyUV(0.5f, 0.5f);
+
+        temporalReproject(image[totalPixels / 2], centerUV, historyUV, history, valid);
+
+        if (valid) {
+            image[totalPixels / 2] = history;
+        }
+    }
+
+    // Store current frame into temporal history ring buffer
+    if (temporalHistory_.size() < waveletCfg_.temporalFrames) {
+        // Store a downsampled version of the image as history
+        u32 step = width > 0 ? width : 1;
+        if (image.size() > 0) {
+            temporalHistory_.push_back(image[0]);
+        }
+    }
+
+    temporalIndex_++;
+}
+
+// ============================================================================
+// Temporal Wavelet Operations (existing)
 // ============================================================================
 
 void FrostWaveletGI::computeTemporalDifference() {

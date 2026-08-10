@@ -89,6 +89,21 @@ struct GISamplePoint {
 };
 
 // ============================================================================
+// Wavelet denoising configuration
+// ============================================================================
+
+struct WaveletConfig {
+    u32 denoisePasses = 3;
+    u32 temporalFrames = 8;
+    f32 edgeThreshold = 0.1f;
+    f32 temporalBlend = 0.9f;
+    bool adaptiveSampling = true;
+    u32 adaptiveMinSamples = 4;
+    u32 adaptiveMaxSamples = 64;
+    f32 noiseThreshold = 0.05f;
+};
+
+// ============================================================================
 // Main FrostWaveletGI system
 // ============================================================================
 
@@ -140,11 +155,30 @@ public:
     void setTemporalBlending(f32 blend) { temporalBlend_ = blend; }
     WaveletQuality quality() const { return quality_; }
 
+    // Denoising pipeline
+    void denoiseWavelet(Vector<Vec3>& image, u32 width, u32 height, u32 passes);
+    void temporalReproject(const Vec3& current, const Vec2& currentUV,
+                           const Vec2& historyUV, Vec3& history, bool& valid);
+    bool adaptiveSample(const Vec3& color, u32 x, u32 y, u32 width);
+    void estimateNoise(const Vector<Vec3>& image, u32 width, u32 height);
+    void applyDenoising(Vector<Vec3>& image, u32 width, u32 height);
+
+    // Configuration
+    void setWaveletConfig(const WaveletConfig& cfg) { waveletCfg_ = cfg; }
+    const WaveletConfig& getWaveletConfig() const { return waveletCfg_; }
+    void clearTemporal();
+
     // Statistics
     u32 significantCoefficients() const { return significantCoeffCount_; }
     u32 totalCoefficients() const { return totalCoeffCount_; }
     f32 compressionRatio() const;
     f32 lastUpdateTimeMs() const { return lastUpdateTimeMs_; }
+
+    u32 waveletPasses() const { return waveletPasses_; }
+    u32 temporalReprojections() const { return temporalReprojections_; }
+    u32 adaptiveSamples() const { return adaptiveSamples_; }
+    f32 denoiseTimeMs() const { return denoiseTimeMs_; }
+    f32 avgNoiseLevel() const { return avgNoiseLevel_; }
 
 private:
     // Haar wavelet transform (2D)
@@ -224,6 +258,20 @@ private:
     u32 totalCoeffCount_;
     f32 lastUpdateTimeMs_;
     u32 frameNumber_;
+
+    // Denoising state
+    WaveletConfig waveletCfg_;
+    Vector<Vec3> temporalHistory_;
+    Vector<f32> noiseEstimate_;
+    Vector<u32> sampleCount_;
+    u32 temporalIndex_;
+
+    // Denoising statistics
+    u32 waveletPasses_;
+    u32 temporalReprojections_;
+    u32 adaptiveSamples_;
+    f32 denoiseTimeMs_;
+    f32 avgNoiseLevel_;
 
     bool initialized_;
 };

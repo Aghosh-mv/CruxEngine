@@ -9309,6 +9309,7 @@ CMakeFiles/FrostEngine.dir/src/Renderer/FrostPhotonMapper.cpp.o: ../src/Renderer
   ../include/FrostEngine/Core/String.h \
   /usr/include/c++/11/cstdarg \
   ../include/FrostEngine/Core/Math.h \
+  ../include/FrostEngine/Core/HashMap.h \
   /usr/include/c++/11/random \
   /usr/include/c++/11/bits/random.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
