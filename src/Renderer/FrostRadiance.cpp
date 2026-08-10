@@ -23,7 +23,8 @@ FrostRadiance::FrostRadiance()
     : quality_(SurfQuality::Medium), maxSurfels_(200000), baseSurfelRadius_(0.1f),
       bounceWeight_(0.65f), temporalBlendFactor_(0.85f), splatRadiusFactor_(2.0f),
       nodeCount_(0), initialized_(false), lastUpdateTimeMs_(0), frameNumber_(0),
-      bounceCount_(2) {
+      bounceCount_(2), irradianceResolution_(16), probesUpdatedThisFrame_(0),
+      probesUpdated_(0), irradianceQueries_(0), cacheUpdateMs_(0) {
 }
 
 FrostRadiance::~FrostRadiance() {
@@ -48,6 +49,11 @@ bool FrostRadiance::init(SurfQuality quality) {
     prevScreenPositions_.resize(maxSurfels_);
     prevDepthBuffer_.resize(1024 * 1024);
 
+    // Initialize irradiance volume
+    u32 irrSize = irradianceResolution_ * irradianceResolution_ * irradianceResolution_;
+    irradianceVolume_.resize(irrSize);
+    for (auto& v : irradianceVolume_) v = Vec3(0);
+
     frameNumber_ = 0;
     bounceCount_ = 2;
     initialized_ = true;
@@ -60,6 +66,9 @@ void FrostRadiance::shutdown() {
     octree_.clear();
     prevScreenPositions_.clear();
     prevDepthBuffer_.clear();
+    probeCache_.clear();
+    irradianceVolume_.clear();
+    surfelToProbe_.clear();
     initialized_ = false;
 }
 
@@ -68,6 +77,9 @@ void FrostRadiance::reset() {
     pool_.freeListHead = 0;
     nodeCount_ = 0;
     frameNumber_ = 0;
+    probesUpdated_ = 0;
+    irradianceQueries_ = 0;
+    cacheUpdateMs_ = 0;
 }
 
 // ============================================================================
@@ -1720,6 +1732,352 @@ void FrostRadiance::updateSurfelPositions(const SurfelMeshData& mesh) {
         s.position = newPos;
         s.flags |= 1;  // mark dirty
     }
+}
+
+// ============================================================================
+// Radiance Cache — Probe-Based Global Illumination
+// ============================================================================
+
+Vec3 FrostRadiance::traceProbeRay(const Vec3& origin, const Vec3& dir) const {
+    Vector<u32> hitSurfels;
+    gatherSurfelsInCone(origin, dir, 0.3f, radianceCfg_.maxTraceDistance, hitSurfels);
+
+    Vec3 totalRadiance(0);
+    f32 totalWeight = 0;
+
+    for (u32 i = 0; i < hitSurfels.size(); i++) {
+        const Surfel& s = pool_[hitSurfels[i]];
+        Vec3 toSurfel = s.position - origin;
+        f32 dist = toSurfel.length();
+        if (dist < radianceCfg_.minTraceDistance || dist > radianceCfg_.maxTraceDistance) continue;
+
+        f32 NdotL = Mathf::max(s.normal.dot(-dir), 0.0f);
+        f32 weight = NdotL / (1.0f + dist * dist);
+        totalRadiance += s.radiance * weight;
+        totalWeight += weight;
+    }
+
+    if (totalWeight > 0.0001f) {
+        return totalRadiance / totalWeight;
+    }
+
+    // Fallback: ambient sky contribution
+    f32 skyFactor = dir.y * 0.5f + 0.5f;
+    return Vec3(0.1f, 0.15f, 0.25f) * skyFactor;
+}
+
+u32 FrostRadiance::findNearestProbe(const Vec3& pos) const {
+    if (probeCache_.size() == 0) return 0xFFFFFFFF;
+
+    f32 closestDist = 1e30f;
+    u32 closestIdx = 0;
+
+    for (u32 i = 0; i < probeCache_.size(); i++) {
+        f32 dist = (probeCache_[i].position - pos).lengthSquared();
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx = i;
+        }
+    }
+
+    return closestIdx;
+}
+
+void FrostRadiance::updateSurfelToProbeMapping() {
+    surfelToProbe_.resize(pool_.activeCount);
+    for (u32 i = 0; i < pool_.activeCount; i++) {
+        surfelToProbe_[i] = findNearestProbe(pool_[i].position);
+    }
+}
+
+void FrostRadiance::updateProbeCache(const Vec3& cameraPos) {
+    probesUpdatedThisFrame_ = 0;
+
+    u32 totalProbes = radianceCfg_.probesPerAxis * radianceCfg_.probesPerAxis *
+                      radianceCfg_.probesPerAxis;
+
+    // Rebuild probe grid if resolution changed
+    if (probeCache_.size() != totalProbes) {
+        probeCache_.resize(totalProbes);
+        f32 halfExtent = radianceCfg_.probeSpacing * (f32)(radianceCfg_.probesPerAxis / 2);
+        Vec3 gridOrigin = cameraPos - Vec3(halfExtent, halfExtent, halfExtent);
+
+        for (u32 z = 0; z < radianceCfg_.probesPerAxis; z++) {
+            for (u32 y = 0; y < radianceCfg_.probesPerAxis; y++) {
+                for (u32 x = 0; x < radianceCfg_.probesPerAxis; x++) {
+                    u32 idx = z * radianceCfg_.probesPerAxis * radianceCfg_.probesPerAxis +
+                              y * radianceCfg_.probesPerAxis + x;
+                    probeCache_[idx].position = gridOrigin + Vec3(
+                        (f32)x * radianceCfg_.probeSpacing,
+                        (f32)y * radianceCfg_.probeSpacing,
+                        (f32)z * radianceCfg_.probeSpacing);
+                    probeCache_[idx].lastUpdateFrame = 0;
+                }
+            }
+        }
+    }
+
+    // Update probes closest to camera, limited per frame
+    for (u32 z = 0; z < radianceCfg_.probesPerAxis &&
+         probesUpdatedThisFrame_ < radianceCfg_.updateProbesPerFrame; z++) {
+        for (u32 y = 0; y < radianceCfg_.probesPerAxis &&
+             probesUpdatedThisFrame_ < radianceCfg_.updateProbesPerFrame; y++) {
+            for (u32 x = 0; x < radianceCfg_.probesPerAxis &&
+                 probesUpdatedThisFrame_ < radianceCfg_.updateProbesPerFrame; x++) {
+                u32 idx = z * radianceCfg_.probesPerAxis * radianceCfg_.probesPerAxis +
+                          y * radianceCfg_.probesPerAxis + x;
+                RadianceProbe& probe = probeCache_[idx];
+
+                if (probe.lastUpdateFrame == frameNumber_) continue;
+
+                f32 dist = (probe.position - cameraPos).length();
+                if (dist > radianceCfg_.probeRadius * (f32)radianceCfg_.probesPerAxis) continue;
+
+                // Cast rays in 6 cardinal directions
+                Vec3 dirs[6] = {
+                    Vec3(1, 0, 0), Vec3(-1, 0, 0),
+                    Vec3(0, 1, 0), Vec3(0, -1, 0),
+                    Vec3(0, 0, 1), Vec3(0, 0, -1)
+                };
+
+                u32 raysToCast = std::min(radianceCfg_.maxRaysPerProbe, 6u);
+                for (u32 d = 0; d < raysToCast; d++) {
+                    Vec3 rayOrigin = probe.position + dirs[d] * radianceCfg_.minTraceDistance;
+                    Vec3 hitRadiance = traceProbeRay(rayOrigin, dirs[d]);
+
+                    // Temporal hysteresis
+                    probe.radiance[d] = probe.radiance[d] * radianceCfg_.probeHysteresis +
+                                        hitRadiance * (1.0f - radianceCfg_.probeHysteresis);
+                }
+
+                probe.lastUpdateFrame = frameNumber_;
+                probesUpdatedThisFrame_++;
+                probesUpdated_++;
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Dynamic Surfel Injection — Point-Based
+// ============================================================================
+
+void FrostRadiance::injectDynamicSurfels(const Vec3& pos, const Vec3& normal,
+                                           const Vec3& albedo, u32 count) {
+    std::mt19937 rng((u32)(pos.x * 73856093u) ^ (u32)(pos.y * 19349663u));
+    std::uniform_real_distribution<f32> dist(-1.0f, 1.0f);
+
+    for (u32 i = 0; i < count; i++) {
+        u32 idx = pool_.allocate();
+        if (idx == 0xFFFFFFFF) break;
+
+        Surfel& surfel = pool_[idx];
+        Vec3 offset(dist(rng), dist(rng), dist(rng));
+        offset = offset.normalized() * baseSurfelRadius_ * 0.5f;
+        surfel.position = pos + offset;
+        surfel.normal = normal.normalized();
+        surfel.albedo = albedo;
+        surfel.radius = baseSurfelRadius_;
+        surfel.age = 0.0f;
+        surfel.triangleID = 0;
+        surfel.meshID = 0xFFFFFFFF;
+        surfel.flags = 1;
+        surfel.radiance = evaluateDirectLight(surfel);
+        surfel.flux = surfel.radiance * surfel.albedo;
+        surfel.prevWorldPos = surfel.position;
+
+        // Update surfel-to-probe mapping
+        u32 probeIdx = findNearestProbe(surfel.position);
+        if (probeIdx != 0xFFFFFFFF && idx < surfelToProbe_.size()) {
+            surfelToProbe_[idx] = probeIdx;
+        }
+    }
+}
+
+// ============================================================================
+// Surfel Position Update — Transform Recomputation
+// ============================================================================
+
+void FrostRadiance::updateSurfelPositions() {
+    for (u32 i = 0; i < pool_.activeCount; i++) {
+        Surfel& s = pool_[i];
+        if (s.radius < 0.0001f) continue;
+
+        f32 movement = (s.position - s.prevWorldPos).length();
+        if (movement > 0.001f) {
+            s.flags |= 1;
+        }
+        s.prevWorldPos = s.position;
+    }
+
+    updateSurfelToProbeMapping();
+}
+
+// ============================================================================
+// Irradiance Volume — Blur, Downsample, Query
+// ============================================================================
+
+void FrostRadiance::blurIrradianceVolume(u32 passes) {
+    u32 res = irradianceResolution_;
+    u32 totalSize = res * res * res;
+    if (irradianceVolume_.size() != totalSize) return;
+
+    Vector<Vec3> temp;
+    temp.resize(totalSize);
+
+    for (u32 pass = 0; pass < passes; pass++) {
+        for (u32 i = 0; i < totalSize; i++) {
+            temp[i] = irradianceVolume_[i];
+        }
+
+        for (u32 z = 0; z < res; z++) {
+            for (u32 y = 0; y < res; y++) {
+                for (u32 x = 0; x < res; x++) {
+                    Vec3 sum = temp[z * res * res + y * res + x] * 6.0f;
+                    f32 totalWeight = 6.0f;
+
+                    // 6-connected neighbors (Gaussian-like box blur)
+                    for (u32 d = 0; d < 6; d++) {
+                        i32 nx = (i32)x;
+                        i32 ny = (i32)y;
+                        i32 nz = (i32)z;
+
+                        if (d == 0) nx++;
+                        else if (d == 1) nx--;
+                        else if (d == 2) ny++;
+                        else if (d == 3) ny--;
+                        else if (d == 4) nz++;
+                        else if (d == 5) nz--;
+
+                        nx = Mathf::clamp(nx, 0, (i32)res - 1);
+                        ny = Mathf::clamp(ny, 0, (i32)res - 1);
+                        nz = Mathf::clamp(nz, 0, (i32)res - 1);
+
+                        sum += temp[(u32)nz * res * res + (u32)ny * res + (u32)nx];
+                        totalWeight += 1.0f;
+                    }
+
+                    irradianceVolume_[z * res * res + y * res + x] = sum / totalWeight;
+                }
+            }
+        }
+    }
+}
+
+void FrostRadiance::downsampleIrradianceVolume() {
+    u32 res = irradianceResolution_;
+    if (res <= 2) return;
+
+    u32 newRes = res / 2;
+    Vector<Vec3> downsampled;
+    downsampled.resize(newRes * newRes * newRes);
+
+    for (u32 z = 0; z < newRes; z++) {
+        for (u32 y = 0; y < newRes; y++) {
+            for (u32 x = 0; x < newRes; x++) {
+                Vec3 sum(0);
+                for (u32 dz = 0; dz < 2; dz++) {
+                    for (u32 dy = 0; dy < 2; dy++) {
+                        for (u32 dx = 0; dx < 2; dx++) {
+                            u32 sx = x * 2 + dx;
+                            u32 sy = y * 2 + dy;
+                            u32 sz = z * 2 + dz;
+                            sum += irradianceVolume_[sz * res * res + sy * res + sx];
+                        }
+                    }
+                }
+                downsampled[z * newRes * newRes + y * newRes + x] = sum / 8.0f;
+            }
+        }
+    }
+
+    irradianceVolume_ = downsampled;
+    irradianceResolution_ = newRes;
+}
+
+Vec3 FrostRadiance::queryIrradiance(const Vec3& pos, const Vec3& normal) const {
+    u32 res = irradianceResolution_;
+    u32 totalSize = res * res * res;
+    if (totalSize == 0 || irradianceVolume_.size() != totalSize) return Vec3(0);
+
+    irradianceQueries_++;
+
+    // Trilinear sample using existing irradiance volume coordinate system
+    Vec3 local = pos - irrVolume_.origin;
+    f32 fx = local.x / irrVolume_.cellSize.x - 0.5f;
+    f32 fy = local.y / irrVolume_.cellSize.y - 0.5f;
+    f32 fz = local.z / irrVolume_.cellSize.z - 0.5f;
+
+    i32 x0 = (i32)std::floor(fx);
+    i32 y0 = (i32)std::floor(fy);
+    i32 z0 = (i32)std::floor(fz);
+    f32 tx = fx - (f32)x0;
+    f32 ty = fy - (f32)y0;
+    f32 tz = fz - (f32)z0;
+
+    Vec3 irradiance(0);
+    for (i32 dz = 0; dz <= 1; dz++) {
+        for (i32 dy = 0; dy <= 1; dy++) {
+            for (i32 dx = 0; dx <= 1; dx++) {
+                i32 sx = Mathf::clamp(x0 + dx, 0, (i32)res - 1);
+                i32 sy = Mathf::clamp(y0 + dy, 0, (i32)res - 1);
+                i32 sz = Mathf::clamp(z0 + dz, 0, (i32)res - 1);
+                f32 w = ((dx == 0) ? (1.0f - tx) : tx) *
+                        ((dy == 0) ? (1.0f - ty) : ty) *
+                        ((dz == 0) ? (1.0f - tz) : tz);
+                irradiance += irradianceVolume_[(u32)sz * res * res +
+                                                 (u32)sy * res + (u32)sx] * w;
+            }
+        }
+    }
+
+    // Dot with surface normal for directional irradiance
+    f32 cosine = Mathf::max(normal.y, 0.0f);
+    return irradiance * cosine;
+}
+
+// ============================================================================
+// Cache Configuration
+// ============================================================================
+
+void FrostRadiance::setRadianceCacheConfig(const RadianceCacheConfig& cfg) {
+    radianceCfg_ = cfg;
+
+    // Invalidate probe cache if grid resolution changed
+    u32 totalProbes = cfg.probesPerAxis * cfg.probesPerAxis * cfg.probesPerAxis;
+    if (probeCache_.size() != totalProbes) {
+        probeCache_.clear();
+    }
+}
+
+const RadianceCacheConfig& FrostRadiance::getRadianceCacheConfig() const {
+    return radianceCfg_;
+}
+
+// ============================================================================
+// Cache Management
+// ============================================================================
+
+void FrostRadiance::clearCache() {
+    // Clear irradiance volume
+    for (auto& v : irradianceVolume_) v = Vec3(0);
+
+    // Clear probe cache
+    for (u32 i = 0; i < probeCache_.size(); i++) {
+        for (u32 f = 0; f < 6; f++) {
+            probeCache_[i].radiance[f] = Vec3(0);
+        }
+        probeCache_[i].lastUpdateFrame = 0;
+    }
+
+    // Clear surfel-to-probe mapping
+    for (auto& m : surfelToProbe_) m = 0xFFFFFFFF;
+
+    // Reset stats
+    probesUpdated_ = 0;
+    irradianceQueries_ = 0;
+    cacheUpdateMs_ = 0;
+    probesUpdatedThisFrame_ = 0;
 }
 
 } // namespace Frost

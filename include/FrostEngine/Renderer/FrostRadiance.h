@@ -164,6 +164,28 @@ struct SurfelMeshData {
     u32 meshID;
 };
 
+// Radiance cache configuration for probe-based GI
+struct RadianceCacheConfig {
+    u32 probesPerAxis = 16;
+    f32 probeSpacing = 50.0f;
+    f32 probeHysteresis = 0.97f;
+    u32 maxRaysPerProbe = 64;
+    u32 updateProbesPerFrame = 128;
+    f32 minTraceDistance = 0.5f;
+    f32 maxTraceDistance = 5000.0f;
+    f32 probeRadius = 80.0f;
+};
+
+// A single radiance probe with 6-face radiance data
+struct RadianceProbe {
+    Vec3 position;
+    Vec3 radiance[6];
+    u32 lastUpdateFrame;
+    RadianceProbe() : lastUpdateFrame(0) {
+        for (u32 i = 0; i < 6; i++) radiance[i] = Vec3(0);
+    }
+};
+
 // Main FrostRadiance system
 class FrostRadiance {
 public:
@@ -207,6 +229,34 @@ public:
     u32 activeSurfelCount() const { return pool_.activeCount; }
     u32 octreeNodeCount() const { return nodeCount_; }
     f32 lastUpdateTimeMs() const { return lastUpdateTimeMs_; }
+
+    // Extended radiance cache stats
+    u32 probesUpdated() const { return probesUpdated_; }
+    u32 surfelsActive() const { return pool_.activeCount; }
+    u32 irradianceQueries() const { return irradianceQueries_; }
+    f32 cacheUpdateMs() const { return cacheUpdateMs_; }
+
+    // Radiance cache
+    void updateProbeCache(const Vec3& cameraPos);
+
+    // Dynamic surfel injection (point-based)
+    void injectDynamicSurfels(const Vec3& pos, const Vec3& normal,
+                              const Vec3& albedo, u32 count);
+
+    // Surfel position update (recompute from current transforms)
+    void updateSurfelPositions();
+
+    // Irradiance volume operations
+    void blurIrradianceVolume(u32 passes);
+    void downsampleIrradianceVolume();
+    Vec3 queryIrradiance(const Vec3& pos, const Vec3& normal) const;
+
+    // Cache configuration
+    void setRadianceCacheConfig(const RadianceCacheConfig& cfg);
+    const RadianceCacheConfig& getRadianceCacheConfig() const;
+
+    // Cache management
+    void clearCache();
 
 private:
     // Surfel generation helpers
@@ -306,6 +356,24 @@ private:
     void injectDynamicSurfels(const SurfelMeshData& mesh, Vec3 velocity, f32 timeScale);
     void removeSurfelsForMesh(u32 meshId);
     void updateSurfelPositions(const SurfelMeshData& mesh);
+
+    // Radiance cache helpers
+    Vec3 traceProbeRay(const Vec3& origin, const Vec3& dir) const;
+    u32 findNearestProbe(const Vec3& pos) const;
+    void updateSurfelToProbeMapping();
+
+    // Radiance cache members
+    RadianceCacheConfig radianceCfg_;
+    Vector<RadianceProbe> probeCache_;
+    Vector<Vec3> irradianceVolume_;
+    u32 irradianceResolution_;
+    Vector<u32> surfelToProbe_;
+    u32 probesUpdatedThisFrame_;
+
+    // Extended stats members (mutable for const accessor updates)
+    mutable u32 probesUpdated_;
+    mutable u32 irradianceQueries_;
+    mutable f32 cacheUpdateMs_;
 };
 
 } // namespace Frost
