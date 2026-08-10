@@ -21,7 +21,8 @@ namespace Frost {
 FrostPathTracer::FrostPathTracer()
     : width_(0), height_(0), sampleCount_(0), maxSamples_(1024),
       adaptiveSampling_(true), meshCount_(0), materialCount_(0),
-      areaLightCount_(0), bvhNodeCount_(0), initialized_(false) {
+      areaLightCount_(0), bvhNodeCount_(0), initialized_(false),
+      totalRenderTimeMs_(0.0f) {
 }
 
 FrostPathTracer::~FrostPathTracer() {
@@ -1615,6 +1616,265 @@ void FrostPathTracer::getDenoiserStats(f32& snr, f32& psnr, f32& noiseLevel) con
     snr = computeSignalToNoiseRatio();
     psnr = computePSNR();
     noiseLevel = computeNoiseLevel();
+}
+
+// ============================================================================
+// Path Tracer Configuration
+// ============================================================================
+
+void FrostPathTracer::setPathTracerConfig(const PathTracerConfig& config) {
+    pathCfg_ = config;
+}
+
+const PathTracerConfig& FrostPathTracer::getPathTracerConfig() const {
+    return pathCfg_;
+}
+
+// ============================================================================
+// Multi-Bounce Path Tracing (Config-Driven)
+// ============================================================================
+
+Vec3 FrostPathTracer::tracePath(const Vec3& origin, const Vec3& dir, u32 maxBounces) {
+    Vec3 radiance(0);
+    Vec3 throughput(1);
+    Vec3 curOrigin = origin;
+    Vec3 curDir = dir;
+
+    for (u32 bounce = 0; bounce < maxBounces; bounce++) {
+        Ray currentRay(curOrigin, curDir);
+        Intersection hit;
+        if (!intersectScene(currentRay, hit)) {
+            f32 skyT = curDir.y * 0.5f + 0.5f;
+            Vec3 skyColor = Vec3(0.5f, 0.7f, 1.0f) * (1.0f - skyT) + Vec3(1.0f) * skyT;
+            radiance += throughput * skyColor * 0.3f;
+            break;
+        }
+
+        if (hit.materialID >= materialCount_) break;
+        const PathTracerMaterial& mat = materials_[hit.materialID];
+
+        if (mat.isEmissive) {
+            radiance += throughput * mat.emission;
+            break;
+        }
+
+        // Volumetric contribution along the segment
+        if (pathCfg_.enableVolumetrics) {
+            Vec3 volContrib = traceVolumetric(currentRay, hit.t, mat.absorption);
+            radiance += throughput * volContrib;
+        }
+
+        // Direct lighting via next event estimation
+        Vec3 direct = nextEventEstimation(hit.position, hit.normal, mat.albedo);
+        radiance += throughput * direct;
+
+        // Bounce direction
+        if (mat.isSpecular) {
+            curDir = (curDir - hit.normal * 2.0f * curDir.dot(hit.normal)).normalized();
+            curOrigin = hit.position + hit.normal * 0.001f;
+            throughput = throughput * mat.albedo;
+        } else {
+            Vec3 sampleDir = cosineSampleHemisphere(hit.normal);
+            curOrigin = hit.position + hit.normal * 0.001f;
+            curDir = sampleDir;
+            throughput = throughput * mat.albedo;
+        }
+
+        // Russian roulette after bounce 3
+        if (russianRoulette(luminance(mat.albedo), bounce)) {
+            break;
+        }
+    }
+
+    return radiance;
+}
+
+// ============================================================================
+// Next Event Estimation (Sun Sampling)
+// ============================================================================
+
+Vec3 FrostPathTracer::nextEventEstimation(const Vec3& hitPos, const Vec3& hitNormal,
+                                            const Vec3& albedo) {
+    Vec3 result(0);
+
+    for (u32 i = 0; i < dirLight_.size(); i++) {
+        const PTDirectionalLight& light = dirLight_[i];
+        Vec3 L = -light.direction;
+        f32 NdotL = Mathf::max(hitNormal.dot(L), 0.0f);
+
+        if (NdotL <= 0) continue;
+
+        Ray shadowRay(hitPos + hitNormal * 0.001f, L);
+        Intersection shadowHit;
+        if (intersectScene(shadowRay, shadowHit)) continue;
+
+        Vec3 brdf = albedo / 3.14159f;
+        result += light.color * light.intensity * brdf * NdotL;
+    }
+
+    return result;
+}
+
+// ============================================================================
+// Cosine-Weighted Hemisphere Sampling
+// ============================================================================
+
+Vec3 FrostPathTracer::cosineSampleHemisphere(const Vec3& normal) {
+    f32 u1 = (f32)(std::rand() % 10000) / 10000.0f;
+    f32 u2 = (f32)(std::rand() % 10000) / 10000.0f;
+    return cosineWeightedHemisphere(Vec2(u1, u2), normal);
+}
+
+// ============================================================================
+// Russian Roulette (Config-Based)
+// ============================================================================
+
+bool FrostPathTracer::russianRoulette(f32 albedo, u32 bounce) {
+    if (bounce < 3) return false;
+    f32 terminationProb = Mathf::max(1.0f - albedo, pathCfg_.russianRoulette);
+    terminationProb = Mathf::clamp(terminationProb, 0.0f, 0.95f);
+    f32 randVal = (f32)(std::rand() % 10000) / 10000.0f;
+    return randVal < terminationProb;
+}
+
+// ============================================================================
+// Render Pass
+// ============================================================================
+
+void FrostPathTracer::renderPass(u32 width, u32 height) {
+    if (!initialized_) return;
+
+    width_ = width;
+    height_ = height;
+
+    u32 pixelCount = width * height;
+    if (accumulationBuffer_.size() != pixelCount) {
+        accumulationBuffer_.resize(pixelCount);
+        for (u32 i = 0; i < pixelCount; i++) {
+            accumulationBuffer_[i] = Vec3(0);
+        }
+    }
+
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            Vec3 sampleAvg(0);
+            for (u32 s = 0; s < pathCfg_.pixelSamples; s++) {
+                Vec3 radiance = tracePixel(x, y, sampleCount_ + s);
+                sampleAvg = sampleAvg + radiance;
+            }
+            sampleAvg = sampleAvg / (f32)pathCfg_.pixelSamples;
+            accumulationBuffer_[y * width + x] = accumulationBuffer_[y * width + x] + sampleAvg;
+        }
+    }
+
+    sampleCount_++;
+}
+
+// ============================================================================
+// Accumulation Buffer Access
+// ============================================================================
+
+const Vector<Vec3>& FrostPathTracer::getAccumulatedResult() const {
+    return accumulationBuffer_;
+}
+
+void FrostPathTracer::resetAccumulation() {
+    accumulationBuffer_.clear();
+    sampleCount_ = 0;
+    totalRenderTimeMs_ = 0.0f;
+}
+
+// ============================================================================
+// Denoising
+// ============================================================================
+
+void FrostPathTracer::applyDenoising() {
+    if (!pathCfg_.enableDenoising) return;
+    if (accumulationBuffer_.size() == 0 || sampleCount_ == 0) return;
+
+    u32 pixelCount = width_ * height_;
+    if (accumulationBuffer_.size() != pixelCount) return;
+
+    // Compute per-pixel average
+    Vector<Vec3> averaged;
+    averaged.resize(pixelCount);
+    f32 invSamples = 1.0f / (f32)sampleCount_;
+    for (u32 i = 0; i < pixelCount; i++) {
+        averaged[i] = accumulationBuffer_[i] * invSamples;
+    }
+
+    // Build spatial weight kernel
+    u32 kernelRadius = 2;
+    u32 kSize = kernelRadius * 2 + 1;
+    denoiseWeights_.clear();
+    f32 sigma = pathCfg_.denoiseStrength * 3.0f + 0.01f;
+    f32 invSigma2 = 1.0f / (2.0f * sigma * sigma);
+    for (u32 ky = 0; ky < kSize; ky++) {
+        for (u32 kx = 0; kx < kSize; kx++) {
+            i32 dx = (i32)kx - (i32)kernelRadius;
+            i32 dy = (i32)ky - (i32)kernelRadius;
+            f32 dist = (f32)(dx * dx + dy * dy);
+            denoiseWeights_.push_back(expf(-dist * invSigma2));
+        }
+    }
+
+    // Bilateral filter
+    Vector<Vec3> filtered;
+    filtered.resize(pixelCount);
+
+    for (u32 y = 0; y < height_; y++) {
+        for (u32 x = 0; x < width_; x++) {
+            Vec3 sumColor(0);
+            f32 sumWeight = 0;
+            u32 ci = y * width_ + x;
+
+            for (u32 ky = 0; ky < kSize; ky++) {
+                for (u32 kx = 0; kx < kSize; kx++) {
+                    i32 nx = (i32)x + (i32)kx - (i32)kernelRadius;
+                    i32 ny = (i32)y + (i32)ky - (i32)kernelRadius;
+                    if (nx < 0 || nx >= (i32)width_ || ny < 0 || ny >= (i32)height_) continue;
+
+                    u32 ni = (u32)ny * width_ + (u32)nx;
+                    f32 sw = denoiseWeights_[ky * kSize + kx];
+
+                    Vec3 cd = averaged[ci] - averaged[ni];
+                    f32 cw = expf(-cd.length() * invSigma2);
+
+                    f32 w = sw * cw;
+                    sumColor += averaged[ni] * w;
+                    sumWeight += w;
+                }
+            }
+
+            filtered[ci] = sumWeight > 0 ? sumColor / sumWeight : averaged[ci];
+        }
+    }
+
+    // Store denoised result back
+    for (u32 i = 0; i < pixelCount; i++) {
+        accumulationBuffer_[i] = filtered[i];
+    }
+}
+
+// ============================================================================
+// Stats
+// ============================================================================
+
+PathTracerStats FrostPathTracer::getPathTracerStats() const {
+    PathTracerStats stats;
+    stats.totalPaths = sampleCount_ * width_ * height_;
+    stats.totalBounces = 0;
+    stats.pathsTerminated = 0;
+
+    for (u32 i = 0; i < pixels_.size(); i++) {
+        stats.totalBounces += pixels_[i].sampleCount;
+    }
+
+    stats.avgBouncesPerPath = stats.totalPaths > 0
+        ? (f32)stats.totalBounces / (f32)stats.totalPaths : 0.0f;
+    stats.renderTimeMs = totalRenderTimeMs_;
+
+    return stats;
 }
 
 } // namespace Frost

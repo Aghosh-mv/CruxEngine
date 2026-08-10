@@ -162,6 +162,31 @@ struct BVHNode {
 };
 
 // ============================================================================
+// Path tracer configuration
+// ============================================================================
+
+struct PathTracerConfig {
+    u32 maxBounces = 8;
+    u32 maxLightPaths = 1024;
+    u32 pixelSamples = 4;
+    f32 russianRoulette = 0.3f;
+    bool enableVolumetrics = false;
+    f32 volumetricAlbedo = 0.8f;
+    f32 volumetricAnisotropy = 0.0f;
+    u32 volumetricSteps = 8;
+    bool enableDenoising = true;
+    f32 denoiseStrength = 0.5f;
+};
+
+struct PathTracerStats {
+    u32 totalPaths = 0;
+    u32 totalBounces = 0;
+    u32 pathsTerminated = 0;
+    f32 avgBouncesPerPath = 0.0f;
+    f32 renderTimeMs = 0.0f;
+};
+
+// ============================================================================
 // Main FrostPathTracer system
 // ============================================================================
 
@@ -249,6 +274,35 @@ public:
     void setAdaptiveSampling(bool enabled) { adaptiveSampling_ = enabled; }
     void setMaxSamples(u32 max) { maxSamples_ = max; }
 
+    // Path tracer configuration
+    void setPathTracerConfig(const PathTracerConfig& config);
+    const PathTracerConfig& getPathTracerConfig() const;
+
+    // Multi-bounce path tracing
+    Vec3 tracePath(const Vec3& origin, const Vec3& dir, u32 maxBounces);
+
+    // Next event estimation
+    Vec3 nextEventEstimation(const Vec3& hitPos, const Vec3& hitNormal, const Vec3& albedo);
+
+    // Sampling utilities
+    Vec3 cosineSampleHemisphere(const Vec3& normal);
+
+    // Russian roulette (config-based)
+    bool russianRoulette(f32 albedo, u32 bounce);
+
+    // Render a full path-traced pass
+    void renderPass(u32 width, u32 height);
+
+    // Accumulation buffer access
+    const Vector<Vec3>& getAccumulatedResult() const;
+    void resetAccumulation();
+
+    // Denoising
+    void applyDenoising();
+
+    // Stats
+    PathTracerStats getPathTracerStats() const;
+
 private:
     // BRDF evaluation
     Vec3 evaluateCookTorrance(Vec3 V, Vec3 L, Vec3 N, const PathTracerMaterial& mat) const;
@@ -326,6 +380,7 @@ private:
     u32 sampleCount_;
     u32 maxSamples_;
     bool adaptiveSampling_;
+    PathTracerConfig pathCfg_;
 
     // Scene
     Vector<PTMeshData> sceneMeshes_;
@@ -346,6 +401,9 @@ private:
     Vector<Vec3> accumulatedRadiance_;
     Vector<Vec3> sampleVariance_;
     DenoiseState denoise_;
+    Vector<Vec3> accumulationBuffer_;
+    Vector<f32> denoiseWeights_;
+    f32 totalRenderTimeMs_;
 
     // BVH
     Vector<BVHNode> bvhNodes_;
