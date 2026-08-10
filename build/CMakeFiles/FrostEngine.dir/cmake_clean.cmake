@@ -127,6 +127,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o"

@@ -14,6 +14,7 @@
 #include "Core/Vec3.h"
 #include "Core/Mat4.h"
 #include "Core/Math.h"
+#include "Core/HashMap.h"
 #include "Renderer/Types.h"
 
 namespace Frost {
@@ -58,6 +59,37 @@ struct SurfaceCacheConfig {
     f32 minCardWorldSize = 0.1f;
     f32 maxCardWorldSize = 50.0f;
     f32 normalThreshold = 0.5f;
+};
+
+// ============================================================================
+// Surface Cache: page-based radiance atlas (Lumen-style residency)
+// ============================================================================
+struct SurfaceCachePage {
+    u32 pageX = 0;
+    u32 pageY = 0;
+    u32 level = 0;
+    u32 x = 0;
+    u32 y = 0;
+    f32 lastUpdateTime = 0.0f;
+    bool resident = false;
+    bool requested = false;
+    u32 patchCount = 0;
+};
+
+struct SurfaceCachePageConfig {
+    u32 atlasSize = 2048;
+    u32 pageSize = 64;
+    u32 maxPages = 256;
+    u32 raysPerPatch = 16;
+    f32 minLightingRadius = 5.0f;
+};
+
+struct CachedPatch {
+    Vec3 position;
+    Vec3 normal;
+    Vec3 radiance;
+    u32 pageIndex = 0;
+    bool dirty = true;
 };
 
 // ============================================================================
@@ -216,6 +248,24 @@ public:
     void setSurfaceCacheConfig(const SurfaceCacheConfig& cfg) { surfaceCacheCfg_ = cfg; }
     void setGlobalDFConfig(const GlobalDFConfig& cfg) { globalDFCfg_ = cfg; }
 
+    // Surface cache page residency
+    void setSurfaceCachePageConfig(const SurfaceCachePageConfig& cfg) { pageCacheCfg_ = cfg; }
+    const SurfaceCachePageConfig& surfaceCachePageConfig() const { return pageCacheCfg_; }
+    u32 requestPage(const Vec3& worldPos);
+    void evictPage(u32 pageIndex);
+    void ensureResidentPages(u32 cameraProxyCount, const Vec3* cameraProxies, f32 radius);
+    u32 addPatch(const Vec3& pos, const Vec3& normal);
+    void updatePageRadiance(u32 pageIndex, u32 rayCount, const Vec3* rayDirections,
+                            const Vec3* rayHits, const Vec3* rayRadiance);
+    Vector<u32> dirtyPages() const;
+    Vec3 traceRadiance(const Vec3& origin, const Vec3& dir, f32 maxDist, const f32* sceneDepth);
+    Vec3 sampleAtlas(const Vec3& worldPos, u32 pageIndex) const;
+    void updateSurfaceCache(f32 dt, u32 frameIndex, u32 maxRaysPerFrame);
+    void resetSurfaceCache();
+    const Vector<f32>& getRadianceAtlas() const { return radianceAtlas_; }
+    const Vector<SurfaceCachePage>& getPages() const { return pages_; }
+    u32 getDirtyPageCount() const;
+
     // Scene submission
     void addMeshToSurfaceCache(u32 objectId, const Vec3& boundsMin, const Vec3& boundsMax,
                                const Vec3& albedo, const Vec3& emissive, f32 emissiveIntensity);
@@ -254,6 +304,11 @@ public:
         u32 bouncePasses;
         f32 giBuildTimeMs;
         f32 reflectionTimeMs;
+        u32 residentPages;
+        u32 patchesCached;
+        u32 pagesEvicted;
+        u64 raysTraced;
+        f32 cacheUpdateMs;
     };
     const Stats& stats() const { return stats_; }
 
@@ -359,6 +414,14 @@ private:
     SurfaceCacheConfig surfaceCacheCfg_;
     Vector<SurfaceCard> surfaceCards_;
     u32 activeCardCount_ = 0;
+
+    // Surface Cache (page-based radiance atlas)
+    SurfaceCachePageConfig pageCacheCfg_;
+    Vector<SurfaceCachePage> pages_;
+    Vector<CachedPatch> patches_;
+    HashMap<u64, u32> pageMap_;
+    Vector<f32> radianceAtlas_;
+    Vector<u32> freePageSlots_;
 
     // SDF Meshes
     SDFMeshConfig sdfMeshCfg_;

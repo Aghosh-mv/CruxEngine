@@ -769,10 +769,24 @@ CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tinkerspace/FrostEngine/src/Scene/SceneStreaming.cpp -o CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s
 
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o: ../src/Scene/WorldPartition.cpp
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o -c /home/tinkerspace/FrostEngine/src/Scene/WorldPartition.cpp
+
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tinkerspace/FrostEngine/src/Scene/WorldPartition.cpp > CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.i
+
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tinkerspace/FrostEngine/src/Scene/WorldPartition.cpp -o CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.s
+
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o: ../src/Scripting/KitrisLexer.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisLexer.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.i: cmake_force
@@ -786,7 +800,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o: ../src/Scripting/KitrisParser.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisParser.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.i: cmake_force
@@ -800,7 +814,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o: ../src/Scripting/KitrisVM.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisVM.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.i: cmake_force
@@ -814,7 +828,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o: ../src/Scripting/KitrisBytecode.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisBytecode.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.i: cmake_force
@@ -828,7 +842,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o: ../src/Scripting/KitrisStdlib.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisStdlib.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.i: cmake_force
@@ -842,7 +856,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisStdlib.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o: ../src/Scripting/KitrisDebugger.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/KitrisDebugger.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.i: cmake_force
@@ -856,7 +870,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o: ../src/Scripting/ScriptBridge.cpp
 CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building CXX object CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.o -c /home/tinkerspace/FrostEngine/src/Scripting/ScriptBridge.cpp
 
 CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.i: cmake_force
@@ -870,7 +884,7 @@ CMakeFiles/FrostEngine.dir/src/Scripting/ScriptBridge.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o: ../src/Editor/Editor.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Editor.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.i: cmake_force
@@ -884,7 +898,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/Editor.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o: ../src/Editor/CodeEditor.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/CodeEditor.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.i: cmake_force
@@ -898,7 +912,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/CodeEditor.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o: ../src/Editor/Marketplace.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Marketplace.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.i: cmake_force
@@ -912,7 +926,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/Marketplace.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o: ../src/Editor/Viewport.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Viewport.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.i: cmake_force
@@ -926,7 +940,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/Viewport.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o: ../src/Editor/PropertyInspector.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/PropertyInspector.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.i: cmake_force
@@ -940,7 +954,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/PropertyInspector.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o: ../src/Editor/SceneHierarchy.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/SceneHierarchy.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.i: cmake_force
@@ -954,7 +968,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/SceneHierarchy.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o: ../src/Editor/AssetBrowser.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/AssetBrowser.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.i: cmake_force
@@ -968,7 +982,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/AssetBrowser.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o: ../src/Editor/Console.cpp
 CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_66) "Building CXX object CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.o -c /home/tinkerspace/FrostEngine/src/Editor/Console.cpp
 
 CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.i: cmake_force
@@ -982,7 +996,7 @@ CMakeFiles/FrostEngine.dir/src/Editor/Console.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o: ../src/Game/Game.cpp
 CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_66) "Building CXX object CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_67) "Building CXX object CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.o -c /home/tinkerspace/FrostEngine/src/Game/Game.cpp
 
 CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.i: cmake_force
@@ -996,7 +1010,7 @@ CMakeFiles/FrostEngine.dir/src/Game/Game.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o: ../src/Audio/AudioSystem.cpp
 CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_67) "Building CXX object CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_68) "Building CXX object CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Audio/AudioSystem.cpp
 
 CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.i: cmake_force
@@ -1010,7 +1024,7 @@ CMakeFiles/FrostEngine.dir/src/Audio/AudioSystem.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o: ../src/Particles/ParticleSystem.cpp
 CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_68) "Building CXX object CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_69) "Building CXX object CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Particles/ParticleSystem.cpp
 
 CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.i: cmake_force
@@ -1024,7 +1038,7 @@ CMakeFiles/FrostEngine.dir/src/Particles/ParticleSystem.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o: ../src/Animation/AnimationSystem.cpp
 CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_69) "Building CXX object CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_70) "Building CXX object CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Animation/AnimationSystem.cpp
 
 CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.i: cmake_force
@@ -1038,7 +1052,7 @@ CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o: ../src/AI/AISystem.cpp
 CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_70) "Building CXX object CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Building CXX object CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o -MF CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.o -c /home/tinkerspace/FrostEngine/src/AI/AISystem.cpp
 
 CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.i: cmake_force
@@ -1052,7 +1066,7 @@ CMakeFiles/FrostEngine.dir/src/AI/AISystem.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o: ../src/Network/NetworkSystem.cpp
 CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Building CXX object CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_72) "Building CXX object CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o -c /home/tinkerspace/FrostEngine/src/Network/NetworkSystem.cpp
 
 CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.i: cmake_force
@@ -1066,7 +1080,7 @@ CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.s: cmake_force
 CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o: CMakeFiles/FrostEngine.dir/flags.make
 CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o: ../src/Simulation/SimLOD.cpp
 CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o: CMakeFiles/FrostEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_72) "Building CXX object CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_73) "Building CXX object CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o -MF CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o.d -o CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o -c /home/tinkerspace/FrostEngine/src/Simulation/SimLOD.cpp
 
 CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.i: cmake_force
@@ -1129,6 +1143,7 @@ FrostEngine_OBJECTS = \
 "CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o" \
 "CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o" \
 "CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o" \
+"CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o" \
 "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o" \
 "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o" \
 "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o" \
@@ -1205,6 +1220,7 @@ libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scene/Scene.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o
+libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scripting/KitrisLexer.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scripting/KitrisParser.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Scripting/KitrisVM.cpp.o
@@ -1229,7 +1245,7 @@ libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Network/NetworkSystem.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/src/Simulation/SimLOD.cpp.o
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/build.make
 libFrostEngine.a: CMakeFiles/FrostEngine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_73) "Linking CXX static library libFrostEngine.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tinkerspace/FrostEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Linking CXX static library libFrostEngine.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/FrostEngine.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/FrostEngine.dir/link.txt --verbose=$(VERBOSE)
 

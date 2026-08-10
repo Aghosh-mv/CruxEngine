@@ -12,6 +12,7 @@
 #include "Core/Vec3.h"
 #include "Core/Math.h"
 #include "Core/Vector.h"
+#include "Core/HashMap.h"
 
 namespace Frost {
 
@@ -127,6 +128,47 @@ struct VTTextureDesc {
 };
 
 // ============================================================================
+// Page feedback and streaming structures
+// ============================================================================
+
+// Feedback entry decoded from the GPU feedback buffer
+struct FeedbackEntry {
+    u32 pageX = 0;
+    u32 pageY = 0;
+    u32 mipLevel = 0;
+    u32 priority = 0;
+
+    FeedbackEntry() = default;
+    FeedbackEntry(u32 px, u32 py, u32 mip, u32 prio)
+        : pageX(px), pageY(py), mipLevel(mip), priority(prio) {}
+};
+
+// Virtual page tracked by the streaming system
+struct VirtualPage {
+    u32 pageX = 0;
+    u32 pageY = 0;
+    u32 mipLevel = 0;
+    u32 atlasX = 0;
+    u32 atlasY = 0;
+    bool resident = false;
+    u64 lastRequestFrame = 0;
+    u32 priority = 0;
+
+    VirtualPage() = default;
+    VirtualPage(u32 px, u32 py, u32 mip, u32 prio)
+        : pageX(px), pageY(py), mipLevel(mip), priority(prio) {}
+};
+
+// Physical atlas bookkeeping
+struct VirtualAtlas {
+    u32 width = 0;
+    u32 height = 0;
+    u32 pageSize = 64;
+    u32 pagesPerRow = 0;
+    u32 pagesPerCol = 0;
+};
+
+// ============================================================================
 // Main FrostVirtualTexturing system
 // ============================================================================
 
@@ -185,6 +227,58 @@ public:
     u32 evictionCount() const { return evictionCount_; }
     f32 atlasUtilization() const;
     f32 lastProcessTimeMs() const { return lastProcessTimeMs_; }
+
+    // ========================================================================
+    // Page feedback + streaming pipeline
+    // ========================================================================
+
+    struct Config {
+        u32 pageSize = 64;
+        u32 atlasWidth = 2048;
+        u32 atlasHeight = 2048;
+        u32 feedbackQueueCapacity = 4096;
+        u32 maxRequestsPerFrame = 256;
+        u32 pageTtlFrames = 120;
+        bool enableFeedback = true;
+    };
+
+    struct StreamingStats {
+        u32 pagesResident = 0;
+        u32 pagesRequested = 0;
+        u32 pagesEvicted = 0;
+        u32 feedbackEntries = 0;
+        u64 bytesStreamed = 0;
+    };
+
+    void setConfig(const Config& config);
+    const Config& getConfig() const { return config_; }
+
+    // Capture + dedup raw feedback into a capped queue of unique pages
+    void captureFeedback(u32 viewportW, u32 viewportH,
+                         const f32* feedbackBuffer, u32 bufferWidth,
+                         u32 bufferHeight);
+
+    // Request a virtual page (insert-or-update)
+    void requestPage(u32 pageX, u32 pageY, u32 mipLevel, u32 priority);
+
+    // Pop highest-priority pending requests and assign atlas slots
+    u32 resolvePendingRequests(u32 maxRequestsPerFrame, u32 frameIndex);
+
+    // Atlas bookkeeping
+    void initializeAtlas(u32 width, u32 height, u32 pageSize);
+    void atlasSlotForPage(u32 pageIndex, u32& x, u32& y) const;
+    void packPage(u32 pageIndex);
+
+    // Per-frame streaming update (resolve + evict + stats)
+    void updateStreaming(f32 dt, u32 frameIndex, u32 maxRequestsPerFrame);
+
+    const Vector<FeedbackEntry>& getFeedbackQueue() const { return feedbackQueue_; }
+    const Vector<VirtualPage>& getVirtualPages() const { return virtualPages_; }
+    const StreamingStats& getStreamingStats() const { return streamingStats_; }
+    u32 getResidentPageCount() const { return streamingStats_.pagesResident; }
+    u32 getPendingRequestCount() const;
+
+    void resetStreaming();
 
 private:
     // Shelf packing
@@ -275,6 +369,29 @@ private:
     u32 evictionCount_;
     f32 lastProcessTimeMs_;
     u32 frameCount_;
+
+    // Streaming feedback queue
+    Vector<FeedbackEntry> feedbackQueue_;
+    u32 feedbackQueueCapacity_;
+
+    // Virtual page registry
+    Vector<VirtualPage> virtualPages_;
+    HashMap<u64, u32> pageIndex_;
+
+    // Atlas bookkeeping
+    VirtualAtlas atlas_;
+    Vector<u8> atlasSlots_;
+    u32 nextFreeSlot_;
+    u32 pageTtlFrames_;
+
+    Config config_;
+    StreamingStats streamingStats_;
+
+    // Streaming helpers
+    static u64 pageKey(u32 pageX, u32 pageY, u32 mipLevel) {
+        return ((u64)mipLevel << 40) | ((u64)pageY << 20) | (u64)pageX;
+    }
+    i32 findFreeAtlasSlot() const;
 
     bool initialized_;
 };

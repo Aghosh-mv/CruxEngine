@@ -1723,6 +1723,30 @@ src/Scene/SceneStreaming.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s
 .PHONY : src/Scene/SceneStreaming.cpp.s
 
+src/Scene/WorldPartition.o: src/Scene/WorldPartition.cpp.o
+.PHONY : src/Scene/WorldPartition.o
+
+# target to build an object file
+src/Scene/WorldPartition.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o
+.PHONY : src/Scene/WorldPartition.cpp.o
+
+src/Scene/WorldPartition.i: src/Scene/WorldPartition.cpp.i
+.PHONY : src/Scene/WorldPartition.i
+
+# target to preprocess a source file
+src/Scene/WorldPartition.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.i
+.PHONY : src/Scene/WorldPartition.cpp.i
+
+src/Scene/WorldPartition.s: src/Scene/WorldPartition.cpp.s
+.PHONY : src/Scene/WorldPartition.s
+
+# target to generate assembly for a file
+src/Scene/WorldPartition.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.s
+.PHONY : src/Scene/WorldPartition.cpp.s
+
 src/Scripting/KitrisBytecode.o: src/Scripting/KitrisBytecode.cpp.o
 .PHONY : src/Scripting/KitrisBytecode.o
 
@@ -2145,6 +2169,9 @@ help:
 	@echo "... src/Scene/SceneStreaming.o"
 	@echo "... src/Scene/SceneStreaming.i"
 	@echo "... src/Scene/SceneStreaming.s"
+	@echo "... src/Scene/WorldPartition.o"
+	@echo "... src/Scene/WorldPartition.i"
+	@echo "... src/Scene/WorldPartition.s"
 	@echo "... src/Scripting/KitrisBytecode.o"
 	@echo "... src/Scripting/KitrisBytecode.i"
 	@echo "... src/Scripting/KitrisBytecode.s"

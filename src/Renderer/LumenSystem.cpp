@@ -7,6 +7,7 @@
 #include "FrostEngine/Core/Math.h"
 #include <cmath>
 #include <cstring>
+#include <chrono>
 
 namespace Frost {
 
@@ -34,6 +35,11 @@ bool LumenSystem::init(u32 screenWidth, u32 screenHeight) {
         card.isValid = false;
         card.isEmissive = false;
     }
+
+    // Initialize page-based surface cache
+    pages_.reserve(pageCacheCfg_.maxPages);
+    radianceAtlas_.resize(pageCacheCfg_.atlasSize * pageCacheCfg_.atlasSize * 3);
+    for (auto& texel : radianceAtlas_) texel = 0.0f;
 
     // Initialize radiance cache probes
     u32 totalProbes = radianceCacheCfg_.probesPerAxis * radianceCacheCfg_.probesPerAxis *
@@ -101,6 +107,11 @@ void LumenSystem::shutdown() {
     if (!initialized_) return;
 
     surfaceCards_.clear();
+    pages_.clear();
+    patches_.clear();
+    pageMap_.clear();
+    radianceAtlas_.clear();
+    freePageSlots_.clear();
     sdfMeshes_.clear();
     clipmapLevels_.clear();
     clipmapData_.clear();
@@ -231,6 +242,11 @@ void LumenSystem::beginFrame(const Camera& camera, f32 deltaTime) {
     stats_.bouncePasses = 0;
     stats_.giBuildTimeMs = 0.0f;
     stats_.reflectionTimeMs = 0.0f;
+    stats_.residentPages = 0;
+    stats_.patchesCached = 0;
+    stats_.pagesEvicted = 0;
+    stats_.raysTraced = 0;
+    stats_.cacheUpdateMs = 0.0f;
 }
 
 void LumenSystem::render() {
@@ -1698,6 +1714,249 @@ void LumenSystem::visualizeRadianceCache(Vec3* debugOutput) {
             }
         }
     }
+}
+
+// ============================================================================
+// Surface Cache pages: residency, patches, radiance atlas
+// ============================================================================
+static u32 lumenPagesPerRow(const SurfaceCachePageConfig& cfg) {
+    u32 pagesPerRow = cfg.atlasSize / cfg.pageSize;
+    return pagesPerRow > 1u ? pagesPerRow : 1u;
+}
+
+u32 LumenSystem::requestPage(const Vec3& worldPos) {
+    i32 cx = (i32)std::floor(worldPos.x / (f32)pageCacheCfg_.pageSize);
+    i32 cy = (i32)std::floor(worldPos.y / (f32)pageCacheCfg_.pageSize);
+    i32 cz = (i32)std::floor(worldPos.z / (f32)pageCacheCfg_.pageSize);
+    u64 key = ((u64)(u32)(cx & 0x1FFFFF) << 42) |
+              ((u64)(u32)(cy & 0x1FFFFF) << 21) |
+              (u64)(u32)(cz & 0x1FFFFF);
+
+    auto it = pageMap_.find(key);
+    if (it != pageMap_.end()) {
+        u32 idx = it.value();
+        if (idx < pages_.size()) pages_[idx].requested = true;
+        return idx;
+    }
+
+    u32 pageIndex;
+    if (!freePageSlots_.empty()) {
+        pageIndex = freePageSlots_.back();
+        freePageSlots_.pop_back();
+    } else if (pages_.size() < pageCacheCfg_.maxPages) {
+        pageIndex = (u32)pages_.size();
+        pages_.push_back(SurfaceCachePage());
+    } else {
+        return (u32)-1;
+    }
+
+    SurfaceCachePage& page = pages_[pageIndex];
+    page.pageX = (u32)cx;
+    page.pageY = (u32)cy;
+    page.level = 0;
+    u32 pagesPerRow = lumenPagesPerRow(pageCacheCfg_);
+    page.x = (pageIndex % pagesPerRow) * pageCacheCfg_.pageSize;
+    page.y = (pageIndex / pagesPerRow) * pageCacheCfg_.pageSize;
+    page.requested = true;
+    page.resident = false;
+    page.patchCount = 0;
+    pageMap_[key] = pageIndex;
+    return pageIndex;
+}
+
+void LumenSystem::evictPage(u32 pageIndex) {
+    if (pageIndex >= pages_.size()) return;
+    SurfaceCachePage& page = pages_[pageIndex];
+    u64 key = ((u64)(u64)(page.pageX & 0x1FFFFF) << 42) |
+              ((u64)(u64)(page.pageY & 0x1FFFFF) << 21) |
+              (u64)(page.level & 0x1FFFFF);
+    pageMap_.erase(key);
+    page.resident = false;
+    page.requested = false;
+    page.patchCount = 0;
+    freePageSlots_.push_back(pageIndex);
+    stats_.pagesEvicted++;
+}
+
+void LumenSystem::ensureResidentPages(u32 cameraProxyCount, const Vec3* cameraProxies, f32 radius) {
+    if (cameraProxies == nullptr) return;
+    for (u32 i = 0; i < cameraProxyCount; i++) {
+        requestPage(cameraProxies[i]);
+    }
+
+    u32 residentCount = 0;
+    for (const auto& page : pages_) {
+        if (page.resident) residentCount++;
+    }
+    while (residentCount > pageCacheCfg_.maxPages) {
+        u32 oldestIndex = (u32)-1;
+        f32 oldestTime = 1e30f;
+        for (u32 i = 0; i < pages_.size(); i++) {
+            if (pages_[i].resident && pages_[i].lastUpdateTime < oldestTime) {
+                oldestTime = pages_[i].lastUpdateTime;
+                oldestIndex = i;
+            }
+        }
+        if (oldestIndex == (u32)-1) break;
+        evictPage(oldestIndex);
+        residentCount--;
+    }
+}
+
+u32 LumenSystem::addPatch(const Vec3& pos, const Vec3& normal) {
+    u32 pageIndex = requestPage(pos);
+    if (pageIndex == (u32)-1) return (u32)-1;
+
+    CachedPatch patch;
+    patch.position = pos;
+    patch.normal = normal;
+    patch.radiance = Vec3(0);
+    patch.pageIndex = pageIndex;
+    patch.dirty = true;
+    patches_.push_back(patch);
+    pages_[pageIndex].patchCount++;
+    stats_.patchesCached++;
+    return (u32)(patches_.size() - 1);
+}
+
+void LumenSystem::updatePageRadiance(u32 pageIndex, u32 rayCount, const Vec3* rayDirections,
+                                     const Vec3* rayHits, const Vec3* rayRadiance) {
+    if (pageIndex >= pages_.size() || rayCount == 0 || rayRadiance == nullptr) return;
+
+    Vec3 avg = Vec3(0);
+    for (u32 r = 0; r < rayCount; r++) avg = avg + rayRadiance[r];
+    avg = avg / (f32)rayCount;
+
+    for (auto& patch : patches_) {
+        if (patch.pageIndex == pageIndex) {
+            patch.radiance = avg;
+            patch.dirty = false;
+        }
+    }
+
+    SurfaceCachePage& page = pages_[pageIndex];
+    page.resident = true;
+    page.requested = false;
+
+    u32 pagesPerRow = lumenPagesPerRow(pageCacheCfg_);
+    u32 atlasX = (pageIndex % pagesPerRow) * pageCacheCfg_.pageSize;
+    u32 atlasY = (pageIndex / pagesPerRow) * pageCacheCfg_.pageSize;
+    for (u32 py = 0; py < pageCacheCfg_.pageSize; py++) {
+        for (u32 px = 0; px < pageCacheCfg_.pageSize; px++) {
+            u32 tx = atlasX + px;
+            u32 ty = atlasY + py;
+            if (tx >= pageCacheCfg_.atlasSize || ty >= pageCacheCfg_.atlasSize) continue;
+            u32 idx = (ty * pageCacheCfg_.atlasSize + tx) * 3;
+            radianceAtlas_[idx + 0] = avg.x;
+            radianceAtlas_[idx + 1] = avg.y;
+            radianceAtlas_[idx + 2] = avg.z;
+        }
+    }
+}
+
+Vector<u32> LumenSystem::dirtyPages() const {
+    Vector<u32> result;
+    for (const auto& patch : patches_) {
+        if (!patch.dirty) continue;
+        bool found = false;
+        for (u32 i = 0; i < result.size(); i++) {
+            if (result[i] == patch.pageIndex) { found = true; break; }
+        }
+        if (!found) result.push_back(patch.pageIndex);
+    }
+    return result;
+}
+
+Vec3 LumenSystem::sampleAtlas(const Vec3& worldPos, u32 pageIndex) const {
+    if (pageIndex >= pages_.size()) return Vec3(0);
+    const SurfaceCachePage& page = pages_[pageIndex];
+    if (!page.resident || radianceAtlas_.empty()) return Vec3(0);
+
+    f32 cellX = worldPos.x / (f32)pageCacheCfg_.pageSize;
+    f32 cellZ = worldPos.z / (f32)pageCacheCfg_.pageSize;
+    f32 localU = cellX - std::floor(cellX);
+    f32 localV = cellZ - std::floor(cellZ);
+
+    Vec3 sum = Vec3(0);
+    f32 weightTotal = 0.0f;
+    for (i32 dy = -1; dy <= 1; dy++) {
+        for (i32 dx = -1; dx <= 1; dx++) {
+            f32 nx = localU * (f32)(pageCacheCfg_.pageSize - 1) + (f32)dx;
+            f32 ny = localV * (f32)(pageCacheCfg_.pageSize - 1) + (f32)dy;
+            if (nx < 0.0f || ny < 0.0f) continue;
+            i32 tx = (i32)page.x + (i32)nx;
+            i32 ty = (i32)page.y + (i32)ny;
+            if (tx < 0 || tx >= (i32)pageCacheCfg_.atlasSize) continue;
+            if (ty < 0 || ty >= (i32)pageCacheCfg_.atlasSize) continue;
+            u32 idx = ((u32)ty * pageCacheCfg_.atlasSize + (u32)tx) * 3;
+            sum = sum + Vec3(radianceAtlas_[idx + 0], radianceAtlas_[idx + 1], radianceAtlas_[idx + 2]);
+            weightTotal += 1.0f;
+        }
+    }
+    return weightTotal > 0.0f ? sum / weightTotal : Vec3(0);
+}
+
+Vec3 LumenSystem::traceRadiance(const Vec3& origin, const Vec3& dir, f32 maxDist, const f32* sceneDepth) {
+    Vec3 accumulated = Vec3(0);
+    f32 step = (f32)pageCacheCfg_.pageSize * 0.5f;
+    f32 t = step;
+    while (t < maxDist) {
+        Vec3 samplePos = origin + dir * t;
+        u32 pageIndex = requestPage(samplePos);
+        if (pageIndex != (u32)-1 && pages_[pageIndex].resident) {
+            accumulated = accumulated + sampleAtlas(samplePos, pageIndex);
+            break;
+        }
+        t += step;
+    }
+    stats_.raysTraced++;
+    return accumulated;
+}
+
+void LumenSystem::updateSurfaceCache(f32 dt, u32 frameIndex, u32 maxRaysPerFrame) {
+    auto tStart = std::chrono::high_resolution_clock::now();
+
+    for (auto& page : pages_) {
+        if (page.resident) page.lastUpdateTime += dt;
+    }
+
+    u32 processed = 0;
+    for (auto& patch : patches_) {
+        if (!patch.dirty || processed >= maxRaysPerFrame) continue;
+
+        f32 NdotL = Mathf::max(patch.normal.dot(-sunDirection_), 0.0f);
+        Vec3 radiance = sunColor_ * sunIntensity_ * NdotL + ambientColor_ * ambientIntensity_;
+        Vec3 rays[1] = {radiance};
+        updatePageRadiance(patch.pageIndex, 1, nullptr, nullptr, rays);
+        processed++;
+    }
+
+    for (auto& patch : patches_) {
+        patch.dirty = false;
+    }
+
+    stats_.residentPages = 0;
+    for (const auto& page : pages_) {
+        if (page.resident) stats_.residentPages++;
+    }
+    stats_.patchesCached = (u32)patches_.size();
+    stats_.raysTraced += (u64)processed * (u64)pageCacheCfg_.raysPerPatch;
+
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    stats_.cacheUpdateMs = std::chrono::duration<f32, std::milli>(tEnd - tStart).count();
+}
+
+void LumenSystem::resetSurfaceCache() {
+    pages_.clear();
+    patches_.clear();
+    pageMap_.clear();
+    freePageSlots_.clear();
+    for (auto& texel : radianceAtlas_) texel = 0.0f;
+}
+
+u32 LumenSystem::getDirtyPageCount() const {
+    Vector<u32> pages = dirtyPages();
+    return (u32)pages.size();
 }
 
 } // namespace Frost

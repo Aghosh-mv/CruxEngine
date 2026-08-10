@@ -1,7 +1,7 @@
-CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o: \
- /home/tinkerspace/FrostEngine/src/Renderer/FrostVirtualTexturing.cpp \
+CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o: \
+ /home/tinkerspace/FrostEngine/src/Scene/WorldPartition.cpp \
  /usr/include/stdc-predef.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/FrostVirtualTexturing.h \
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Scene/WorldPartition.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Types.h \
  /usr/include/c++/11/cstdint \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -191,10 +191,4 @@ CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o: \
  /usr/include/c++/11/bits/basic_string.tcc \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/String.h \
  /usr/include/c++/11/cstdarg \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h \
- /usr/include/c++/11/random /usr/include/c++/11/bits/random.h \
- /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
- /usr/include/c++/11/bits/random.tcc /usr/include/c++/11/numeric \
- /usr/include/c++/11/bits/stl_numeric.h /usr/include/c++/11/bit \
- /usr/include/c++/11/pstl/glue_numeric_defs.h
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h
