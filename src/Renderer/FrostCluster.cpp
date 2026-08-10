@@ -22,7 +22,8 @@ FrostCluster::FrostCluster()
     : clusterCount_(0), treeNodeCount_(0), leafClusterCount_(0),
       visibleClusterCount_(0), maxDepthLevel_(0), avgHausdorffError_(0),
       screenWidth_(0), screenHeight_(0), materialBinCount_(0),
-      worldBoundsMin_(1e30f), worldBoundsMax_(-1e30f), initialized_(false) {
+      worldBoundsMin_(1e30f), worldBoundsMax_(-1e30f),
+      shadowTilesUsed_(0), initialized_(false) {
 }
 
 FrostCluster::~FrostCluster() {
@@ -47,6 +48,14 @@ bool FrostCluster::init(u32 maxClusters) {
 
     clusterCount_ = 0;
     treeNodeCount_ = 0;
+
+    shadowTilesUsed_ = 0;
+    shadowAtlasUsage_.clear();
+    u32 atlasTiles = (clusterCfg_.shadowAtlasSize / clusterCfg_.shadowTileSize);
+    atlasTiles *= atlasTiles;
+    shadowAtlasUsage_.resize(atlasTiles, 0);
+    stats_ = ClusterLightingStats();
+
     initialized_ = true;
 
     return true;
@@ -59,6 +68,10 @@ void FrostCluster::shutdown() {
     swDepthBuffer_.clear();
     swCoverageBuffer_.clear();
     materialBins_.clear();
+    clusterLightIndices_.clear();
+    clusterLightCounts_.clear();
+    clusterDepths_.clear();
+    shadowAtlasUsage_.clear();
     initialized_ = false;
 }
 
@@ -68,6 +81,7 @@ void FrostCluster::reset() {
     leafClusterCount_ = 0;
     visibleClusterCount_ = 0;
     materialBinCount_ = 0;
+    clearClusters();
 }
 
 // ============================================================================
@@ -1304,6 +1318,269 @@ void FrostCluster::getFullStats(u32& clusters, u32& triangles, u32& vertices,
 
     materials = computeMaterialBinCount();
     memoryMB = computeMemoryUsage();
+}
+
+// ============================================================================
+// Cluster Lighting — Frustum Clustering, Light Assignment, Shadow Atlas
+// ============================================================================
+
+void FrostCluster::buildClusters(const Mat4& viewProj, u32 width, u32 height) {
+    screenWidth_ = width;
+    screenHeight_ = height;
+    inverseViewProj_ = viewProj.inverse();
+
+    clusterDepths_ = logZSlice(clusterCfg_.nearPlane, clusterCfg_.farPlane, clusterCfg_.tilesZ);
+
+    u32 totalTiles = clusterCfg_.tilesX * clusterCfg_.tilesY * clusterCfg_.tilesZ;
+    clusterLightCounts_.resize(totalTiles);
+    for (u32 i = 0; i < totalTiles; i++) clusterLightCounts_[i] = 0;
+    clusterLightIndices_.clear();
+
+    stats_.clustersBuilt = totalTiles;
+}
+
+void FrostCluster::assignLightsToClusters(const Vector<Vec3>& lightPositions,
+                                           const Vector<f32>& lightRadii,
+                                           const Vector<Vec3>& lightColors,
+                                           u32 lightCount) {
+    u32 tilesX = clusterCfg_.tilesX;
+    u32 tilesY = clusterCfg_.tilesY;
+    u32 tilesZ = clusterCfg_.tilesZ;
+    u32 totalTiles = tilesX * tilesY * tilesZ;
+    u32 maxLights = lightCount < clusterCfg_.maxLights ? lightCount : clusterCfg_.maxLights;
+
+    if (clusterLightCounts_.size() != totalTiles) {
+        clusterLightCounts_.resize(totalTiles);
+    }
+    for (u32 i = 0; i < totalTiles; i++) clusterLightCounts_[i] = 0;
+    clusterLightIndices_.clear();
+
+    if (maxLights == 0 || totalTiles == 0) {
+        stats_.lightsAssigned = 0;
+        return;
+    }
+
+    f32 tileW = (f32)screenWidth_ / (f32)tilesX;
+    f32 tileH = (f32)screenHeight_ / (f32)tilesY;
+    Mat4 invVP = inverseViewProj_;
+    f32 nearP = clusterCfg_.nearPlane;
+    f32 farP = clusterCfg_.farPlane;
+    f32 depthScale = (farP + nearP) / (farP - nearP);
+    f32 depthBias = 2.0f * farP * nearP / (farP - nearP);
+
+    // Pass 1: count lights per tile
+    Vector<u32> perTileCounts;
+    perTileCounts.resize(totalTiles);
+    for (u32 i = 0; i < totalTiles; i++) perTileCounts[i] = 0;
+
+    for (u32 l = 0; l < maxLights; l++) {
+        Vec3 center = lightPositions[l];
+        f32 radius = lightRadii[l];
+
+        for (u32 tz = 0; tz < tilesZ; tz++) {
+            f32 zNear = clusterDepths_[tz];
+            f32 zFar = clusterDepths_[tz + 1];
+            f32 ndcNear = depthScale - depthBias / zNear;
+            f32 ndcFar = depthScale - depthBias / zFar;
+
+            for (u32 ty = 0; ty < tilesY; ty++) {
+                for (u32 tx = 0; tx < tilesX; tx++) {
+                    f32 ndcX0 = 2.0f * (tx * tileW) / (f32)screenWidth_ - 1.0f;
+                    f32 ndcX1 = 2.0f * ((tx + 1) * tileW) / (f32)screenWidth_ - 1.0f;
+                    f32 ndcY0 = 1.0f - 2.0f * (ty * tileH) / (f32)screenHeight_;
+                    f32 ndcY1 = 1.0f - 2.0f * ((ty + 1) * tileH) / (f32)screenHeight_;
+
+                    Vec3 aabbMin(1e30f);
+                    Vec3 aabbMax(-1e30f);
+
+                    f32 ndcDepths[2] = { ndcNear, ndcFar };
+                    for (int d = 0; d < 2; d++) {
+                        f32 corners[4][2] = {
+                            { ndcX0, ndcY0 }, { ndcX1, ndcY0 },
+                            { ndcX1, ndcY1 }, { ndcX0, ndcY1 }
+                        };
+                        for (int c = 0; c < 4; c++) {
+                            Vec4 clip(corners[c][0], corners[c][1], ndcDepths[d], 1.0f);
+                            Vec4 wp = invVP * clip;
+                            if (wp.w > 0.0f) {
+                                Vec3 worldPt(wp.x / wp.w, wp.y / wp.w, wp.z / wp.w);
+                                aabbMin = aabbMin.min(worldPt);
+                                aabbMax = aabbMax.max(worldPt);
+                            }
+                        }
+                    }
+
+                    if (sphereAABBOverlap(center, radius, aabbMin, aabbMax)) {
+                        u32 tileIdx = tx + ty * tilesX + tz * tilesX * tilesY;
+                        if (perTileCounts[tileIdx] < clusterCfg_.maxLightsPerTile) {
+                            perTileCounts[tileIdx]++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Compute prefix sum for offsets
+    u32 totalIndices = 0;
+    Vector<u32> offsets;
+    offsets.resize(totalTiles);
+    for (u32 i = 0; i < totalTiles; i++) {
+        offsets[i] = totalIndices;
+        totalIndices += perTileCounts[i];
+    }
+
+    clusterLightIndices_.resize(totalIndices);
+    for (u32 i = 0; i < totalTiles; i++) clusterLightCounts_[i] = 0;
+
+    // Pass 2: fill light indices
+    for (u32 l = 0; l < maxLights; l++) {
+        Vec3 center = lightPositions[l];
+        f32 radius = lightRadii[l];
+
+        for (u32 tz = 0; tz < tilesZ; tz++) {
+            f32 zNear = clusterDepths_[tz];
+            f32 zFar = clusterDepths_[tz + 1];
+            f32 ndcNear = depthScale - depthBias / zNear;
+            f32 ndcFar = depthScale - depthBias / zFar;
+
+            for (u32 ty = 0; ty < tilesY; ty++) {
+                for (u32 tx = 0; tx < tilesX; tx++) {
+                    f32 ndcX0 = 2.0f * (tx * tileW) / (f32)screenWidth_ - 1.0f;
+                    f32 ndcX1 = 2.0f * ((tx + 1) * tileW) / (f32)screenWidth_ - 1.0f;
+                    f32 ndcY0 = 1.0f - 2.0f * (ty * tileH) / (f32)screenHeight_;
+                    f32 ndcY1 = 1.0f - 2.0f * ((ty + 1) * tileH) / (f32)screenHeight_;
+
+                    Vec3 aabbMin(1e30f);
+                    Vec3 aabbMax(-1e30f);
+
+                    f32 ndcDepths[2] = { ndcNear, ndcFar };
+                    for (int d = 0; d < 2; d++) {
+                        f32 corners[4][2] = {
+                            { ndcX0, ndcY0 }, { ndcX1, ndcY0 },
+                            { ndcX1, ndcY1 }, { ndcX0, ndcY1 }
+                        };
+                        for (int c = 0; c < 4; c++) {
+                            Vec4 clip(corners[c][0], corners[c][1], ndcDepths[d], 1.0f);
+                            Vec4 wp = invVP * clip;
+                            if (wp.w > 0.0f) {
+                                Vec3 worldPt(wp.x / wp.w, wp.y / wp.w, wp.z / wp.w);
+                                aabbMin = aabbMin.min(worldPt);
+                                aabbMax = aabbMax.max(worldPt);
+                            }
+                        }
+                    }
+
+                    if (sphereAABBOverlap(center, radius, aabbMin, aabbMax)) {
+                        u32 tileIdx = tx + ty * tilesX + tz * tilesX * tilesY;
+                        if (clusterLightCounts_[tileIdx] < clusterCfg_.maxLightsPerTile) {
+                            clusterLightIndices_[offsets[tileIdx] + clusterLightCounts_[tileIdx]] = l;
+                            clusterLightCounts_[tileIdx]++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    stats_.lightsAssigned = maxLights;
+}
+
+Vector<f32> FrostCluster::logZSlice(f32 nearPlane, f32 farPlane, u32 slices) const {
+    Vector<f32> depths;
+    depths.resize(slices + 1);
+    f32 ratio = farPlane / nearPlane;
+    for (u32 i = 0; i <= slices; i++) {
+        f32 t = (f32)i / (f32)slices;
+        depths[i] = nearPlane * std::pow(ratio, t);
+    }
+    return depths;
+}
+
+bool FrostCluster::sphereAABBOverlap(const Vec3& center, f32 radius,
+                                      const Vec3& aabbMin, const Vec3& aabbMax) const {
+    f32 sqDist = 0.0f;
+    const f32* c = &center.x;
+    const f32* bmin = &aabbMin.x;
+    const f32* bmax = &aabbMax.x;
+    for (u32 i = 0; i < 3; i++) {
+        f32 v = c[i];
+        if (v < bmin[i]) sqDist += (bmin[i] - v) * (bmin[i] - v);
+        else if (v > bmax[i]) sqDist += (v - bmax[i]) * (v - bmax[i]);
+    }
+    return sqDist <= radius * radius;
+}
+
+u32 FrostCluster::allocateShadowTiles(u32 lightCount) {
+    u32 tilesPerRow = clusterCfg_.shadowAtlasSize / clusterCfg_.shadowTileSize;
+    u32 totalTiles = tilesPerRow * tilesPerRow;
+
+    if (shadowAtlasUsage_.size() != totalTiles) {
+        shadowAtlasUsage_.resize(totalTiles, 0);
+    }
+
+    u32 allocated = 0;
+    for (u32 i = 0; i < totalTiles && allocated < lightCount; i++) {
+        if (shadowAtlasUsage_[i] == 0) {
+            shadowAtlasUsage_[i] = 1;
+            allocated++;
+        }
+    }
+
+    shadowTilesUsed_ += allocated;
+    stats_.shadowTilesAllocated = shadowTilesUsed_;
+    return allocated;
+}
+
+void FrostCluster::getShadowTileCoords(u32 tileIndex, u32& x, u32& y, u32& tileSize) const {
+    u32 tilesPerRow = clusterCfg_.shadowAtlasSize / clusterCfg_.shadowTileSize;
+    x = (tileIndex % tilesPerRow) * clusterCfg_.shadowTileSize;
+    y = (tileIndex / tilesPerRow) * clusterCfg_.shadowTileSize;
+    tileSize = clusterCfg_.shadowTileSize;
+}
+
+u32 FrostCluster::clusterLookup(u32 tileX, u32 tileY, u32 tileZ) const {
+    u32 tilesXY = clusterCfg_.tilesX * clusterCfg_.tilesY;
+    u32 tileIndex = tileX + tileY * clusterCfg_.tilesX + tileZ * tilesXY;
+    u32 offset = 0;
+    for (u32 i = 0; i < tileIndex; i++) {
+        offset += clusterLightCounts_[i];
+    }
+    return offset;
+}
+
+u32 FrostCluster::getTileLightCount(u32 tileX, u32 tileY, u32 tileZ) const {
+    u32 tilesXY = clusterCfg_.tilesX * clusterCfg_.tilesY;
+    u32 tileIndex = tileX + tileY * clusterCfg_.tilesX + tileZ * tilesXY;
+    if (tileIndex < clusterLightCounts_.size()) {
+        return clusterLightCounts_[tileIndex];
+    }
+    return 0;
+}
+
+const u32* FrostCluster::getTileLights(u32 tileX, u32 tileY, u32 tileZ) const {
+    u32 offset = clusterLookup(tileX, tileY, tileZ);
+    if (offset < clusterLightIndices_.size()) {
+        return &clusterLightIndices_[offset];
+    }
+    return nullptr;
+}
+
+void FrostCluster::setClusterConfig(const ClusterConfig& cfg) {
+    clusterCfg_ = cfg;
+}
+
+const ClusterConfig& FrostCluster::getClusterConfig() const {
+    return clusterCfg_;
+}
+
+void FrostCluster::clearClusters() {
+    clusterLightIndices_.clear();
+    clusterLightCounts_.clear();
+    clusterDepths_.clear();
+    shadowTilesUsed_ = 0;
+    for (u32 i = 0; i < shadowAtlasUsage_.size(); i++) shadowAtlasUsage_[i] = 0;
+    stats_ = ClusterLightingStats();
 }
 
 } // namespace Frost

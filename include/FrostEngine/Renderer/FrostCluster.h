@@ -183,6 +183,28 @@ struct SWRasterTriangle {
     u32 materialID;
 };
 
+// Cluster lighting configuration
+struct ClusterConfig {
+    u32 tilesX = 16;
+    u32 tilesY = 16;
+    u32 tilesZ = 16;
+    u32 maxLightsPerTile = 256;
+    u32 maxLights = 4096;
+    f32 nearPlane = 0.1f;
+    f32 farPlane = 1000.0f;
+    u32 shadowAtlasSize = 2048;
+    u32 shadowTileSize = 128;
+    bool enableTwoPassEZ = true;
+};
+
+// Cluster lighting stats
+struct ClusterLightingStats {
+    u32 clustersBuilt = 0;
+    u32 lightsAssigned = 0;
+    u32 shadowTilesAllocated = 0;
+    f32 buildTimeMs = 0.0f;
+};
+
 // ============================================================================
 // Main FrostCluster system
 // ============================================================================
@@ -280,6 +302,34 @@ public:
     void getFullStats(u32& clusters, u32& triangles, u32& vertices,
                       u32& materials, f32& memoryMB) const;
 
+    // --- Cluster Lighting (frustum clustering, shadow atlas) ---
+    void buildClusters(const Mat4& viewProj, u32 width, u32 height);
+    void assignLightsToClusters(const Vector<Vec3>& lightPositions,
+                                const Vector<f32>& lightRadii,
+                                const Vector<Vec3>& lightColors,
+                                u32 lightCount);
+    Vector<f32> logZSlice(f32 nearPlane, f32 farPlane, u32 slices) const;
+    bool sphereAABBOverlap(const Vec3& center, f32 radius,
+                           const Vec3& aabbMin, const Vec3& aabbMax) const;
+    u32 allocateShadowTiles(u32 lightCount);
+    void getShadowTileCoords(u32 tileIndex, u32& x, u32& y, u32& tileSize) const;
+    u32 clusterLookup(u32 tileX, u32 tileY, u32 tileZ) const;
+    u32 getTileLightCount(u32 tileX, u32 tileY, u32 tileZ) const;
+    const u32* getTileLights(u32 tileX, u32 tileY, u32 tileZ) const;
+
+    // Cluster config
+    void setClusterConfig(const ClusterConfig& cfg);
+    const ClusterConfig& getClusterConfig() const;
+
+    // Cluster lighting stats
+    u32 clustersBuilt() const { return stats_.clustersBuilt; }
+    u32 lightsAssigned() const { return stats_.lightsAssigned; }
+    u32 shadowTilesAllocated() const { return stats_.shadowTilesAllocated; }
+    f32 buildTimeMs() const { return stats_.buildTimeMs; }
+
+    // Clear cluster lighting data
+    void clearClusters();
+
 private:
     // Cluster building
     void buildBinaryHierarchy();
@@ -334,6 +384,17 @@ private:
     // Software rasterizer buffers
     Vector<f32> swDepthBuffer_;
     Vector<u32> swCoverageBuffer_;
+
+    // --- Cluster lighting data ---
+    ClusterConfig clusterCfg_;
+    Vector<u32> clusterLightIndices_;
+    Vector<u32> clusterLightCounts_;
+    Vector<f32> clusterDepths_;
+    Vector<u32> shadowAtlasUsage_;
+    u32 shadowTilesUsed_ = 0;
+
+    Mat4 inverseViewProj_;
+    ClusterLightingStats stats_;
 
     bool initialized_;
 };
