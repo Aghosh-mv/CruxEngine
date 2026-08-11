@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <chrono>
 
 namespace Frost {
 
@@ -790,6 +791,133 @@ bool MaterialGraph::deserialize(const String& text) {
     }
 
     return true;
+}
+
+u32 MaterialGraph::createMaterialInstance(u32 baseMaterialId) {
+    if (materialInstances_.size() >= maxInstances_) return 0xFFFFFFFFu;
+    MaterialInstance inst;
+    inst.baseMaterialId = baseMaterialId;
+    inst.opacity = 1.0f;
+    inst.roughnessMultiplier = 1.0f;
+    inst.metallicMultiplier = 1.0f;
+    materialInstances_.pushBack(inst);
+    return (u32)(materialInstances_.size() - 1);
+}
+
+void MaterialGraph::destroyMaterialInstance(u32 id) {
+    if (id >= materialInstances_.size()) return;
+    materialInstances_.erase(id);
+}
+
+void MaterialGraph::setInstanceParameter(u32 id, const char* name, f32 value) {
+    if (id >= materialInstances_.size() || !name) return;
+    materialInstances_[id].parameterValues[String(name)] = value;
+}
+
+void MaterialGraph::setInstanceTexture(u32 id, u32 textureId, u32 slot) {
+    if (id >= materialInstances_.size()) return;
+    Vector<MaterialTextureBinding>& bindings = materialInstances_[id].textureBindings;
+    for (usize i = 0; i < bindings.size(); i++) {
+        if (bindings[i].slot == slot) {
+            bindings[i].textureId = textureId;
+            return;
+        }
+    }
+    MaterialTextureBinding binding;
+    binding.textureId = textureId;
+    binding.slot = slot;
+    bindings.pushBack(binding);
+}
+
+f32 MaterialGraph::getInstanceParameter(u32 id, const char* name) const {
+    if (id >= materialInstances_.size() || !name) return 0.0f;
+    auto it = materialInstances_[id].parameterValues.find(String(name));
+    if (it != materialInstances_[id].parameterValues.end()) return it.value();
+    return 0.0f;
+}
+
+MaterialInstance* MaterialGraph::getMaterialInstance(u32 id) {
+    if (id >= materialInstances_.size()) return nullptr;
+    return &materialInstances_[id];
+}
+
+const MaterialInstance* MaterialGraph::getMaterialInstance(u32 id) const {
+    if (id >= materialInstances_.size()) return nullptr;
+    return &materialInstances_[id];
+}
+
+u32 MaterialGraph::compilePermutation(u32 materialId, u32 featureFlags) {
+    u32 key = hashCombine(materialId, featureFlags);
+    auto cached = permutationCache_.find(key);
+    if (cached != permutationCache_.end()) return cached.value();
+
+    auto start = std::chrono::steady_clock::now();
+
+    ShaderPermutation perm;
+    perm.materialId = materialId;
+    perm.featureFlags = featureFlags;
+
+    perm.defines.pushBack(String("#define FROST_MATERIAL ") + String::fromInt((i64)materialId));
+    u32 bits = featureFlags;
+    u32 bitIndex = 0;
+    while (bits != 0) {
+        if (bits & 1u) {
+            perm.defines.pushBack(String("#define FROST_FEATURE_") + String::fromInt((i64)bitIndex));
+        }
+        bits >>= 1;
+        bitIndex++;
+    }
+    perm.defines.pushBack("#define FROST_PERMUTATION " + String::fromInt((i64)shaderPermutations_.size()));
+
+    u32 permId = (u32)shaderPermutations_.size();
+    shaderPermutations_.pushBack(perm);
+    permutationCache_[key] = permId;
+    compiledPermutations_++;
+
+    auto end = std::chrono::steady_clock::now();
+    f32 elapsedMs = std::chrono::duration<f32, std::milli>(end - start).count();
+    compileTimeMs_ += elapsedMs;
+
+    return permId;
+}
+
+ShaderPermutation* MaterialGraph::getPermutation(u32 id) {
+    if (id >= shaderPermutations_.size()) return nullptr;
+    return &shaderPermutations_[id];
+}
+
+const ShaderPermutation* MaterialGraph::getPermutation(u32 id) const {
+    if (id >= shaderPermutations_.size()) return nullptr;
+    return &shaderPermutations_[id];
+}
+
+u32 MaterialGraph::getPermutationCount() const {
+    return (u32)shaderPermutations_.size();
+}
+
+u32 MaterialGraph::getCompiledPermutationCount() const {
+    return compiledPermutations_;
+}
+
+void MaterialGraph::invalidatePermutations() {
+    shaderPermutations_.clear();
+    permutationCache_.clear();
+    compiledPermutations_ = 0;
+    compileTimeMs_ = 0.0f;
+}
+
+void MaterialGraph::remapParameter(u32 permutationId, u32 parameterIndex, const char* newName) {
+    if (permutationId >= shaderPermutations_.size() || !newName) return;
+    ShaderPermutation& perm = shaderPermutations_[permutationId];
+    String prefix = String("#define PARAM_") + String::fromInt((i64)parameterIndex) + " ";
+    String define = prefix + newName;
+    for (usize i = 0; i < perm.defines.size(); i++) {
+        if (perm.defines[i].startsWith(prefix.c_str())) {
+            perm.defines[i] = define;
+            return;
+        }
+    }
+    perm.defines.pushBack(define);
 }
 
 }

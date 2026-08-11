@@ -79,6 +79,26 @@ struct MaterialGraphStats {
     u64 evaluations = 0;
 };
 
+struct MaterialTextureBinding {
+    u32 textureId = 0;
+    u32 slot = 0;
+};
+
+struct MaterialInstance {
+    u32 baseMaterialId = 0;
+    HashMap<String, f32> parameterValues;
+    Vector<MaterialTextureBinding> textureBindings;
+    f32 opacity = 1.0f;
+    f32 roughnessMultiplier = 1.0f;
+    f32 metallicMultiplier = 1.0f;
+};
+
+struct ShaderPermutation {
+    u32 materialId = 0;
+    u32 featureFlags = 0;
+    Vector<String> defines;
+};
+
 class MaterialGraph {
 public:
     MaterialGraph() = default;
@@ -108,6 +128,22 @@ public:
     String serialize() const;
     bool deserialize(const String& text);
 
+    u32 createMaterialInstance(u32 baseMaterialId);
+    void destroyMaterialInstance(u32 id);
+    void setInstanceParameter(u32 id, const char* name, f32 value);
+    void setInstanceTexture(u32 id, u32 textureId, u32 slot);
+    f32 getInstanceParameter(u32 id, const char* name) const;
+    MaterialInstance* getMaterialInstance(u32 id);
+    const MaterialInstance* getMaterialInstance(u32 id) const;
+
+    u32 compilePermutation(u32 materialId, u32 featureFlags);
+    ShaderPermutation* getPermutation(u32 id);
+    const ShaderPermutation* getPermutation(u32 id) const;
+    u32 getPermutationCount() const;
+    u32 getCompiledPermutationCount() const;
+    void invalidatePermutations();
+    void remapParameter(u32 permutationId, u32 parameterIndex, const char* newName);
+
 private:
     MaterialNode* findNode(u32 nodeId);
     const MaterialNode* findNode(u32 nodeId) const;
@@ -120,6 +156,13 @@ private:
     mutable HashMap<u32, Vec4> evalCache_;
     u32 nextNodeId_ = 0;
     mutable u64 evalCount_ = 0;
+
+    Vector<MaterialInstance> materialInstances_;
+    Vector<ShaderPermutation> shaderPermutations_;
+    u32 maxInstances_ = 256;
+    HashMap<u32, u32> permutationCache_;
+    u32 compiledPermutations_ = 0;
+    f32 compileTimeMs_ = 0.0f;
 };
 
 }

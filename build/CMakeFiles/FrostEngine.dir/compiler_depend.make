@@ -8124,7 +8124,11 @@ CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o: ../src/Renderer/Co
   /usr/include/GL/glext.h \
   /usr/include/KHR/khrplatform.h \
   ../include/FrostEngine/Core/Log.h \
-  /usr/include/c++/11/ctime
+  /usr/include/c++/11/ctime \
+  ../include/FrostEngine/Core/Math.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/bits/parse_numbers.h
 
 CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.o: ../src/Renderer/Font.cpp \
   /usr/include/stdc-predef.h \
