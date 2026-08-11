@@ -194,5 +194,6 @@ CMakeFiles/FrostEngine.dir/src/Animation/AnimationSystem.cpp.o: \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Animation/Skeleton.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Animation/AnimationClip.h \
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Log.h \
  /usr/include/c++/11/ctime

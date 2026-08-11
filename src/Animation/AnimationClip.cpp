@@ -1,91 +1,11 @@
-#pragma once
-
-#include "Core/Types.h"
-#include "Core/Vector.h"
-#include "Core/String.h"
-#include "Core/Math.h"
-#include "Core/HashMap.h"
+#include "Animation/AnimationClip.h"
+#include <algorithm>
+#include <cstring>
+#include <numeric>
 
 namespace Frost {
 
-template<typename T>
-struct Keyframe {
-    f32 time = 0.0f;
-    T value{};
-    T inTangent{};
-    T outTangent{};
-};
-
-struct AnimationEvent {
-    f32 time = 0.0f;
-    String name;
-    bool fired = false;
-    f32 parameter = 0.0f;
-};
-
-struct AnimationClip {
-    String name;
-    Vector<Vector<Keyframe<Vec3>>> positionKeys;
-    Vector<Vector<Keyframe<Quat>>> rotationKeys;
-    Vector<Vector<Keyframe<Vec3>>> scaleKeys;
-    Vector<AnimationEvent> events;
-    f32 duration = 1.0f;
-    f32 ticksPerSecond = 30.0f;
-    bool looping = true;
-
-    f32 getDuration() const;
-    f32 getTicksPerSecond() const;
-
-    void getPositions(f32 time, u32 boneIndex, Vec3& out) const;
-    void getRotations(f32 time, u32 boneIndex, Quat& out) const;
-    void getScales(f32 time, u32 boneIndex, Vec3& out) const;
-
-    void getPositionAtKeyframe(u32 boneIndex, u32 keyframeIndex, Vec3& out) const;
-    void getRotationAtKeyframe(u32 boneIndex, u32 keyframeIndex, Quat& out) const;
-    void getScaleAtKeyframe(u32 boneIndex, u32 keyframeIndex, Vec3& out) const;
-
-    void setDuration(f32 d);
-    void setLooping(bool l);
-    f32 getPlaybackTime() const;
-    void setPlaybackTime(f32 t);
-    void advance(f32 dt);
-    void resetTime();
-    bool isLooping() const;
-
-    void addTrack(u32 boneIndex);
-    void addKeyframe(u32 trackId, f32 time, const Vec3& pos, const Vec3& rot, const Vec3& scale);
-
-    u32 getActiveBoneCount() const;
-    u32 getTrackCount() const;
-
-    void sample(u32 trackId, f32 time, Vec3& pos, Vec3& rot, Vec3& scale);
-    void evaluate(f32 time, Vector<Vec3>& bonePoses);
-
-    void blendWith(const AnimationClip& other, f32 weight);
-
-    f32 normalizeTime(f32 time) const;
-    void resetEvents();
-    bool hasEvents() const { return !events.empty(); }
-    void addEvent(f32 time, const char* name, f32 parameter = 0.0f);
-    void removeEvent(u32 index);
-    void sortEvents();
-
-    f32 getKeyframeTime(u32 boneIndex, u32 channel, u32 keyframeIndex) const;
-    u32 getKeyframeCount(u32 boneIndex, u32 channel) const;
-
-    void compress(f32 positionThreshold = 0.001f, f32 rotationThreshold = 0.001f, f32 scaleThreshold = 0.001f);
-    void removeRedundantKeyframes(f32 threshold = 0.0001f);
-    u32 estimateMemoryUsage() const;
-
-private:
-    template<typename T>
-    static T sampleKeyframes(const Vector<Keyframe<T>>& keys, f32 time);
-    template<typename T>
-    static T sampleCubicSpline(const Vector<Keyframe<T>>& keys, f32 time);
-    static Vec3 lerpVec3(const Vec3& a, const Vec3& b, f32 t);
-    static Vec3 catmullRom(const Vec3& p0, const Vec3& p1, const Vec3& p2, const Vec3& p3, f32 t);
-    static Quat squad(const Quat& s0, const Quat& s1, const Quat& s2, const Quat& s3, f32 t);
-};
+// ─── Keyframe sampling ──────────────────────────────────────────────────
 
 template<typename T>
 T AnimationClip::sampleKeyframes(const Vector<Keyframe<T>>& keys, f32 time) {
@@ -147,14 +67,18 @@ T AnimationClip::sampleCubicSpline(const Vector<Keyframe<T>>& keys, f32 time) {
     return keys.back().value;
 }
 
-inline Vec3 AnimationClip::lerpVec3(const Vec3& a, const Vec3& b, f32 t) {
+// ─── Private helpers ────────────────────────────────────────────────────
+
+template<typename T>
+static T AnimationClip::lerpVec3(const Vec3& a, const Vec3& b, f32 t) {
     return Vec3(
         Mathf::lerp(a.x, b.x, t),
         Mathf::lerp(a.y, b.y, t),
         Mathf::lerp(a.z, b.z, t));
 }
 
-inline Vec3 AnimationClip::catmullRom(const Vec3& p0, const Vec3& p1, const Vec3& p2, const Vec3& p3, f32 t) {
+template<typename T>
+static Vec3 AnimationClip::catmullRom(const Vec3& p0, const Vec3& p1, const Vec3& p2, const Vec3& p3, f32 t) {
     f32 t2 = t * t;
     f32 t3 = t2 * t;
     return Vec3(
@@ -163,10 +87,112 @@ inline Vec3 AnimationClip::catmullRom(const Vec3& p0, const Vec3& p1, const Vec3
         0.5f * ((2.0f * p1.z) + (-p0.z + p2.z) * t + (2.0f * p0.z - 5.0f * p1.z + 4.0f * p2.z - p3.z) * t2 + (-p0.z + 3.0f * p1.z - 3.0f * p2.z + p3.z) * t3));
 }
 
-inline Quat AnimationClip::squad(const Quat& s0, const Quat& s1, const Quat& s2, const Quat& s3, f32 t) {
+template<typename T>
+static Quat AnimationClip::squad(const Quat& s0, const Quat& s1, const Quat& s2, const Quat& s3, f32 t) {
     Quat q1 = Quat::slerp(s0, s1, t);
     Quat q2 = Quat::slerp(s2, s3, t);
     return Quat::slerp(q1, q2, 2.0f * t * (1.0f - t));
+}
+
+// ─── Public methods ─────────────────────────────────────────────────────
+
+inline void AnimationClip::addTrack(u32 boneIndex) {
+    tracks_.emplace_back(boneIndex, {});
+}
+
+inline void AnimationClip::addKeyframe(u32 trackId, f32 time, const Vec3& pos, const Vec3& rot, const Vec3& scale) {
+    if (trackId >= tracks_.size()) return;
+    Vector<Keyframe<Vec3>>& posKeys = positionKeys[trackId];
+    Vector<Keyframe<Quat>>& rotKeys = rotationKeys[trackId];
+    Vector<Keyframe<Vec3>>& sclKeys = scaleKeys[trackId];
+
+    if (posKeys.empty() || posKeys.back().time < time) {
+        posKeys.push_back(Keyframe<Vec3>{time, pos, Rotator::fromQuat(Quat::identity()).toVec3(), scale});
+    }
+    if (rotKeys.empty() || rotKeys.back().time < time) {
+        rotKeys.push_back(Keyframe<Quat>{time, rot, Quat::identity(), Quat::identity()});
+    }
+    if (sclKeys.empty() || sclKeys.back().time < time) {
+        sclKeys.push_back(Keyframe<Vec3>{time, scale, Vec3::identity(), Vec3::identity()});
+    }
+}
+
+inline void AnimationClip::setDuration(f32 d) { duration_ = d; }
+
+inline f32 AnimationClip::getDuration() const { return duration_; }
+
+inline void AnimationClip::setLooping(bool l) { looping_ = l; }
+
+inline bool AnimationClip::isLooping() const { return looping_; }
+
+inline f32 AnimationClip::getTicksPerSecond() const { return ticksPerSecond_; }
+
+inline void AnimationClip::advance(f32 dt) {
+    playbackTime_ += dt;
+    if (looping_) {
+        playbackTime_ = std::fmod(playbackTime_, duration_);
+    } else {
+        playbackTime_ = Mathf::clamp(playbackTime_, 0.0f, duration_);
+    }
+    lastSampleTime_ = playbackTime_;
+}
+
+inline void AnimationClip::setPlaybackTime(f32 t) {
+    playbackTime_ = Mathf::clamp(t, 0.0f, duration_);
+    lastSampleTime_ = playbackTime_;
+}
+
+inline f32 AnimationClip::getPlaybackTime() const { return playbackTime_; }
+
+inline u32 AnimationClip::getActiveBoneCount() const {
+    u32 count = 0;
+    for (u32 i = 0; i < tracks_.size(); i++) {
+        if (!tracks_[i].keyframes.empty()) count++;
+    }
+    return count;
+}
+
+inline u32 AnimationClip::getTrackCount() const { return tracks_.size(); }
+
+inline void AnimationClip::resetTime() {
+    playbackTime_ = 0.0f;
+    lastSampleTime_ = 0.0f;
+}
+
+inline f32 AnimationClip::getActiveBoneKeyframeTime(u32 boneIndex) const {
+    if (boneIndex >= tracks_.size() || tracks_[boneIndex].keyframes.empty()) return 0.0f;
+    return tracks_[boneIndex].keyframes.back().time;
+}
+
+inline bool AnimationClip::retarget(const AnimationClip& source, const HashMap& boneRemap) {
+    // Try to remap bones from source clip
+    return false; // TODO: implement bone remapping
+}
+
+inline f32 AnimationClip::estimateMemoryUsage() const {
+    u32 bytes = sizeof(AnimationClip);
+    for (u32 b = 0; b < positionKeys.size(); b++) {
+        bytes += (u32)(positionKeys[b].size() * sizeof(Keyframe<Vec3>));
+    }
+    for (u32 b = 0; b < rotationKeys.size(); b++) {
+        bytes += (u32)(rotationKeys[b].size() * sizeof(Keyframe<Quat>));
+    }
+    for (u32 b = 0; b < scaleKeys.size(); b++) {
+        bytes += (u32)(scaleKeys[b].size() * sizeof(Keyframe<Vec3>));
+    }
+    return bytes;
+}
+
+inline bool AnimationClip::hasPositionKeyframes() const {
+    return !positionKeys.empty();
+}
+
+inline void AnimationClip::ensureBoneKeyframe(u32 boneIndex, f32 time, Vec3& pos, Quat& rot, Vec3& scl) {
+    if (boneIndex < positionKeys.size() && !positionKeys[boneIndex].empty()) {
+        pos = sampleKeyframes(positionKeys[boneIndex], time);
+        rot = sampleKeyframes(rotationKeys[boneIndex], time);
+        scl = sampleKeyframes(scaleKeys[boneIndex], time);
+    }
 }
 
 inline void AnimationClip::getPositions(f32 time, u32 boneIndex, Vec3& out) const {
@@ -206,14 +232,16 @@ inline void AnimationClip::getScaleAtKeyframe(u32 boneIndex, u32 keyframeIndex, 
 }
 
 inline f32 AnimationClip::normalizeTime(f32 time) const {
-    if (looping) {
-        return std::fmod(time, duration);
+    if (looping_) {
+        return std::fmod(time, duration_);
     }
-    return Mathf::clamp(time, 0.0f, duration);
+    return Mathf::clamp(time, 0.0f, duration_);
 }
 
 inline void AnimationClip::resetEvents() {
-    for (auto& e : events) e.fired = false;
+    for (auto& e : events) {
+        e.fired = false;
+    }
 }
 
 inline void AnimationClip::addEvent(f32 time, const char* name, f32 parameter) {
@@ -265,6 +293,10 @@ inline u32 AnimationClip::getKeyframeCount(u32 boneIndex, u32 channel) const {
     return 0;
 }
 
+inline void AnimationClip::compress(f32 positionThreshold, f32 rotationThreshold, f32 scaleThreshold) {
+    removeRedundantKeyframes(positionThreshold);
+}
+
 inline void AnimationClip::removeRedundantKeyframes(f32 threshold) {
     for (u32 b = 0; b < positionKeys.size(); b++) {
         if (positionKeys[b].size() <= 2) continue;
@@ -297,22 +329,4 @@ inline void AnimationClip::removeRedundantKeyframes(f32 threshold) {
     }
 }
 
-inline void AnimationClip::compress(f32 positionThreshold, f32 rotationThreshold, f32 scaleThreshold) {
-    removeRedundantKeyframes(positionThreshold);
-}
-
-inline u32 AnimationClip::estimateMemoryUsage() const {
-    u32 bytes = sizeof(AnimationClip);
-    for (u32 b = 0; b < positionKeys.size(); b++) {
-        bytes += (u32)(positionKeys[b].size() * sizeof(Keyframe<Vec3>));
-    }
-    for (u32 b = 0; b < rotationKeys.size(); b++) {
-        bytes += (u32)(rotationKeys[b].size() * sizeof(Keyframe<Quat>));
-    }
-    for (u32 b = 0; b < scaleKeys.size(); b++) {
-        bytes += (u32)(scaleKeys[b].size() * sizeof(Keyframe<Vec3>));
-    }
-    return bytes;
-}
-
-}
+} // namespace Frost
