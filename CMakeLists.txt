@@ -74,6 +74,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/TCSM.cpp
     src/Renderer/NRC.cpp
     src/Renderer/RenderPipeline.cpp
+    src/Renderer/BindlessMaterial.cpp
 )
 
 # ============================================================================

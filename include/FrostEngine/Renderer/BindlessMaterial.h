@@ -71,6 +71,22 @@ enum MaterialFlags : u32 {
     MAT_FLAG_ATEST_LEAF    = 0x0100,
 };
 
+// ---- Material pool slot (descriptor indexing) ----
+struct MaterialSlot {
+    u32 materialId = 0;      // external material id this slot maps to
+    u32 textureStart = 0;    // start index in the global texture array
+    u32 textureCount = 0;    // number of texture slots reserved
+    u32 descriptorIndex = 0; // base descriptor index in the bindless heap
+    bool valid = false;      // slot is currently allocated
+};
+
+// ---- Texture array entry (texture array management) ----
+struct TextureHandle {
+    u32 textureId = 0;       // source texture id
+    u32 arrayIndex = 0;      // index in the texture array
+    u32 frameCreated = 0;    // frame the binding was created
+};
+
 // ---- Bindless Material Manager ----
 class BindlessMaterialSystem {
 public:
@@ -79,10 +95,12 @@ public:
 
     BindlessMaterialSystem() = default;
 
+    static constexpr u32 INVALID_HANDLE = 0xFFFFFFFF;
+
     bool init() {
         materials_.resize(MAX_MATERIALS);
         gpuBuffer_.resize(MAX_MATERIALS * sizeof(GPUMaterial));
-        textureHandles_.resize(MAX_TEXTURE_HANDLES);
+        gpuTextureHandles_.resize(MAX_TEXTURE_HANDLES);
         materialCount_ = 0;
         textureCount_ = 0;
 
@@ -150,7 +168,7 @@ public:
     u32 registerTextureHandle(u64 gpuHandle) {
         if (textureCount_ >= MAX_TEXTURE_HANDLES) return 0;
         u32 idx = textureCount_++;
-        textureHandles_[idx] = gpuHandle;
+        gpuTextureHandles_[idx] = gpuHandle;
         return idx;
     }
 
@@ -175,6 +193,30 @@ public:
         // The actual GPU buffer upload happens in the renderer via SSBO binding
     }
 
+    // ========================================================================
+    // Bindless material pool (descriptor indexing + texture array management)
+    // ========================================================================
+
+    // ---- Material pool ----
+    u32 registerMaterial(u32 materialId, u32 textureCount);
+    void unregisterMaterial(u32 handle);
+
+    // ---- Texture array ----
+    u32 bindTexture(u32 materialHandle, u32 slot, u32 textureId);
+    u32 getTextureHandle(u32 materialHandle, u32 slot) const;
+    u32 getTextureArrayIndex(u32 textureHandle) const;
+
+    // ---- Pool queries ----
+    const MaterialSlot& getMaterialSlot(u32 handle) const;
+    u32 getDescriptorIndex(u32 materialHandle) const;
+    u32 getTextureCount() const { return textureCount_; }
+    u32 getMaterialCount() const { return materialCount_; }
+    u32 getDescriptorAllocations() const { return descriptorAllocations_; }
+    bool isBindlessSupported() const { return enableBindless_; }
+    void setMaxTextures(u32 maxTextures) { maxTextures_ = maxTextures; }
+    void setMaxMaterials(u32 maxMaterials) { maxMaterials_ = maxMaterials; }
+    void resetPool();
+
     // ---- Accessors ----
     const GPUMaterial& getMaterial(u32 id) const {
         return (id < materialCount_) ? materials_[id] : materials_[0];
@@ -195,7 +237,19 @@ public:
 private:
     Vector<GPUMaterial> materials_;
     Vector<u8> gpuBuffer_;        // raw bytes for GPU upload
-    Vector<u64> textureHandles_;  // bindless texture handles
+    Vector<u64> gpuTextureHandles_; // legacy raw bindless GPU handles
+
+    // ---- Bindless material pool state ----
+    Vector<MaterialSlot> materialSlots_;   // descriptor range per material
+    Vector<TextureHandle> textureHandles_; // texture array entries
+    u32 maxTextures_ = 4096;
+    u32 maxMaterials_ = 256;
+    u32 descriptorAllocations_ = 0;
+    bool enableBindless_ = true;
+    u32 frameCounter_ = 0;
+
+    static const MaterialSlot& invalidSlot();
+
     u32 materialCount_ = 0;
     u32 textureCount_ = 0;
     bool dirty_ = true;

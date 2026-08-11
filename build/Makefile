@@ -955,6 +955,30 @@ src/Platform/Window.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.s
 .PHONY : src/Platform/Window.cpp.s
 
+src/Renderer/BindlessMaterial.o: src/Renderer/BindlessMaterial.cpp.o
+.PHONY : src/Renderer/BindlessMaterial.o
+
+# target to build an object file
+src/Renderer/BindlessMaterial.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.o
+.PHONY : src/Renderer/BindlessMaterial.cpp.o
+
+src/Renderer/BindlessMaterial.i: src/Renderer/BindlessMaterial.cpp.i
+.PHONY : src/Renderer/BindlessMaterial.i
+
+# target to preprocess a source file
+src/Renderer/BindlessMaterial.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.i
+.PHONY : src/Renderer/BindlessMaterial.cpp.i
+
+src/Renderer/BindlessMaterial.s: src/Renderer/BindlessMaterial.cpp.s
+.PHONY : src/Renderer/BindlessMaterial.s
+
+# target to generate assembly for a file
+src/Renderer/BindlessMaterial.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.s
+.PHONY : src/Renderer/BindlessMaterial.cpp.s
+
 src/Renderer/Camera.o: src/Renderer/Camera.cpp.o
 .PHONY : src/Renderer/Camera.o
 
@@ -2289,6 +2313,9 @@ help:
 	@echo "... src/Platform/Window.o"
 	@echo "... src/Platform/Window.i"
 	@echo "... src/Platform/Window.s"
+	@echo "... src/Renderer/BindlessMaterial.o"
+	@echo "... src/Renderer/BindlessMaterial.i"
+	@echo "... src/Renderer/BindlessMaterial.s"
 	@echo "... src/Renderer/Camera.o"
 	@echo "... src/Renderer/Camera.i"
 	@echo "... src/Renderer/Camera.s"

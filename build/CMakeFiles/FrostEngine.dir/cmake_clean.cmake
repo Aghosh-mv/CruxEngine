@@ -63,6 +63,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Physics/WindField.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o"

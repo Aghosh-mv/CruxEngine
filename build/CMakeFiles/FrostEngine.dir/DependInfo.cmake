@@ -40,6 +40,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Physics/RigidBody.cpp" "CMakeFiles/FrostEngine.dir/src/Physics/RigidBody.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Physics/RigidBody.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Physics/WindField.cpp" "CMakeFiles/FrostEngine.dir/src/Physics/WindField.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Physics/WindField.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Platform/Window.cpp" "CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Platform/Window.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Renderer/BindlessMaterial.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/BindlessMaterial.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Camera.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Camera.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/ComputeManager.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ComputeManager.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Font.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Font.cpp.o.d"
