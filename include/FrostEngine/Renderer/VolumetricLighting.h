@@ -47,6 +47,20 @@ struct VolumetricLightingConfig {
     f32 cloudShadowIntensity = 0.5f;
 };
 
+struct VolumetricConfig {
+    f32 fogDensity = 0.01f;
+    Vec3 fogColor = Vec3(0.7f, 0.8f, 0.9f);
+    f32 fogHeight = 0.0f;
+    f32 fogHeightFalloff = 0.1f;
+    u32 rayMarchSteps = 64;
+    f32 maxDistance = 500.0f;
+    f32 godRayIntensity = 0.5f;
+    u32 godRaySamples = 16;
+    bool enableFog = true;
+    bool enableGodRays = true;
+    bool enableVolumetricShadows = true;
+};
+
 struct VolumetricLightingStats {
     f32 computeTimeMs;
     f32 froxelTimeMs;
@@ -57,6 +71,9 @@ struct VolumetricLightingStats {
     u32 cloudPixels;
     f32 averageScattering;
     f32 averageExtinction;
+    u32 fogSamples;
+    u32 godRaySamples;
+    f32 volumetricTimeMs;
 };
 
 struct FroxelData {
@@ -142,9 +159,20 @@ public:
     void setCloudSpeed(f32 speed);
     void setCloudDensity(f32 density);
 
+    void setVolumetricConfig(const VolumetricConfig& cfg);
+    const VolumetricConfig& getVolumetricConfig() const;
+
+    void applyFog(const Vec3& rayOrigin, const Vec3& rayDir, f32 distance, Vec3& color) const;
+    f32 computeGodRays(const Vec3& sunDir, const Vec3& viewPos, u32 width, u32 height) const;
+    void buildFogVolume(const Vec3& cameraPos, u32 resolution);
+    f32 sampleFogVolume(const Vec3& pos, const Vec3& cameraPos, u32 resolution) const;
+    f32 rayMarchFog(const Vec3& origin, const Vec3& dir, f32 maxDist, const Vec3& cameraPos, u32 resolution) const;
+    f32 applyVolumetricShadows(const Vec3& origin, const Vec3& dir, f32 maxDist, const Vector<Mat4>& shadowCascadeViewProjs) const;
+    void clearVolume();
+
 private:
     VolumetricLightingConfig config_;
-    VolumetricLightingStats stats_;
+    mutable VolumetricLightingStats stats_;
     AtmosphereParams atmosphere_;
     FroxelData* froxels_;
     CloudData* cloudData_;
@@ -152,6 +180,11 @@ private:
     u32 cloudPixelCount_;
     f32 time_;
     f32 temporalBlend_;
+
+    VolumetricConfig volCfg_;
+    Vector<f32> fogDensityVolume_;
+    u32 fogResolution_;
+    Vector<Vec3> godRayAccum_;
 };
 
 }

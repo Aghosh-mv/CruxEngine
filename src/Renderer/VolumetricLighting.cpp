@@ -8,7 +8,7 @@ namespace Frost {
 
 VolumetricLighting::VolumetricLighting()
     : froxels_(nullptr), cloudData_(nullptr), froxelCount_(0), cloudPixelCount_(0),
-      time_(0), temporalBlend_(0) {
+      time_(0), temporalBlend_(0), fogResolution_(32) {
     memset(&stats_, 0, sizeof(stats_));
     memset(&atmosphere_, 0, sizeof(atmosphere_));
 }
@@ -31,6 +31,9 @@ bool VolumetricLighting::init(const VolumetricLightingConfig& config) {
     atmosphere_.rayleighCoefficients = Vec3(5.8e-6f, 13.5e-6f, 33.1e-6f);
     atmosphere_.mieCoefficients = Vec3(21e-6f, 21e-6f, 21e-6f);
     atmosphere_.ozoneAbsorption = 0.0f;
+    stats_.fogSamples = 0;
+    stats_.godRaySamples = 0;
+    stats_.volumetricTimeMs = 0.0f;
     FROST_LOG_INFO("[VolumetricLighting] Initialized (froxels=%ux%ux%u=%u, quality=%d, clouds=%d)",
         config_.froxelResolutionX, config_.froxelResolutionY, config_.froxelResolutionZ,
         froxelCount_, (int)config_.quality, (int)config_.cloudQuality);
@@ -44,6 +47,8 @@ void VolumetricLighting::shutdown() {
     cloudData_ = nullptr;
     froxelCount_ = 0;
     cloudPixelCount_ = 0;
+    fogDensityVolume_.clear();
+    godRayAccum_.clear();
     FROST_LOG_INFO("[VolumetricLighting] Shutdown");
 }
 
@@ -118,7 +123,7 @@ void VolumetricLighting::integrateVolume(const Mat4& viewMatrix, const Mat4& pro
 
 void VolumetricLighting::applyVolumetricLighting(void* renderTarget, u32 width, u32 height) {
     (void)renderTarget; (void)width; (void)height;
-    stats_.computeTimeMs = stats_.froxelTimeMs + stats_.scatterTimeMs + stats_.integrateTimeMs + stats_.cloudTimeMs;
+    stats_.computeTimeMs = stats_.froxelTimeMs + stats_.scatterTimeMs + stats_.integrateTimeMs + stats_.cloudTimeMs + stats_.volumetricTimeMs;
 }
 
 void VolumetricLighting::computeClouds(const Mat4& viewMatrix, const Mat4& projection, const Vec3& cameraPos) {
@@ -225,11 +230,11 @@ void VolumetricLighting::computeRayleighMieCoefficients(Vec3& rayleigh, Vec3& mi
 }
 
 VolumetricLightingStats VolumetricLighting::getStats() const { return stats_; }
-void VolumetricLighting::resetStats() { stats_ = {}; }
+void VolumetricLighting::resetStats() { memset(&stats_, 0, sizeof(stats_)); }
 
 void VolumetricLighting::printStats() const {
-    FROST_LOG_INFO("[VolumetricLighting] Compute: %.3fms, Froxels: %.3fms, Scatter: %.3fms, Integrate: %.3fms, Cloud: %.3fms",
-        stats_.computeTimeMs, stats_.froxelTimeMs, stats_.scatterTimeMs, stats_.integrateTimeMs, stats_.cloudTimeMs);
+    FROST_LOG_INFO("[VolumetricLighting] Compute: %.3fms, Froxels: %.3fms, Scatter: %.3fms, Integrate: %.3fms, Cloud: %.3fms, Volumetric: %.3fms",
+        stats_.computeTimeMs, stats_.froxelTimeMs, stats_.scatterTimeMs, stats_.integrateTimeMs, stats_.cloudTimeMs, stats_.volumetricTimeMs);
 }
 
 void VolumetricLighting::setQuality(VolumetricQuality quality) { config_.quality = quality; }
@@ -240,5 +245,200 @@ void VolumetricLighting::setPhaseG(f32 g) { config_.phaseG = g; }
 void VolumetricLighting::setCloudCoverage(f32 coverage) { config_.cloudCoverage = coverage; }
 void VolumetricLighting::setCloudSpeed(f32 speed) { config_.cloudSpeed = speed; }
 void VolumetricLighting::setCloudDensity(f32 density) { config_.cloudDensity = density; }
+
+void VolumetricLighting::setVolumetricConfig(const VolumetricConfig& cfg) { volCfg_ = cfg; }
+const VolumetricConfig& VolumetricLighting::getVolumetricConfig() const { return volCfg_; }
+
+void VolumetricLighting::applyFog(const Vec3& rayOrigin, const Vec3& rayDir, f32 distance, Vec3& color) const {
+    if (!volCfg_.enableFog) return;
+
+    f32 density = volCfg_.fogDensity;
+    f32 falloff = volCfg_.fogHeightFalloff;
+    f32 fogH = volCfg_.fogHeight;
+
+    f32 heightAboveFog = rayOrigin.y + rayDir.y * distance * 0.5f - fogH;
+    f32 heightFactor = 1.0f + falloff * Mathf::max(0.0f, heightAboveFog);
+
+    f32 fogFactor = std::exp(-density * distance * heightFactor);
+    fogFactor = Mathf::clamp(fogFactor, 0.0f, 1.0f);
+
+    color = Vec3(
+        Mathf::lerp(volCfg_.fogColor.x, color.x, fogFactor),
+        Mathf::lerp(volCfg_.fogColor.y, color.y, fogFactor),
+        Mathf::lerp(volCfg_.fogColor.z, color.z, fogFactor));
+}
+
+f32 VolumetricLighting::computeGodRays(const Vec3& sunDir, const Vec3& viewPos, u32 width, u32 height) const {
+    if (!volCfg_.enableGodRays) return 1.0f;
+
+    u32 samples = volCfg_.godRaySamples;
+    if (samples == 0) return 1.0f;
+
+    f32 stepSize = volCfg_.maxDistance / (f32)samples;
+    Vec3 rayStep = sunDir * stepSize;
+    Vec3 currentPos = viewPos;
+
+    f32 occlusion = 0.0f;
+    for (u32 i = 0; i < samples; i++) {
+        Vec3 samplePos = currentPos + rayStep * (f32)i;
+        f32 heightFactor = Mathf::max(0.0f, samplePos.y - volCfg_.fogHeight);
+        f32 localDensity = volCfg_.fogDensity * std::exp(-volCfg_.fogHeightFalloff * heightFactor);
+        occlusion += localDensity * stepSize;
+        stats_.godRaySamples++;
+    }
+
+    occlusion = Mathf::clamp(occlusion, 0.0f, 1.0f);
+    f32 brightness = 1.0f - occlusion * volCfg_.godRayIntensity;
+    return Mathf::clamp(brightness, 0.0f, 1.0f);
+}
+
+void VolumetricLighting::buildFogVolume(const Vec3& cameraPos, u32 resolution) {
+    fogResolution_ = resolution;
+    u32 totalVoxels = resolution * resolution * resolution;
+    fogDensityVolume_.resize(totalVoxels);
+
+    f32 worldSize = volCfg_.maxDistance * 2.0f;
+    f32 voxelSize = worldSize / (f32)resolution;
+    f32 halfWorld = worldSize * 0.5f;
+
+    for (u32 z = 0; z < resolution; z++) {
+        for (u32 y = 0; y < resolution; y++) {
+            for (u32 x = 0; x < resolution; x++) {
+                u32 idx = z * resolution * resolution + y * resolution + x;
+                Vec3 voxelWorldPos(
+                    cameraPos.x - halfWorld + (f32)x * voxelSize,
+                    cameraPos.y - halfWorld + (f32)y * voxelSize,
+                    cameraPos.z - halfWorld + (f32)z * voxelSize);
+
+                f32 heightAboveFog = voxelWorldPos.y - volCfg_.fogHeight;
+                f32 density = volCfg_.fogDensity;
+                if (heightAboveFog > 0.0f) {
+                    density *= std::exp(-volCfg_.fogHeightFalloff * heightAboveFog);
+                } else {
+                    density *= std::exp(volCfg_.fogHeightFalloff * heightAboveFog * 0.5f);
+                }
+
+                fogDensityVolume_[idx] = density;
+            }
+        }
+    }
+}
+
+f32 VolumetricLighting::sampleFogVolume(const Vec3& pos, const Vec3& cameraPos, u32 resolution) const {
+    if (fogDensityVolume_.empty() || resolution == 0) return 0.0f;
+
+    f32 worldSize = volCfg_.maxDistance * 2.0f;
+    f32 halfWorld = worldSize * 0.5f;
+    f32 voxelSize = worldSize / (f32)resolution;
+
+    f32 localX = (pos.x - cameraPos.x + halfWorld) / voxelSize;
+    f32 localY = (pos.y - cameraPos.y + halfWorld) / voxelSize;
+    f32 localZ = (pos.z - cameraPos.z + halfWorld) / voxelSize;
+
+    i32 x0 = (i32)std::floor(localX);
+    i32 y0 = (i32)std::floor(localY);
+    i32 z0 = (i32)std::floor(localZ);
+    i32 x1 = x0 + 1;
+    i32 y1 = y0 + 1;
+    i32 z1 = z0 + 1;
+
+    f32 fx = localX - (f32)x0;
+    f32 fy = localY - (f32)y0;
+    f32 fz = localZ - (f32)z0;
+
+    auto clampIdx = [resolution](i32 v) -> i32 {
+        if (v < 0) return 0;
+        if (v >= (i32)resolution) return (i32)resolution - 1;
+        return v;
+    };
+
+    x0 = clampIdx(x0); y0 = clampIdx(y0); z0 = clampIdx(z0);
+    x1 = clampIdx(x1); y1 = clampIdx(y1); z1 = clampIdx(z1);
+
+    auto sample = [&](i32 x, i32 y, i32 z) -> f32 {
+        u32 idx = (u32)z * resolution * resolution + (u32)y * resolution + (u32)x;
+        if (idx >= fogDensityVolume_.size()) return 0.0f;
+        return fogDensityVolume_[idx];
+    };
+
+    f32 c000 = sample(x0, y0, z0);
+    f32 c100 = sample(x1, y0, z0);
+    f32 c010 = sample(x0, y1, z0);
+    f32 c110 = sample(x1, y1, z0);
+    f32 c001 = sample(x0, y0, z1);
+    f32 c101 = sample(x1, y0, z1);
+    f32 c011 = sample(x0, y1, z1);
+    f32 c111 = sample(x1, y1, z1);
+
+    f32 c00 = Mathf::lerp(c000, c100, fx);
+    f32 c10 = Mathf::lerp(c010, c110, fx);
+    f32 c01 = Mathf::lerp(c001, c101, fx);
+    f32 c11 = Mathf::lerp(c011, c111, fx);
+
+    f32 c0 = Mathf::lerp(c00, c10, fy);
+    f32 c1 = Mathf::lerp(c01, c11, fy);
+
+    return Mathf::lerp(c0, c1, fz);
+}
+
+f32 VolumetricLighting::rayMarchFog(const Vec3& origin, const Vec3& dir, f32 maxDist, const Vec3& cameraPos, u32 resolution) const {
+    if (!volCfg_.enableFog || fogDensityVolume_.empty()) return 0.0f;
+
+    u32 steps = volCfg_.rayMarchSteps;
+    if (steps == 0) return 0.0f;
+
+    f32 stepSize = maxDist / (f32)steps;
+    Vec3 stepDir = dir * stepSize;
+    f32 totalOpticalDepth = 0.0f;
+
+    for (u32 i = 0; i < steps; i++) {
+        Vec3 samplePos = origin + stepDir * (f32)i;
+        f32 density = sampleFogVolume(samplePos, cameraPos, resolution);
+        totalOpticalDepth += density * stepSize;
+        stats_.fogSamples++;
+    }
+
+    return totalOpticalDepth;
+}
+
+f32 VolumetricLighting::applyVolumetricShadows(const Vec3& origin, const Vec3& dir, f32 maxDist, const Vector<Mat4>& shadowCascadeViewProjs) const {
+    if (!volCfg_.enableVolumetricShadows) return 1.0f;
+
+    u32 cascadeCount = shadowCascadeViewProjs.size();
+    if (cascadeCount == 0) return 1.0f;
+
+    u32 steps = volCfg_.rayMarchSteps;
+    if (steps == 0) return 1.0f;
+
+    f32 stepSize = maxDist / (f32)steps;
+    Vec3 stepDir = dir * stepSize;
+    f32 shadowFactor = 1.0f;
+
+    for (u32 i = 0; i < steps; i++) {
+        Vec3 samplePos = origin + stepDir * (f32)i;
+
+        for (u32 c = 0; c < cascadeCount; c++) {
+            const Mat4& cascadeVP = shadowCascadeViewProjs[c];
+            Vec4 clipPos = cascadeVP * Vec4(samplePos, 1.0f);
+
+            f32 ndcX = clipPos.x / clipPos.w;
+            f32 ndcY = clipPos.y / clipPos.w;
+
+            if (ndcX >= -1.0f && ndcX <= 1.0f && ndcY >= -1.0f && ndcY <= 1.0f) {
+                f32 depthDist = std::abs(clipPos.z / clipPos.w);
+                if (depthDist > 0.001f) {
+                    shadowFactor *= 0.95f;
+                }
+            }
+        }
+    }
+
+    return Mathf::clamp(shadowFactor, 0.0f, 1.0f);
+}
+
+void VolumetricLighting::clearVolume() {
+    fogDensityVolume_.clear();
+    godRayAccum_.clear();
+}
 
 }
