@@ -54,6 +54,25 @@ struct SerializedComponentHeader {
     u32 dataSize;
 };
 
+// ---- Serialized entity record (transform + component payload) ----
+struct SerializedEntity {
+    u32 id = 0;
+    Vec3 position{ 0, 0, 0 };
+    Vec3 rotation{ 0, 0, 0 };
+    Vec3 scale{ 1, 1, 1 };
+    Vector<u16> componentTypes;
+    Vector<u8> componentData;
+};
+
+// ---- On-disk scene header (versioned) ----
+struct SerializationHeader {
+    u32 magic;
+    u32 version;
+    u32 entityCount;
+    u32 componentCount;
+    u32 dataSize;
+};
+
 class SceneSerializer {
 public:
     bool saveBinary(const char* path, const Scene& scene,
@@ -199,6 +218,41 @@ public:
         FROST_LOG_INFO("[SceneSerializer] exported JSON to %s", path);
         return true;
     }
+
+    // ---- Versioned binary scene serialization (hardened) ----
+
+    u32 serializeEntity(const void* entity);
+    u32 serializeScene();
+    u32 deserializeEntity(const void* buffer, u32 offset);
+    u32 deserializeScene(const void* buffer, u32 size);
+
+    bool writeToFile(const char* path);
+    bool readFromFile(const char* path);
+
+    u32 getSavedCount() const { return savedCount_; }
+    u32 getLoadedCount() const { return loadedCount_; }
+    u32 getBytesWritten() const { return bytesWritten_; }
+    u32 getBytesRead() const { return bytesRead_; }
+    bool lastWriteSuccessful() const { return lastWriteOk_; }
+    void resetStats();
+    u32 getFileVersion() const { return fileVersion_; }
+    void setFileVersion(u32 v) { fileVersion_ = v; }
+
+private:
+    Vector<SerializedEntity> serializedEntities_;
+    Vector<u8> buffer_;
+    u32 deserializeSize_ = 0;
+    u32 fileVersion_ = 1;
+    u32 savedCount_ = 0;
+    u32 loadedCount_ = 0;
+    u32 bytesWritten_ = 0;
+    u32 bytesRead_ = 0;
+    bool lastWriteOk_ = false;
+    bool lastReadOk_ = false;
+
+    static constexpr u32 MAX_ENTITIES = 1000000;
+    static constexpr u16 MAX_COMPONENTS_PER_ENTITY = 64;
+    static constexpr u32 MAX_COMPONENT_BYTES = 16 * 1024 * 1024;
 };
 
 } // namespace Frost
