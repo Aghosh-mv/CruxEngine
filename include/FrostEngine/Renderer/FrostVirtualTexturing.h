@@ -168,6 +168,30 @@ struct VirtualAtlas {
     u32 pagesPerCol = 0;
 };
 
+// Hardened page cache: feedback-driven page request
+struct PageRequest {
+    u32 pageX = 0;
+    u32 pageY = 0;
+    u32 mipLevel = 0;
+    u32 tileIndex = 0;
+    u32 priority = 0;
+
+    PageRequest() = default;
+    PageRequest(u32 px, u32 py, u32 mip, u32 tile, u32 prio)
+        : pageX(px), pageY(py), mipLevel(mip), tileIndex(tile), priority(prio) {}
+};
+
+// Hardened page cache: tile residency record
+struct PageTableEntry {
+    u32 physicalX = 0;
+    u32 physicalY = 0;
+    bool resident = false;
+    bool loading = false;
+    u32 lastUsedFrame = 0;
+
+    PageTableEntry() = default;
+};
+
 // ============================================================================
 // Main FrostVirtualTexturing system
 // ============================================================================
@@ -222,7 +246,7 @@ public:
 
     // Statistics
     u32 totalVirtualPages() const { return totalVirtualPages_; }
-    u32 residentPages() const { return residentPages_; }
+    u32 residentPages() const { return legacyResidentPages_; }
     u32 streamingPages() const { return streamingPages_; }
     u32 evictionCount() const { return evictionCount_; }
     f32 atlasUtilization() const;
@@ -279,6 +303,51 @@ public:
     u32 getPendingRequestCount() const;
 
     void resetStreaming();
+
+    // ========================================================================
+    // Hardened page cache: LRU tile residency + feedback request queue
+    // ========================================================================
+
+    // Find or allocate a physical page slot for the given virtual tile.
+    // Evicts the least-recently-used resident tile when the cache is full.
+    // Returns the physical slot index (physicalY * pagesPerRow_ + physicalX),
+    // or 0xFFFFFFFF when no slot could be allocated.
+    u32 allocatePage(u32 pageX, u32 pageY, u32 mip, u32 tile);
+
+    // Free a resident tile, releasing its physical slot.
+    void freePage(u32 tile);
+
+    // Query residency for a virtual tile (nullptr when out of range).
+    const PageTableEntry* getPageTableEntry(u32 tile) const;
+
+    // Enqueue a feedback-driven page request (insert-or-update by tile).
+    void requestPage(u32 pageX, u32 pageY, u32 mip, u32 tile, u32 priority);
+
+    // Process up to maxPerFrame queued requests by priority, loading pages.
+    // Returns the number of pages successfully loaded.
+    u32 processRequests(u32 maxPerFrame);
+
+    // Evict the least-recently-used resident tile. Returns the evicted tile
+    // index, or 0xFFFFFFFF when the cache is empty.
+    u32 evictLeastRecentlyUsed();
+
+    // Track a cache hit/miss for statistics.
+    void updateCacheStats(bool hit);
+
+    // Reset cache statistics counters.
+    void resetStats();
+
+    // Configuration setters (rebuild the page table layout).
+    void setPageSize(u32 pageSize);
+    void setVirtualResolution(u32 resolution);
+    void setMaxResidentPages(u32 maxResident);
+
+    // Cache statistics
+    u32 getResidentCount() const { return residentCount_; }
+    u32 getUploadedPages() const { return uploadedPages_; }
+    u32 getCacheHitCount() const { return cacheHitCount_; }
+    u32 getCacheMissCount() const { return cacheMissCount_; }
+    const Vector<u32>& getResidentPages() const { return residentPages_; }
 
 private:
     // Shelf packing
@@ -345,7 +414,7 @@ private:
     u32 maxPagesPerAtlas_;
 
     // Page table
-    Vector<VTPageTableEntry> pageTable_;
+    Vector<VTPageTableEntry> legacyPageTable_;
     u32 pageTableSize_;
 
     // Physical atlases
@@ -364,7 +433,7 @@ private:
 
     // Statistics
     u32 totalVirtualPages_;
-    u32 residentPages_;
+    u32 legacyResidentPages_;
     u32 streamingPages_;
     u32 evictionCount_;
     f32 lastProcessTimeMs_;
@@ -392,6 +461,25 @@ private:
         return ((u64)mipLevel << 40) | ((u64)pageY << 20) | (u64)pageX;
     }
     i32 findFreeAtlasSlot() const;
+
+    // Hardened page cache helpers
+    void ensurePageTableSize();
+    u32 virtualTileCount() const;
+    u32 findFreePhysicalSlot() const;
+
+    // Hardened page cache state
+    u32 pageSize_ = 128;
+    u32 pagesPerRow_ = 32;
+    u32 pagesPerColumn_ = 32;
+    u32 virtualResolution_ = 8192;
+    u32 maxResidentPages_ = 1024;
+    Vector<PageTableEntry> pageTable_;
+    Vector<u32> residentPages_;
+    Vector<PageRequest> pageRequests_;
+    u32 residentCount_ = 0;
+    u32 uploadedPages_ = 0;
+    u32 cacheHitCount_ = 0;
+    u32 cacheMissCount_ = 0;
 
     bool initialized_;
 };

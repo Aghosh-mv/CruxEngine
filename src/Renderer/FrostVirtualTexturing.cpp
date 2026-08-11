@@ -21,13 +21,14 @@ namespace Frost {
 FrostVirtualTexturing::FrostVirtualTexturing()
     : atlasSize_(VT_ATLAS_SIZE), pagesPerAtlas_(0), maxPagesPerAtlas_(0),
       pageTableSize_(0), activeAtlases_(0), feedbackCount_(0), textureCount_(0),
-      totalVirtualPages_(0), residentPages_(0), streamingPages_(0),
+      totalVirtualPages_(0), legacyResidentPages_(0), streamingPages_(0),
       evictionCount_(0), lastProcessTimeMs_(0), frameCount_(0), initialized_(false),
       feedbackQueueCapacity_(4096), pageTtlFrames_(120), nextFreeSlot_(0) {
     memset(shelfCount_, 0, sizeof(shelfCount_));
     atlas_.pageSize = 64;
     atlas_.width = 2048;
     atlas_.height = 2048;
+    ensurePageTableSize();
 }
 
 FrostVirtualTexturing::~FrostVirtualTexturing() {
@@ -45,7 +46,7 @@ bool FrostVirtualTexturing::init(u32 atlasSize) {
 
     // Initialize page table: enough for 16K x 16K virtual texture
     pageTableSize_ = VT_MAX_VIRTUAL_PAGES;
-    pageTable_.resize(pageTableSize_);
+    legacyPageTable_.resize(pageTableSize_);
 
     // Initialize feedback buffer
     feedbackBuffer_.resize(VT_FEEDBACK_BUFFER_SIZE);
@@ -55,7 +56,7 @@ bool FrostVirtualTexturing::init(u32 atlasSize) {
     activeAtlases_ = 0;
 
     totalVirtualPages_ = 0;
-    residentPages_ = 0;
+    legacyResidentPages_ = 0;
     streamingPages_ = 0;
     evictionCount_ = 0;
 
@@ -64,7 +65,7 @@ bool FrostVirtualTexturing::init(u32 atlasSize) {
 }
 
 void FrostVirtualTexturing::shutdown() {
-    pageTable_.clear();
+    legacyPageTable_.clear();
     feedbackBuffer_.clear();
     textures_.clear();
 
@@ -76,10 +77,10 @@ void FrostVirtualTexturing::shutdown() {
 }
 
 void FrostVirtualTexturing::reset() {
-    for (auto& entry : pageTable_) {
+    for (auto& entry : legacyPageTable_) {
         entry = VTPageTableEntry();
     }
-    residentPages_ = 0;
+    legacyResidentPages_ = 0;
     streamingPages_ = 0;
     evictionCount_ = 0;
     feedbackCount_ = 0;
@@ -151,7 +152,7 @@ void FrostVirtualTexturing::processFeedback() {
     }
 
     // If we need more pages than available space, evict
-    if (residentPages_ + pagesNeeded > maxPagesPerAtlas_ * VT_MAX_ATLASES) {
+    if (legacyResidentPages_ + pagesNeeded > maxPagesPerAtlas_ * VT_MAX_ATLASES) {
         evictPages(pagesNeeded);
     }
 
@@ -324,7 +325,7 @@ void FrostVirtualTexturing::packPages() {
             VTAtlasLocation location;
             if (shelfPackPage(addr, location)) {
                 markPageResident(addr, location);
-                residentPages_++;
+                legacyResidentPages_++;
             }
         }
     }
@@ -412,7 +413,7 @@ u16 FrostVirtualTexturing::findBestShelf(u16 pageWidth, u32 atlasIndex) const {
 void FrostVirtualTexturing::evictPages(u32 pagesNeeded) {
     u32 pagesEvicted = 0;
 
-    while (pagesEvicted < pagesNeeded && residentPages_ > 0) {
+    while (pagesEvicted < pagesNeeded && legacyResidentPages_ > 0) {
         u32 lruPage = findLRUPage();
         if (lruPage == 0xFFFFFFFF) break;
 
@@ -427,7 +428,7 @@ u32 FrostVirtualTexturing::findLRUPage() const {
     u32 oldestAddr = 0xFFFFFFFF;
 
     for (u32 i = 0; i < pageTableSize_; i++) {
-        const VTPageTableEntry& entry = pageTable_[i];
+        const VTPageTableEntry& entry = legacyPageTable_[i];
         if (entry.status & 1) {  // Resident
             if (entry.lastAccessTime < oldestTime) {
                 oldestTime = entry.lastAccessTime;
@@ -446,7 +447,7 @@ void FrostVirtualTexturing::evictSinglePage(u32 virtualAddress) {
     // Mark page as not resident
     entry->status &= ~1;
     entry->status &= ~4;
-    residentPages_--;
+    legacyResidentPages_--;
 
     // In production, would free the atlas space
 }
@@ -472,12 +473,12 @@ void FrostVirtualTexturing::updatePageTable() {
 
 const VTPageTableEntry* FrostVirtualTexturing::getPageEntry(u32 virtualAddress) const {
     if (virtualAddress >= pageTableSize_) return nullptr;
-    return &pageTable_[virtualAddress];
+    return &legacyPageTable_[virtualAddress];
 }
 
 VTPageTableEntry* FrostVirtualTexturing::getPageEntryMut(u32 virtualAddress) {
     if (virtualAddress >= pageTableSize_) return nullptr;
-    return &pageTable_[virtualAddress];
+    return &legacyPageTable_[virtualAddress];
 }
 
 VTAtlasLocation FrostVirtualTexturing::getPhysicalLocation(u32 virtualAddress) const {
@@ -649,7 +650,7 @@ const VTAtlasPage& FrostVirtualTexturing::getAtlasPage(u32 atlasIndex, u32 pageX
 f32 FrostVirtualTexturing::atlasUtilization() const {
     u32 totalPages = activeAtlases_ * maxPagesPerAtlas_;
     if (totalPages == 0) return 0;
-    return (f32)residentPages_ / (f32)totalPages;
+    return (f32)legacyResidentPages_ / (f32)totalPages;
 }
 
 // ============================================================================
@@ -670,7 +671,7 @@ void FrostVirtualTexturing::compactAtlas() {
 
                     // Update page table
                     for (u32 t = 0; t < pageTableSize_; t++) {
-                        VTPageTableEntry& entry = pageTable_[t];
+                        VTPageTableEntry& entry = legacyPageTable_[t];
                         if ((entry.status & 1) && entry.location.atlasIndex == a &&
                             entry.location.pageX == (pageIdx % pagesPerAtlas_) * VT_PAGE_SIZE &&
                             entry.location.pageY == (pageIdx / pagesPerAtlas_) * VT_PAGE_SIZE) {
@@ -721,7 +722,7 @@ f32 FrostVirtualTexturing::computeShelfUtilization(u32 atlasIndex) const {
 u32 FrostVirtualTexturing::countResidentPages() const {
     u32 count = 0;
     for (u32 i = 0; i < pageTableSize_; i++) {
-        if (pageTable_[i].status & 1) count++;
+        if (legacyPageTable_[i].status & 1) count++;
     }
     return count;
 }
@@ -729,7 +730,7 @@ u32 FrostVirtualTexturing::countResidentPages() const {
 u32 FrostVirtualTexturing::countStreamingPages() const {
     u32 count = 0;
     for (u32 i = 0; i < pageTableSize_; i++) {
-        if (pageTable_[i].status & 2) count++;
+        if (legacyPageTable_[i].status & 2) count++;
     }
     return count;
 }
@@ -741,7 +742,7 @@ f32 FrostVirtualTexturing::computePageTableFragmentation() const {
     u32 currentFreeBlock = 0;
 
     for (u32 i = 0; i < pageTableSize_; i++) {
-        if (pageTable_[i].status & 1) {
+        if (legacyPageTable_[i].status & 1) {
             usedSlots++;
             maxFreeBlock = std::max(maxFreeBlock, currentFreeBlock);
             currentFreeBlock = 0;
@@ -792,7 +793,7 @@ f32 FrostVirtualTexturing::computeCacheHitRate() const {
 u32 FrostVirtualTexturing::computeLoadedMipLevels() const {
     u32 maxMip = 0;
     for (u32 i = 0; i < pageTableSize_; i++) {
-        if (pageTable_[i].status & 1) {
+        if (legacyPageTable_[i].status & 1) {
             VTPageAddress addr = computePageAddress(i);
             maxMip = std::max(maxMip, (u32)addr.mipLevel);
         }
@@ -805,7 +806,7 @@ f32 FrostVirtualTexturing::computeMipLevelDistribution() const {
     mipCounts.resize(VT_MIP_LEVELS, 0);
 
     for (u32 i = 0; i < pageTableSize_; i++) {
-        if (pageTable_[i].status & 1) {
+        if (legacyPageTable_[i].status & 1) {
             VTPageAddress addr = computePageAddress(i);
             if (addr.mipLevel < VT_MIP_LEVELS) {
                 mipCounts[addr.mipLevel]++;
@@ -815,7 +816,7 @@ f32 FrostVirtualTexturing::computeMipLevelDistribution() const {
 
     // Return entropy of mip distribution
     f32 entropy = 0;
-    u32 total = residentPages_;
+    u32 total = legacyResidentPages_;
     if (total == 0) return 0;
 
     for (u32 i = 0; i < mipCounts.size(); i++) {
@@ -859,7 +860,7 @@ f32 FrostVirtualTexturing::computeMemoryEfficiency() const {
 
 void FrostVirtualTexturing::getStats(u32& resident, u32& streaming,
                                        u32& total, f32& utilization) const {
-    resident = residentPages_;
+    resident = legacyResidentPages_;
     streaming = streamingPages_;
     total = totalVirtualPages_;
     utilization = atlasUtilization();
@@ -878,7 +879,7 @@ Vector<Vec3> FrostVirtualTexturing::getAtlasVisualization() const {
 
             // Check if page is used
             for (u32 t = 0; t < pageTableSize_; t++) {
-                const VTPageTableEntry& entry = pageTable_[t];
+                const VTPageTableEntry& entry = legacyPageTable_[t];
                 if ((entry.status & 1) && entry.location.atlasIndex == a) {
                     u32 px = entry.location.pageX;
                     u32 py = entry.location.pageY;
@@ -1111,6 +1112,229 @@ void FrostVirtualTexturing::resetStreaming() {
     atlas_.pageSize = 64;
     nextFreeSlot_ = 0;
     streamingStats_ = StreamingStats();
+}
+
+// ============================================================================
+// Hardened Page Cache — LRU Tile Residency + Feedback Request Queue
+// ============================================================================
+
+u32 FrostVirtualTexturing::virtualTileCount() const {
+    u32 grid = pageSize_ > 0 ? (virtualResolution_ + pageSize_ - 1) / pageSize_ : 0;
+    u32 total = 0;
+    for (u32 mip = 0; mip < VT_MIP_LEVELS && grid > 0; mip++) {
+        total += grid * grid;
+        if (grid == 1) break;
+        grid = (grid + 1) / 2;
+    }
+    return total;
+}
+
+void FrostVirtualTexturing::ensurePageTableSize() {
+    usize needed = (usize)virtualTileCount();
+    if (pageTable_.size() == needed) return;
+
+    for (usize i = residentPages_.size(); i > 0; i--) {
+        usize idx = i - 1;
+        if (residentPages_[idx] >= needed) {
+            residentPages_.erase(idx);
+            if (residentCount_ > 0) residentCount_--;
+        }
+    }
+
+    for (usize i = pageRequests_.size(); i > 0; i--) {
+        usize idx = i - 1;
+        if (pageRequests_[idx].tileIndex >= needed) {
+            pageRequests_.erase(idx);
+        }
+    }
+
+    pageTable_.resize(needed);
+}
+
+u32 FrostVirtualTexturing::findFreePhysicalSlot() const {
+    u32 totalSlots = pagesPerRow_ * pagesPerColumn_;
+    for (u32 slot = 0; slot < totalSlots; slot++) {
+        u32 slotX = slot % pagesPerRow_;
+        u32 slotY = slot / pagesPerRow_;
+        bool used = false;
+        for (usize i = 0; i < residentPages_.size(); i++) {
+            const PageTableEntry& entry = pageTable_[residentPages_[i]];
+            if (entry.physicalX == slotX && entry.physicalY == slotY) {
+                used = true;
+                break;
+            }
+        }
+        if (!used) return slot;
+    }
+    return 0xFFFFFFFF;
+}
+
+u32 FrostVirtualTexturing::allocatePage(u32 pageX, u32 pageY, u32 mip, u32 tile) {
+    (void)pageX;
+    (void)pageY;
+    (void)mip;
+
+    ensurePageTableSize();
+    if (tile >= pageTable_.size()) return 0xFFFFFFFF;
+
+    PageTableEntry& entry = pageTable_[tile];
+    if (entry.resident) {
+        entry.lastUsedFrame = frameCount_;
+        return entry.physicalY * pagesPerRow_ + entry.physicalX;
+    }
+
+    if (residentCount_ >= maxResidentPages_) {
+        evictLeastRecentlyUsed();
+    }
+
+    u32 slot = findFreePhysicalSlot();
+    if (slot == 0xFFFFFFFF) return 0xFFFFFFFF;
+
+    entry.physicalX = slot % pagesPerRow_;
+    entry.physicalY = slot / pagesPerRow_;
+    entry.resident = true;
+    entry.loading = false;
+    entry.lastUsedFrame = frameCount_;
+
+    residentPages_.push_back(tile);
+    residentCount_++;
+    uploadedPages_++;
+
+    return slot;
+}
+
+void FrostVirtualTexturing::freePage(u32 tile) {
+    if (tile >= pageTable_.size()) return;
+    PageTableEntry& entry = pageTable_[tile];
+    if (!entry.resident) return;
+
+    entry.resident = false;
+    entry.loading = false;
+
+    for (usize i = 0; i < residentPages_.size(); i++) {
+        if (residentPages_[i] == tile) {
+            residentPages_.erase(i);
+            break;
+        }
+    }
+
+    if (residentCount_ > 0) residentCount_--;
+}
+
+const PageTableEntry* FrostVirtualTexturing::getPageTableEntry(u32 tile) const {
+    if (tile >= pageTable_.size()) return nullptr;
+    return &pageTable_[tile];
+}
+
+void FrostVirtualTexturing::requestPage(u32 pageX, u32 pageY, u32 mip, u32 tile, u32 priority) {
+    ensurePageTableSize();
+    if (tile >= pageTable_.size()) return;
+
+    for (usize i = 0; i < pageRequests_.size(); i++) {
+        if (pageRequests_[i].tileIndex == tile) {
+            if (priority > pageRequests_[i].priority) {
+                pageRequests_[i].priority = priority;
+            }
+            return;
+        }
+    }
+
+    pageRequests_.push_back(PageRequest(pageX, pageY, mip, tile, priority));
+}
+
+u32 FrostVirtualTexturing::processRequests(u32 maxPerFrame) {
+    if (maxPerFrame == 0 || pageRequests_.empty()) return 0;
+
+    for (usize i = 0; i < pageRequests_.size(); i++) {
+        usize best = i;
+        for (usize j = i + 1; j < pageRequests_.size(); j++) {
+            if (pageRequests_[j].priority > pageRequests_[best].priority) {
+                best = j;
+            }
+        }
+        if (best != i) {
+            PageRequest tmp = pageRequests_[i];
+            pageRequests_[i] = pageRequests_[best];
+            pageRequests_[best] = tmp;
+        }
+    }
+
+    u32 count = maxPerFrame < pageRequests_.size() ? maxPerFrame : (u32)pageRequests_.size();
+    u32 processed = 0;
+
+    for (u32 i = 0; i < count; i++) {
+        const PageRequest& req = pageRequests_[i];
+        bool hit = req.tileIndex < pageTable_.size() && pageTable_[req.tileIndex].resident;
+        u32 slot = allocatePage(req.pageX, req.pageY, req.mipLevel, req.tileIndex);
+        if (slot != 0xFFFFFFFF) processed++;
+        updateCacheStats(hit);
+    }
+
+    pageRequests_.erase(0, (usize)count);
+    return processed;
+}
+
+u32 FrostVirtualTexturing::evictLeastRecentlyUsed() {
+    if (residentPages_.empty()) return 0xFFFFFFFF;
+
+    u32 oldestFrame = 0xFFFFFFFF;
+    u32 victimTile = 0xFFFFFFFF;
+    usize victimIndex = 0;
+
+    for (usize i = 0; i < residentPages_.size(); i++) {
+        u32 tile = residentPages_[i];
+        const PageTableEntry& entry = pageTable_[tile];
+        if (entry.lastUsedFrame < oldestFrame) {
+            oldestFrame = entry.lastUsedFrame;
+            victimTile = tile;
+            victimIndex = i;
+        }
+    }
+
+    if (victimTile == 0xFFFFFFFF) return 0xFFFFFFFF;
+
+    PageTableEntry& entry = pageTable_[victimTile];
+    entry.resident = false;
+    entry.loading = false;
+
+    residentPages_.erase(victimIndex);
+    if (residentCount_ > 0) residentCount_--;
+
+    return victimTile;
+}
+
+void FrostVirtualTexturing::updateCacheStats(bool hit) {
+    if (hit) {
+        cacheHitCount_++;
+    } else {
+        cacheMissCount_++;
+    }
+}
+
+void FrostVirtualTexturing::resetStats() {
+    uploadedPages_ = 0;
+    cacheHitCount_ = 0;
+    cacheMissCount_ = 0;
+}
+
+void FrostVirtualTexturing::setPageSize(u32 pageSize) {
+    if (pageSize == 0) return;
+    pageSize_ = pageSize;
+    ensurePageTableSize();
+}
+
+void FrostVirtualTexturing::setVirtualResolution(u32 resolution) {
+    if (resolution == 0) return;
+    virtualResolution_ = resolution;
+    ensurePageTableSize();
+}
+
+void FrostVirtualTexturing::setMaxResidentPages(u32 maxResident) {
+    if (maxResident == 0) return;
+    maxResidentPages_ = maxResident;
+    while (residentCount_ > maxResidentPages_) {
+        evictLeastRecentlyUsed();
+    }
 }
 
 } // namespace Frost

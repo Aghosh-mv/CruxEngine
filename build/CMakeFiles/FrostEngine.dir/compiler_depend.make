@@ -11740,7 +11740,11 @@ CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o: ../src/Renderer/Mat
   ../include/FrostEngine/Core/String.h \
   /usr/include/c++/11/cstdarg \
   ../include/FrostEngine/Core/HashMap.h \
-  ../include/FrostEngine/Core/Math.h
+  ../include/FrostEngine/Core/Math.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/ctime \
+  /usr/include/c++/11/bits/parse_numbers.h
 
 CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o: ../src/Renderer/MegaLights.cpp \
   /usr/include/stdc-predef.h \
