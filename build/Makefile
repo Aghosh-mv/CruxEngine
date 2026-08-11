@@ -1435,6 +1435,30 @@ src/Renderer/Mesh.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.s
 .PHONY : src/Renderer/Mesh.cpp.s
 
+src/Renderer/NRC.o: src/Renderer/NRC.cpp.o
+.PHONY : src/Renderer/NRC.o
+
+# target to build an object file
+src/Renderer/NRC.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.o
+.PHONY : src/Renderer/NRC.cpp.o
+
+src/Renderer/NRC.i: src/Renderer/NRC.cpp.i
+.PHONY : src/Renderer/NRC.i
+
+# target to preprocess a source file
+src/Renderer/NRC.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.i
+.PHONY : src/Renderer/NRC.cpp.i
+
+src/Renderer/NRC.s: src/Renderer/NRC.cpp.s
+.PHONY : src/Renderer/NRC.s
+
+# target to generate assembly for a file
+src/Renderer/NRC.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.s
+.PHONY : src/Renderer/NRC.cpp.s
+
 src/Renderer/NaniteSystem.o: src/Renderer/NaniteSystem.cpp.o
 .PHONY : src/Renderer/NaniteSystem.o
 
@@ -2301,6 +2325,9 @@ help:
 	@echo "... src/Renderer/Mesh.o"
 	@echo "... src/Renderer/Mesh.i"
 	@echo "... src/Renderer/Mesh.s"
+	@echo "... src/Renderer/NRC.o"
+	@echo "... src/Renderer/NRC.i"
+	@echo "... src/Renderer/NRC.s"
 	@echo "... src/Renderer/NaniteSystem.o"
 	@echo "... src/Renderer/NaniteSystem.i"
 	@echo "... src/Renderer/NaniteSystem.s"

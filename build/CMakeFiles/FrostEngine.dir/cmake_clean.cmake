@@ -103,6 +103,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o"

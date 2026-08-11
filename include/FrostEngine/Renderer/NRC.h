@@ -227,6 +227,23 @@ struct NRCTrainingSample {
     f32 weight;          // importance weight
 };
 
+// ---- Radiance cache entry ----
+struct CacheEntry {
+    Vec3 position;
+    Vec3 normal;
+    Vec3 radiance;
+    Vec3 direction;
+    f32 confidence;
+    u32 lastUpdateFrame;
+};
+
+// ---- MLP training data sample ----
+struct MLPTrainingSample {
+    Vector<f32> inputs;
+    Vec3 targetRadiance;
+    f32 weight;
+};
+
 // ---- Neural Radiance Cache system ----
 class NRCSystem {
 public:
@@ -320,11 +337,51 @@ public:
 
     TinyMLP* network() const { return network_; }
 
+    // ---- Radiance cache query: cached radiance when confidence is sufficient ----
+    Vec3 query(const Vec3& pos, const Vec3& normal, const Vec3& dir) const;
+
+    // ---- Insert a cache entry, evicting the oldest when full ----
+    void insert(const Vec3& pos, const Vec3& normal, const Vec3& dir, const Vec3& radiance);
+
+    // ---- One MLP training pass over accumulated samples; returns average loss ----
+    f32 train(f32 learningRate);
+
+    // ---- Add a training sample to the MLP dataset ----
+    void addTrainingSample(const MLPTrainingSample& sample);
+
+    // ---- Update the nearest cache entry, or insert when none is close ----
+    void updateCache(const Vec3& pos, const Vec3& normal, const Vec3& dir, const Vec3& radiance);
+
+    // ---- Cache diagnostics ----
+    u32 getCacheSize() const;
+    u32 getCacheHits() const;
+    u32 getCacheMisses() const;
+    f32 getCacheHitRatio() const;
+    f32 getAvgLoss() const;
+    u32 getTrainingEpochs() const;
+
+    // ---- Reset the radiance cache ----
+    void clearCache();
+
 private:
     TinyMLP* network_ = nullptr;
     Vector<NRCTrainingSample> sampleBuffer_;
     u32 sampleCount_ = 0;
     u32 frameCount_ = 0;
+
+    // ---- Radiance cache storage ----
+    Vector<CacheEntry> cacheEntries_;
+    Vector<MLPTrainingSample> trainingSamples_;
+    u32 maxCacheSize_ = 65536;
+    u32 updateCounter_ = 0;
+    f32 confidenceThreshold_ = 0.5f;
+    mutable u32 cacheHits_ = 0;
+    mutable u32 cacheMisses_ = 0;
+    u32 trainingEpochs_ = 0;
+    f32 avgLoss_ = 0.0f;
+
+    usize nearestEntry(const Vec3& pos) const;
+    f32 entryConfidence(const CacheEntry& entry, const Vec3& pos, const Vec3& normal, const Vec3& dir) const;
 };
 
 } // namespace Frost

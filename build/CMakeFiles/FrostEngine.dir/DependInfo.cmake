@@ -60,6 +60,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Renderer/MaterialGraph.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/MaterialGraph.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/MegaLights.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/MegaLights.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Mesh.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Mesh.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Renderer/NRC.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/NRC.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/NaniteSystem.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/NaniteSystem.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/OcclusionCulling.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/RayTracingSystem.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o.d"
