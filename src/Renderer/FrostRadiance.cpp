@@ -12,8 +12,12 @@
 #include <cstring>
 #include <random>
 #include <numeric>
+#include <chrono>
 
 namespace Frost {
+
+// Number of ray directions sampled per probe for occlusion testing
+static constexpr u32 kRadianceOcclusionDirs = 7;
 
 // ============================================================================
 // Construction / Destruction
@@ -69,6 +73,9 @@ void FrostRadiance::shutdown() {
     probeCache_.clear();
     irradianceVolume_.clear();
     surfelToProbe_.clear();
+    surfels_.clear();
+    probeOcclusions_.clear();
+    probeIrradiance_.clear();
     initialized_ = false;
 }
 
@@ -2078,6 +2085,244 @@ void FrostRadiance::clearCache() {
     irradianceQueries_ = 0;
     cacheUpdateMs_ = 0;
     probesUpdatedThisFrame_ = 0;
+}
+
+// ============================================================================
+// Irradiance Volume Harden — Surfel Injection, Probe Occlusion
+// ============================================================================
+
+void FrostRadiance::injectSurfels(const Vector<Surfel>& surfels) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (usize i = 0; i < surfels.size(); i++) {
+        surfels_.push_back(surfels[i]);
+    }
+
+    // Enforce surfel budget, keeping the most recently injected surfels
+    if (surfels_.size() > surfelBudget_) {
+        usize excess = surfels_.size() - (usize)surfelBudget_;
+        surfels_.erase(0, excess);
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    injectionTimeMs_ += std::chrono::duration<f32, std::milli>(end - start).count();
+}
+
+void FrostRadiance::clearSurfels() {
+    surfels_.clear();
+}
+
+u32 FrostRadiance::getSurfelCount() const {
+    return (u32)surfels_.size();
+}
+
+void FrostRadiance::setProbeGrid(u32 x, u32 y, u32 z, f32 spacing, const Vec3& origin) {
+    probeCountX_ = x;
+    probeCountY_ = y;
+    probeCountZ_ = z;
+    probeSpacing_ = spacing;
+    probeOrigin_ = origin;
+    ensureProbeGrid();
+}
+
+u32 FrostRadiance::getProbeCount() const {
+    return (u32)probeOcclusions_.size();
+}
+
+void FrostRadiance::ensureProbeGrid() {
+    u32 total = probeCountX_ * probeCountY_ * probeCountZ_;
+    if (total == 0) {
+        probeOcclusions_.clear();
+        probeIrradiance_.clear();
+        return;
+    }
+
+    if (probeOcclusions_.size() != (usize)total) {
+        probeOcclusions_.resize(total);
+        probeIrradiance_.resize(total);
+    }
+
+    for (u32 z = 0; z < probeCountZ_; z++) {
+        for (u32 y = 0; y < probeCountY_; y++) {
+            for (u32 x = 0; x < probeCountX_; x++) {
+                usize idx = (usize)z * probeCountY_ * probeCountX_ +
+                            (usize)y * probeCountX_ + (usize)x;
+                ProbeOcclusion& po = probeOcclusions_[idx];
+                po.position = probeOrigin_ + Vec3(
+                    (f32)x * probeSpacing_,
+                    (f32)y * probeSpacing_,
+                    (f32)z * probeSpacing_);
+                po.occludedDirections = 0;
+                po.averageOcclusion = Vec3(0);
+            }
+        }
+    }
+}
+
+void FrostRadiance::updateProbeOcclusion(const Vec3& lightDir, f32 threshold) {
+    ensureProbeGrid();
+    if (probeOcclusions_.size() == 0) return;
+
+    Vec3 dirs[kRadianceOcclusionDirs];
+    dirs[0] = lightDir.normalized();
+    dirs[1] = Vec3(1, 0, 0);
+    dirs[2] = Vec3(-1, 0, 0);
+    dirs[3] = Vec3(0, 1, 0);
+    dirs[4] = Vec3(0, -1, 0);
+    dirs[5] = Vec3(0, 0, 1);
+    dirs[6] = Vec3(0, 0, -1);
+
+    const f32 step = probeSpacing_ * 0.5f;
+    const f32 maxDist = probeSpacing_ * 8.0f;
+    const f32 thresholdSq = threshold * threshold;
+
+    for (usize i = 0; i < probeOcclusions_.size(); i++) {
+        ProbeOcclusion& po = probeOcclusions_[i];
+        u32 occluded = 0;
+        Vec3 occlusionSum(0);
+
+        // Ray-march each direction, detecting occluders via surfel proximity
+        for (u32 d = 0; d < kRadianceOcclusionDirs; d++) {
+            f32 maxOcc = 0.0f;
+            for (f32 t = step; t < maxDist; t += step) {
+                Vec3 sample = po.position + dirs[d] * t;
+                f32 occ = 0.0f;
+                for (usize s = 0; s < surfels_.size(); s++) {
+                    Vec3 diff = surfels_[s].position - sample;
+                    f32 distSq = diff.lengthSquared();
+                    if (distSq < thresholdSq) {
+                        f32 c = 1.0f - sqrtf(distSq) / threshold;
+                        if (c > occ) occ = c;
+                    }
+                }
+                if (occ > maxOcc) maxOcc = occ;
+                if (maxOcc >= 0.5f) break;
+            }
+
+            if (maxOcc > 0.5f) {
+                occluded++;
+                occlusionSum += Vec3(maxOcc);
+            }
+        }
+
+        po.occludedDirections = occluded;
+        po.averageOcclusion = occlusionSum / (f32)kRadianceOcclusionDirs;
+    }
+}
+
+f32 FrostRadiance::probeOcclusionFactor(const Vec3& worldPos) const {
+    if (probeOcclusions_.size() == 0) return 0.0f;
+    if (probeCountX_ == 0 || probeCountY_ == 0 || probeCountZ_ == 0) return 0.0f;
+
+    Vec3 local = worldPos - probeOrigin_;
+    f32 fx = local.x / probeSpacing_ - 0.5f;
+    f32 fy = local.y / probeSpacing_ - 0.5f;
+    f32 fz = local.z / probeSpacing_ - 0.5f;
+
+    i32 x0 = (i32)std::floor(fx);
+    i32 y0 = (i32)std::floor(fy);
+    i32 z0 = (i32)std::floor(fz);
+    f32 tx = fx - (f32)x0;
+    f32 ty = fy - (f32)y0;
+    f32 tz = fz - (f32)z0;
+
+    const u32 nx = probeCountX_, ny = probeCountY_, nz = probeCountZ_;
+
+    // Trilinear interpolation of per-probe occlusion counts
+    f32 result = 0.0f;
+    for (i32 dz = 0; dz <= 1; dz++) {
+        for (i32 dy = 0; dy <= 1; dy++) {
+            for (i32 dx = 0; dx <= 1; dx++) {
+                i32 sx = (i32)Mathf::clamp((f32)(x0 + dx), 0.0f, (f32)(nx - 1));
+                i32 sy = (i32)Mathf::clamp((f32)(y0 + dy), 0.0f, (f32)(ny - 1));
+                i32 sz = (i32)Mathf::clamp((f32)(z0 + dz), 0.0f, (f32)(nz - 1));
+                f32 w = ((dx == 0) ? (1.0f - tx) : tx) *
+                        ((dy == 0) ? (1.0f - ty) : ty) *
+                        ((dz == 0) ? (1.0f - tz) : tz);
+                usize idx = (usize)sz * ny * nx + (usize)sy * nx + (usize)sx;
+                result += (f32)probeOcclusions_[idx].occludedDirections * w;
+            }
+        }
+    }
+
+    result /= (f32)kRadianceOcclusionDirs;
+    return Mathf::clamp(result, 0.0f, 1.0f);
+}
+
+void FrostRadiance::buildIrradianceVolume(const Vector<Vec3>& radianceSamples) {
+    ensureProbeGrid();
+    if (probeOcclusions_.size() == 0) return;
+
+    f32 gatherRadius = probeSpacing_ * 1.5f;
+    f32 gatherRadiusSq = gatherRadius * gatherRadius;
+
+    // Accumulate nearby radiance samples into each probe (inverse-square weighting)
+    for (usize p = 0; p < probeOcclusions_.size(); p++) {
+        const Vec3& probePos = probeOcclusions_[p].position;
+        Vec3 sum(0);
+        f32 totalWeight = 0.0f;
+
+        for (usize s = 0; s < radianceSamples.size(); s++) {
+            Vec3 diff = radianceSamples[s] - probePos;
+            f32 distSq = diff.lengthSquared();
+            if (distSq >= gatherRadiusSq || distSq < 1e-6f) continue;
+
+            f32 w = 1.0f / (1.0f + distSq);
+            sum += radianceSamples[s] * w;
+            totalWeight += w;
+        }
+
+        probeIrradiance_[p] = totalWeight > 0.0f ? sum / totalWeight : Vec3(0);
+    }
+}
+
+Vec3 FrostRadiance::sampleIrradiance(const Vec3& worldPos, const Vec3& normal) {
+    irradianceQueries_++;
+    if (probeIrradiance_.size() == 0) return Vec3(0);
+    if (probeCountX_ == 0 || probeCountY_ == 0 || probeCountZ_ == 0) return Vec3(0);
+
+    Vec3 local = worldPos - probeOrigin_;
+    f32 fx = local.x / probeSpacing_ - 0.5f;
+    f32 fy = local.y / probeSpacing_ - 0.5f;
+    f32 fz = local.z / probeSpacing_ - 0.5f;
+
+    i32 x0 = (i32)std::floor(fx);
+    i32 y0 = (i32)std::floor(fy);
+    i32 z0 = (i32)std::floor(fz);
+    f32 tx = fx - (f32)x0;
+    f32 ty = fy - (f32)y0;
+    f32 tz = fz - (f32)z0;
+
+    const u32 nx = probeCountX_, ny = probeCountY_, nz = probeCountZ_;
+
+    // Trilinear interpolation of per-probe irradiance
+    Vec3 result(0);
+    for (i32 dz = 0; dz <= 1; dz++) {
+        for (i32 dy = 0; dy <= 1; dy++) {
+            for (i32 dx = 0; dx <= 1; dx++) {
+                i32 sx = (i32)Mathf::clamp((f32)(x0 + dx), 0.0f, (f32)(nx - 1));
+                i32 sy = (i32)Mathf::clamp((f32)(y0 + dy), 0.0f, (f32)(ny - 1));
+                i32 sz = (i32)Mathf::clamp((f32)(z0 + dz), 0.0f, (f32)(nz - 1));
+                f32 w = ((dx == 0) ? (1.0f - tx) : tx) *
+                        ((dy == 0) ? (1.0f - ty) : ty) *
+                        ((dz == 0) ? (1.0f - tz) : tz);
+                usize idx = (usize)sz * ny * nx + (usize)sy * nx + (usize)sx;
+                result += probeIrradiance_[idx] * w;
+            }
+        }
+    }
+
+    // Cosine-weighted response to the surface normal
+    f32 cosine = Mathf::max(normal.dot(Vec3::up()), 0.0f);
+    return result * cosine;
+}
+
+void FrostRadiance::resetStats() {
+    probesUpdated_ = 0;
+    probesUpdatedThisFrame_ = 0;
+    irradianceQueries_ = 0;
+    cacheUpdateMs_ = 0;
+    injectionTimeMs_ = 0.0f;
 }
 
 } // namespace Frost

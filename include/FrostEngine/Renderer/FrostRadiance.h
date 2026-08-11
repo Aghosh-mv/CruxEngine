@@ -33,6 +33,7 @@ struct Surfel {
     Vec3 radiance;          // direct + indirect radiance
     Vec3 albedo;            // surface albedo
     f32 radius;             // disk radius (adaptive)
+    f32 area;               // disk area (adaptive)
     f32 age;                // frames since creation
     u32 triangleID;         // source triangle
     u32 meshID;             // source mesh
@@ -186,6 +187,13 @@ struct RadianceProbe {
     }
 };
 
+// Per-probe directional occlusion used to harden indirect lighting
+struct ProbeOcclusion {
+    Vec3 position;              // world-space probe position
+    u32 occludedDirections;     // number of occluded ray directions
+    Vec3 averageOcclusion;      // average occlusion strength (RGB-weighted)
+};
+
 // Main FrostRadiance system
 class FrostRadiance {
 public:
@@ -257,6 +265,30 @@ public:
 
     // Cache management
     void clearCache();
+
+    // ============================================================================
+    // Irradiance Volume Harden — Surfel Injection, Probe Occlusion
+    // ============================================================================
+
+    // Point-based surfel injection with budget enforcement
+    void injectSurfels(const Vector<Surfel>& surfels);
+    void clearSurfels();
+    u32 getSurfelCount() const;
+
+    // Probe grid configuration
+    void setProbeGrid(u32 x, u32 y, u32 z, f32 spacing, const Vec3& origin);
+    u32 getProbeCount() const;
+
+    // Probe occlusion: ray-march toward light, detect occluders via surfel proximity
+    void updateProbeOcclusion(const Vec3& lightDir, f32 threshold);
+    f32 probeOcclusionFactor(const Vec3& worldPos) const;
+
+    // Per-probe irradiance volume
+    void buildIrradianceVolume(const Vector<Vec3>& radianceSamples);
+    Vec3 sampleIrradiance(const Vec3& worldPos, const Vec3& normal);
+
+    // Statistics
+    void resetStats();
 
 private:
     // Surfel generation helpers
@@ -362,6 +394,9 @@ private:
     u32 findNearestProbe(const Vec3& pos) const;
     void updateSurfelToProbeMapping();
 
+    // Irradiance volume harden helpers
+    void ensureProbeGrid();
+
     // Radiance cache members
     RadianceCacheConfig radianceCfg_;
     Vector<RadianceProbe> probeCache_;
@@ -374,6 +409,18 @@ private:
     mutable u32 probesUpdated_;
     mutable u32 irradianceQueries_;
     mutable f32 cacheUpdateMs_;
+
+    // Irradiance volume harden state
+    Vector<Surfel> surfels_;
+    Vector<ProbeOcclusion> probeOcclusions_;
+    Vector<Vec3> probeIrradiance_;
+    u32 probeCountX_ = 4;
+    u32 probeCountY_ = 4;
+    u32 probeCountZ_ = 4;
+    f32 probeSpacing_ = 2.0f;
+    Vec3 probeOrigin_;
+    u32 surfelBudget_ = 65536;
+    f32 injectionTimeMs_ = 0.0f;
 };
 
 } // namespace Frost
