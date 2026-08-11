@@ -158,9 +158,9 @@ struct CameraComponent : IComponent {
         Depth = 1 << 1,
         Skybox = 1 << 2,
     };
-    
+
     Projection projection = Projection::Perspective;
-    ClearMask clearMask = ClearMask::Depth | ClearMask::Skybox;
+    ClearMask clearMask = static_cast<ClearMask>(static_cast<u8>(ClearMask::Depth) | static_cast<u8>(ClearMask::Skybox));
     Vec4 clearColor = Vec4(0.1f, 0.1f, 0.12f, 1.0f);
     
     f32 fov = 60.0f;
@@ -230,6 +230,61 @@ enum class PrimitiveType : u8 {
     Bvh,
     Convex,
     Mesh,
+};
+
+struct BoundingBox {
+    Vec3 min = Vec3(1e30f);
+    Vec3 max = Vec3(-1e30f);
+    
+    BoundingBox() = default;
+    BoundingBox(const Vec3& min, const Vec3& max) : min(min), max(max) {}
+    BoundingBox(const Vec3& center, f32 halfExtent) 
+        : min(center - halfExtent), max(center + halfExtent) {}
+    
+    Vec3 center() const { return (min + max) * 0.5f; }
+    Vec3 extents() const { return max - min; }
+    f32 radius() const { return extents().length() * 0.5f; }
+    
+    void expand(const Vec3& point) {
+        min = min.min(point);
+        max = max.max(point);
+    }
+    void expand(const BoundingBox& other) {
+        min = min.min(other.min);
+        max = max.max(other.max);
+    }
+    
+    bool intersects(const BoundingBox& other) const {
+        return (min.x <= other.max.x && max.x >= other.min.x) &&
+               (min.y <= other.max.y && max.y >= other.min.y) &&
+               (min.z <= other.max.z && max.z >= other.min.z);
+    }
+    bool contains(const Vec3& point) const {
+        return point.x >= min.x && point.x <= max.x &&
+               point.y >= min.y && point.y <= max.y &&
+               point.z >= min.z && point.z <= max.z;
+    }
+    
+    static BoundingBox empty() { return BoundingBox(Vec3(1e30f), Vec3(-1e30f)); }
+};
+
+struct BoundingSphere {
+    Vec3 center = Vec3::zero();
+    f32 radius = 0.0f;
+    
+    BoundingSphere() = default;
+    BoundingSphere(const Vec3& c, f32 r) : center(c), radius(r) {}
+    
+    bool intersects(const BoundingSphere& other) const {
+        f32 distSq = (center - other.center).lengthSquared();
+        f32 radSum = radius + other.radius;
+        return distSq <= radSum * radSum;
+    }
+    bool contains(const Vec3& point) const {
+        return (point - center).lengthSquared() <= radius * radius;
+    }
+    
+    static BoundingSphere empty() { return BoundingSphere(Vec3::zero(), 0.0f); }
 };
 
 struct MeshComponent : IComponent {
@@ -337,7 +392,7 @@ struct RigidBodyComponent : IComponent {
     };
     
     BodyType bodyType = BodyType::Dynamic;
-    u32 constraints = Constraint::None;
+    u32 constraints = static_cast<u32>(Constraint::None);
     f32 mass = 1.0f;
     f32 drag = 0.0f;
     f32 angularDrag = 0.05f;
@@ -404,60 +459,4 @@ struct ColliderComponent : IComponent {
     IComponent* clone() const override { return new ColliderComponent(*this); }
 };
 
-struct BoundingBox {
-    Vec3 min = Vec3(1e30f);
-    Vec3 max = Vec3(-1e30f);
-    
-    BoundingBox() = default;
-    BoundingBox(const Vec3& min, const Vec3& max) : min(min), max(max) {}
-    BoundingBox(const Vec3& center, f32 halfExtent) 
-        : min(center - halfExtent), max(center + halfExtent) {}
-    
-    Vec3 center() const { return (min + max) * 0.5f; }
-    Vec3 extents() const { return max - min; }
-    f32 radius() const { return extents().length() * 0.5f; }
-    
-    void expand(const Vec3& point) {
-        min = min.min(point);
-        max = max.max(point);
-    }
-    void expand(const BoundingBox& other) {
-        min = min.min(other.min);
-        max = max.max(other.max);
-    }
-    
-    bool intersects(const BoundingBox& other) const {
-        return (min.x <= other.max.x && max.x >= other.min.x) &&
-               (min.y <= other.max.y && max.y >= other.min.y) &&
-               (min.z <= other.max.z && max.z >= other.min.z);
-    }
-    bool contains(const Vec3& point) const {
-        return point.x >= min.x && point.x <= max.x &&
-               point.y >= min.y && point.y <= max.y &&
-               point.z >= min.z && point.z <= max.z;
-    }
-    
-    static BoundingBox empty() { return BoundingBox(Vec3(1e30f), Vec3(-1e30f)); }
-};
-
-struct BoundingSphere {
-    Vec3 center = Vec3::zero();
-    f32 radius = 0.0f;
-    
-    BoundingSphere() = default;
-    BoundingSphere(const Vec3& c, f32 r) : center(c), radius(r) {}
-    
-    bool intersects(const BoundingSphere& other) const {
-        f32 distSq = (center - other.center).lengthSquared();
-        f32 radSum = radius + other.radius;
-        return distSq <= radSum * radSum;
-    }
-    bool contains(const Vec3& point) const {
-        return (point - center).lengthSquared() <= radius * radius;
-    }
-    
-    static BoundingSphere empty() { return BoundingSphere(Vec3::zero(), 0.0f); }
-};
-
-}
 }

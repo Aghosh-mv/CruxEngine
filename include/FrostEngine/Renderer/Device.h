@@ -19,6 +19,22 @@ struct Sampler;
 struct Fence;
 struct Semaphore;
 struct SwapChain;
+struct GraphicsDeviceDesc;
+struct SwapChainDesc;
+struct ShaderModuleDesc;
+struct PipelineStateDesc;
+struct RenderPassDesc;
+struct CommandListDesc;
+struct DescriptorSetLayoutDesc;
+struct AccelerationStructureDesc;
+struct AccelerationBuildDesc;
+struct GPUProperties;
+struct GPUmemInfo;
+struct Viewport;
+struct Scissor;
+struct Color;
+struct Transform;
+enum class AccelerationStructureType : u8;
 
 struct GraphicsDevice {
     virtual ~GraphicsDevice() = default;
@@ -92,18 +108,7 @@ struct SwapChainDesc {
     Format depthFormat = Format::D32_Float;
     bool vsync = true;
     bool hdr = false;
-    bool  \\
-\(\)
-
-bool allowDynamic = false;
-};
-
-struct BufferDesc {
-    u64 size = 0;
-    BufferUsage usage = BufferUsage::Vertex;
-    MemoryUsage memoryUsage = MemoryUsage::Default;
-    bool cpuAccessible = false;
-    String name;
+    bool allowDynamic = false;
 };
 
 struct ShaderModuleDesc {
@@ -113,35 +118,10 @@ struct ShaderModuleDesc {
     String name;
 };
 
-struct TextureDesc {
-    u32 width = 1;
-    u32 height = 1;
-    u32 depth = 1;
-    u32 mipLevels = 1;
-    u32 arrayLayers = 1;
-    Format format = Format::R8G8B8A8_UNorm;
-    TextureType type = TextureType::Tex2D;
-    SampleCount sampleCount = SampleCount::Samples1;
-    bool generateMips = false;
-    bool cpuAccessible = false;
-    bool rayTracing = false;
-    Buffer* initialData = nullptr;
-    String name;
-};
-
-struct SamplerDesc {
-    Filter minFilter = Filter::Linear;
-    Filter magFilter = Filter::Linear;
-    Filter mipFilter = Filter::Linear;
-    AddressMode addressU = AddressMode::Clamp;
-    AddressMode addressV = AddressMode::Clamp;
-    AddressMode addressW = AddressMode::Clamp;
-    CompareOp compareOp = CompareOp::Always;
-    f32 mipLodBias = 0.0f;
-    f32 maxAnisotropy = 16.0f;
-    f32 minLod = 0.0f;
-    f32 maxLod = 16.0f;
-    BorderColor borderColor = BorderColor::TransparentBlack;
+enum class AccelerationStructureType : u8 {
+    BottomLevel,
+    TopLevel,
+    Generic,
 };
 
 struct AccelerationStructureDesc {
@@ -152,13 +132,7 @@ struct AccelerationStructureDesc {
     bool allowUpdate = true;
     bool fast_trace = true;
     bool compact = false;
-    bool type = AccelerationStructureType::TopLevel;
-};
-
-enum class AccelerationStructureType : u8 {
-    BottomLevel,
-    TopLevel,
-    Generic,
+    AccelerationStructureType type = AccelerationStructureType::TopLevel;
 };
 
 enum class QueryType : u8 {

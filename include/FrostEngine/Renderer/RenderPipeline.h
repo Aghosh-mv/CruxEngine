@@ -6,8 +6,13 @@
 #include "Core/Mat4.h"
 #include "Core/Vector.h"
 #include "Core/UniquePtr.h"
+#include "Scene/Entity.h"
+#include "Scene/SceneManager.h"
 
 namespace Frost {
+
+class Shader;
+struct PipelineState;
 
 enum class PassType : u8 {
     ShadowPass,
@@ -39,6 +44,22 @@ struct RenderPass {
     virtual ~RenderPass() = default;
 };
 
+struct RenderPassNode {
+    u32 passId = 0;
+    u32 nameHash = 0;
+    Vector<u32> inputTextures;
+    Vector<u32> outputTextures;
+    u32 dependencies = 0;
+    bool isCompute = false;
+};
+
+struct ResourceTransition {
+    u32 resourceId = 0;
+    u32 fromState = 0;
+    u32 toState = 0;
+    u32 passIndex = 0;
+};
+
 class RenderPipeline {
 public:
     static RenderPipeline& instance();
@@ -54,6 +75,23 @@ public:
     void execute(Renderer::CommandBuffer* cmd, const ViewData& view);
     void resolve(Renderer::CommandBuffer* cmd);
     void executeAll(Renderer::CommandBuffer* cmd, const ViewData& view);
+    
+    u32 addRenderPass(u32 nameHash, const Vector<u32>& inputs, const Vector<u32>& outputs, bool isCompute);
+    void addResourceTransition(u32 resourceId, u32 fromState, u32 toState, u32 passIndex);
+    void buildGraph();
+    u32 executePassGraph();
+    void beginFrame(f32 dt);
+    void endFrame();
+    void setTargetFrameTime(f32 ms);
+    f32 getTargetFrameTime() const;
+    f32 getFrameTimeMs() const;
+    f32 getSmoothedFrameTimeMs() const;
+    f32 getFPS() const;
+    u32 getTotalPasses() const;
+    u32 getPassExecutions() const;
+    u32 getGraphDepth() const;
+    void resetStats();
+    bool validateGraph() const;
     
     void createGBuffer(u32 width, u32 height);
     void destroyGBuffer();
@@ -89,6 +127,29 @@ private:
     
     u32 width_ = 0;
     u32 height_ = 0;
+    
+    Vector<RenderPassNode> passGraph_;
+    Vector<ResourceTransition> transitions_;
+    Vector<f32> frameTimes_;
+    u32 frameIndex_ = 0;
+    f32 targetFrameTimeMs_ = 16.67f;
+    f32 frameTimeMs_ = 0.0f;
+    f32 smoothedFrameTimeMs_ = 0.0f;
+    u32 totalPasses_ = 0;
+    u32 passExecutions_ = 0;
+};
+
+struct BoundingFrustum {
+    Mat4 viewProj = Mat4::identity();
+
+    bool contains(const Vec3& point) const {
+        Vec4 p = viewProj * Vec4(point, 1.0f);
+        if (p.w <= 0.0f) return false;
+        f32 x = p.x / p.w, y = p.y / p.w, z = p.z / p.w;
+        return x >= -1.0f && x <= 1.0f &&
+               y >= -1.0f && y <= 1.0f &&
+               z >= 0.0f && z <= 1.0f;
+    }
 };
 
 class ShadowPass : public RenderPass {
@@ -238,5 +299,4 @@ private:
     Renderer::Texture* tempTargets_[2] = {};
 };
 
-}
 }

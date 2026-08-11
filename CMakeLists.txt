@@ -73,6 +73,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/SVOR.cpp
     src/Renderer/TCSM.cpp
     src/Renderer/NRC.cpp
+    src/Renderer/RenderPipeline.cpp
 )
 
 # ============================================================================

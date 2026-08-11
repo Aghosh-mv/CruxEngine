@@ -1531,6 +1531,30 @@ src/Renderer/RayTracingSystem.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.s
 .PHONY : src/Renderer/RayTracingSystem.cpp.s
 
+src/Renderer/RenderPipeline.o: src/Renderer/RenderPipeline.cpp.o
+.PHONY : src/Renderer/RenderPipeline.o
+
+# target to build an object file
+src/Renderer/RenderPipeline.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RenderPipeline.cpp.o
+.PHONY : src/Renderer/RenderPipeline.cpp.o
+
+src/Renderer/RenderPipeline.i: src/Renderer/RenderPipeline.cpp.i
+.PHONY : src/Renderer/RenderPipeline.i
+
+# target to preprocess a source file
+src/Renderer/RenderPipeline.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RenderPipeline.cpp.i
+.PHONY : src/Renderer/RenderPipeline.cpp.i
+
+src/Renderer/RenderPipeline.s: src/Renderer/RenderPipeline.cpp.s
+.PHONY : src/Renderer/RenderPipeline.s
+
+# target to generate assembly for a file
+src/Renderer/RenderPipeline.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/RenderPipeline.cpp.s
+.PHONY : src/Renderer/RenderPipeline.cpp.s
+
 src/Renderer/Renderer.o: src/Renderer/Renderer.cpp.o
 .PHONY : src/Renderer/Renderer.o
 
@@ -2337,6 +2361,9 @@ help:
 	@echo "... src/Renderer/RayTracingSystem.o"
 	@echo "... src/Renderer/RayTracingSystem.i"
 	@echo "... src/Renderer/RayTracingSystem.s"
+	@echo "... src/Renderer/RenderPipeline.o"
+	@echo "... src/Renderer/RenderPipeline.i"
+	@echo "... src/Renderer/RenderPipeline.s"
 	@echo "... src/Renderer/Renderer.o"
 	@echo "... src/Renderer/Renderer.i"
 	@echo "... src/Renderer/Renderer.s"

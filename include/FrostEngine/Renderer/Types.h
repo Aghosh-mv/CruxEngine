@@ -10,6 +10,8 @@
 namespace Frost {
 namespace Renderer {
 
+struct Buffer;
+
 enum class BackendType : u8 {
     Vulkan,
     DirectX12,
@@ -256,6 +258,7 @@ struct BufferDesc {
     u64 size = 0;
     BufferUsage usage = BufferUsage::Vertex;
     MemoryUsage memoryUsage = MemoryUsage::Default;
+    bool cpuAccessible = false;
     String name;
 };
 
@@ -289,6 +292,9 @@ struct TextureDesc {
     TextureType type = TextureType::Tex2D;
     SampleCount sampleCount = SampleCount::Samples1;
     bool generateMips = false;
+    bool cpuAccessible = false;
+    bool rayTracing = false;
+    Buffer* initialData = nullptr;
     String name;
 };
 

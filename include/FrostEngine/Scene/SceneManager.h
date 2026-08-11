@@ -10,6 +10,8 @@
 
 namespace Frost {
 
+namespace Renderer { struct Texture; }
+
 enum class RenderPath : u8 {
     Forward,
     Deferred,
@@ -131,7 +133,7 @@ public:
     void updateTransforms();
     void updateCulling(const ViewData& view);
     
-    void setSkybox(Texture* skybox, const Vec3& tint, float intensity);
+    void setSkybox(Renderer::Texture* skybox, const Vec3& tint, float intensity);
     void setFog(const Vec3& color, float density, float start, float end);
     void setMainCamera(Entity camera);
     void setActiveCamera(Entity camera);
@@ -164,7 +166,7 @@ private:
     
     RenderSettings settings_;
     
-    Texture* skybox_ = nullptr;
+    Renderer::Texture* skybox_ = nullptr;
     Vec3 skyTint_ = Vec3::one();
     float skyIntensity_ = 1.0f;
     Vec3 fogColor_ = Vec3(0.5f, 0.6f, 0.7f);
@@ -175,5 +177,4 @@ private:
     u32 entityIdCounter_ = 1;
 };
 
-}
 }

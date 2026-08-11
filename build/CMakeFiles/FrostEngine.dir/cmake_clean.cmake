@@ -111,6 +111,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/OcclusionCulling.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/RayTracingSystem.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/RenderPipeline.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/RenderPipeline.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o"
