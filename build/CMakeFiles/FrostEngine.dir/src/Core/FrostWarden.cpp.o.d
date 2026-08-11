@@ -190,4 +190,6 @@ CMakeFiles/FrostEngine.dir/src/Core/FrostWarden.cpp.o: \
  /usr/include/c++/11/bits/charconv.h \
  /usr/include/c++/11/bits/basic_string.tcc \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/String.h \
- /usr/include/c++/11/cstdarg
+ /usr/include/c++/11/cstdarg /usr/include/c++/11/chrono \
+ /usr/include/c++/11/ratio /usr/include/c++/11/ctime \
+ /usr/include/c++/11/bits/parse_numbers.h

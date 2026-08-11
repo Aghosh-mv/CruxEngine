@@ -1,4 +1,5 @@
 #include "Core/FrostWarden.h"
+#include <chrono>
 
 namespace Frost {
 
@@ -158,6 +159,182 @@ void FrostWarden::reset() {
     memoryAllocated_ = 0;
     currentFrame_ = 0;
     peakUpdateMs_ = 0.0f;
+}
+
+FrostWarden::IntegrityCheck* FrostWarden::findCheck(u32 checkId) {
+    for (usize i = 0; i < checks_.size(); i++) {
+        if (checks_[i].id == checkId) return &checks_[i];
+    }
+    return nullptr;
+}
+
+bool FrostWarden::invokeCheck(const IntegrityCheck& check) const {
+    if (!check.fnPtr) return false;
+    IntegrityCheckFn fn = (IntegrityCheckFn)check.fnPtr;
+    return fn();
+}
+
+IntegrityReport FrostWarden::runIntegrityCheck() {
+    auto t0 = std::chrono::steady_clock::now();
+
+    IntegrityReport rpt;
+    rpt.checksRun = 0;
+    rpt.failures = 0;
+    rpt.runTimeMs = 0.0f;
+    rpt.passed = true;
+
+    for (usize i = 0; i < checks_.size(); i++) {
+        IntegrityCheck& check = checks_[i];
+        rpt.checksRun++;
+        totalChecksRun_++;
+
+        if (invokeCheck(check)) {
+            check.needsRepair = false;
+            continue;
+        }
+
+        check.needsRepair = true;
+        rpt.failures++;
+        totalFailures_++;
+
+        String msg;
+        msg.append("Check failed: ");
+        msg.append(check.name);
+        rpt.failureMessages.push_back(msg);
+
+        if (autoRepairEnabled_) {
+            if (repairSystem(check.id)) {
+                String repaired;
+                repaired.append("Auto-repaired: ");
+                repaired.append(check.name);
+                rpt.failureMessages.push_back(repaired);
+            } else {
+                String failed;
+                failed.append("Repair failed: ");
+                failed.append(check.name);
+                rpt.failureMessages.push_back(failed);
+            }
+        }
+    }
+
+    if (!leakRecords_.empty()) {
+        rpt.checksRun++;
+        totalChecksRun_++;
+        rpt.failures++;
+        totalFailures_++;
+
+        String msg;
+        msg.append("Leak audit failed: ");
+        msg.append(String::fromInt((i64)leakRecords_.size()));
+        msg.append(" outstanding resource leak(s)");
+        rpt.failureMessages.push_back(msg);
+    }
+
+    auto t1 = std::chrono::steady_clock::now();
+    f32 elapsedMs = (f32)std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count() / 1000.0f;
+    rpt.runTimeMs = elapsedMs;
+    lastRunTimeMs_ = elapsedMs;
+    rpt.passed = rpt.failures == 0;
+
+    integrityHistory_.push_back(rpt);
+    return rpt;
+}
+
+u32 FrostWarden::registerCheck(const char* name, void* fnPtr) {
+    IntegrityCheck check;
+    check.id = nextCheckId_;
+    check.name = name ? name : "";
+    check.fnPtr = fnPtr;
+    check.needsRepair = false;
+    check.repairAttempts = 0;
+    checks_.push_back(check);
+    nextCheckId_++;
+    return check.id;
+}
+
+void FrostWarden::recordLeak(u32 resourceId, const char* type, const char* owner) {
+    ResourceLeak leak;
+    leak.resourceId = resourceId;
+    leak.resourceType = type ? type : "unknown";
+    leak.owner = owner ? owner : "unknown";
+    leakRecords_.push_back(leak);
+}
+
+void FrostWarden::clearLeaks() {
+    leakRecords_.clear();
+}
+
+u32 FrostWarden::getLeakCount() const {
+    return (u32)leakRecords_.size();
+}
+
+bool FrostWarden::repairSystem(u32 checkId) {
+    IntegrityCheck* check = findCheck(checkId);
+    if (!check) return false;
+    if (check->fnPtr == nullptr) return false;
+
+    check->repairAttempts++;
+    if (invokeCheck(*check)) {
+        check->needsRepair = false;
+        return true;
+    }
+    check->needsRepair = true;
+    return false;
+}
+
+u32 FrostWarden::getTotalChecksRun() const {
+    return totalChecksRun_;
+}
+
+u32 FrostWarden::getTotalFailures() const {
+    return totalFailures_;
+}
+
+f32 FrostWarden::getLastRunTimeMs() const {
+    return lastRunTimeMs_;
+}
+
+const Vector<IntegrityReport>& FrostWarden::getIntegrityHistory() const {
+    return integrityHistory_;
+}
+
+void FrostWarden::enableAutoRepair(bool enabled) {
+    autoRepairEnabled_ = enabled;
+}
+
+bool FrostWarden::isAutoRepairEnabled() const {
+    return autoRepairEnabled_;
+}
+
+IntegrityReport FrostWarden::snapshot() const {
+    IntegrityReport rpt;
+    rpt.checksRun = (u32)checks_.size();
+    rpt.failures = 0;
+    rpt.runTimeMs = lastRunTimeMs_;
+    rpt.passed = true;
+
+    for (usize i = 0; i < checks_.size(); i++) {
+        const IntegrityCheck& check = checks_[i];
+        if (!check.needsRepair) continue;
+
+        rpt.failures++;
+        String msg;
+        msg.append("Check failing: ");
+        msg.append(check.name);
+        rpt.failureMessages.push_back(msg);
+    }
+
+    if (!leakRecords_.empty()) {
+        rpt.failures++;
+        String msg;
+        msg.append("Leak audit failing: ");
+        msg.append(String::fromInt((i64)leakRecords_.size()));
+        msg.append(" outstanding resource leak(s)");
+        rpt.failureMessages.push_back(msg);
+    }
+
+    rpt.passed = rpt.failures == 0;
+    return rpt;
 }
 
 } // namespace Frost
