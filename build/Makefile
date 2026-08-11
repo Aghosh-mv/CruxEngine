@@ -1627,6 +1627,30 @@ src/Renderer/ShaderSource_pbr.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.s
 .PHONY : src/Renderer/ShaderSource_pbr.cpp.s
 
+src/Renderer/SpectralRendering.o: src/Renderer/SpectralRendering.cpp.o
+.PHONY : src/Renderer/SpectralRendering.o
+
+# target to build an object file
+src/Renderer/SpectralRendering.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.o
+.PHONY : src/Renderer/SpectralRendering.cpp.o
+
+src/Renderer/SpectralRendering.i: src/Renderer/SpectralRendering.cpp.i
+.PHONY : src/Renderer/SpectralRendering.i
+
+# target to preprocess a source file
+src/Renderer/SpectralRendering.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.i
+.PHONY : src/Renderer/SpectralRendering.cpp.i
+
+src/Renderer/SpectralRendering.s: src/Renderer/SpectralRendering.cpp.s
+.PHONY : src/Renderer/SpectralRendering.s
+
+# target to generate assembly for a file
+src/Renderer/SpectralRendering.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.s
+.PHONY : src/Renderer/SpectralRendering.cpp.s
+
 src/Renderer/Texture.o: src/Renderer/Texture.cpp.o
 .PHONY : src/Renderer/Texture.o
 
@@ -2253,6 +2277,9 @@ help:
 	@echo "... src/Renderer/ShaderSource_pbr.o"
 	@echo "... src/Renderer/ShaderSource_pbr.i"
 	@echo "... src/Renderer/ShaderSource_pbr.s"
+	@echo "... src/Renderer/SpectralRendering.o"
+	@echo "... src/Renderer/SpectralRendering.i"
+	@echo "... src/Renderer/SpectralRendering.s"
 	@echo "... src/Renderer/Texture.o"
 	@echo "... src/Renderer/Texture.i"
 	@echo "... src/Renderer/Texture.s"

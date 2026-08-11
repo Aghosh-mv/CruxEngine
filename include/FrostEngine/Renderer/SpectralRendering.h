@@ -243,4 +243,72 @@ struct SpectralLight {
     }
 };
 
+// ============================================================================
+// Dynamic spectral types — wavelength-sampled SPD with arbitrary resolution
+// ============================================================================
+
+// One (wavelength, power) sample of a spectral power distribution
+struct SpectralSample {
+    f32 wavelength;
+    f32 power;
+};
+
+// A spectral power distribution sampled over the visible range
+struct Spectrum {
+    Vector<SpectralSample> samples;
+    f32 luminance = 0;
+};
+
+// ============================================================================
+// SpectralRendering — hardened spectral pipeline
+// ============================================================================
+// Provides Planck's-law blackbody SPDs, linear interpolation between wavelength
+// samples, integration against the CIE 1931 standard observer, XYZ->sRGB color
+// space conversion, spectral arithmetic, and dynamic CIE weighting tables.
+class SpectralRendering {
+public:
+    // Planck's law blackbody radiator, sampled at sampleCount_ wavelengths
+    Spectrum blackbodySpectrum(f32 temperatureKelvin);
+
+    // Linearly interpolate the SPD between its wavelength samples
+    f32 sampleSpectrum(const Spectrum& spectrum, f32 wavelength);
+
+    // Integrate the spectrum against the CIE 1931 color matching functions
+    Vec3 spectrumToXYZ(const Spectrum& spectrum);
+
+    // Standard XYZ (D65) to linear sRGB matrix
+    Vec3 XYZToLinearRGB(const Vec3& xyz);
+
+    // Linear sRGB to non-linear (gamma) sRGB
+    Vec3 linearRGBToSRGB(const Vec3& linear);
+
+    // Photometric luminance from the CIE Y weighting function
+    f32 spectralLuminance(const Spectrum& spectrum);
+
+    // Add two SPDs sample-by-sample (resampled onto a shared grid if needed)
+    Spectrum addSpectra(const Spectrum& a, const Spectrum& b);
+
+    // Multiply two SPDs sample-by-sample (resampled onto a shared grid if needed)
+    Spectrum multiplySpectra(const Spectrum& a, const Spectrum& b);
+
+    // Scale so peak power = 1, keeping the curve shape
+    Spectrum normalizeSpectrum(const Spectrum& spectrum);
+
+    void setSampleCount(u32 count);
+    u32 getSampleCount() const;
+    void setEnableSpectral(bool enable);
+    bool isSpectralEnabled() const;
+
+    // Rebuild the CIE 1931 weighting tables for a given sample count
+    void buildCIEWeighting(u32 sampleCount);
+
+private:
+    u32 sampleCount_ = 32;
+    Vector<f32> cieX_;
+    Vector<f32> cieY_;
+    Vector<f32> cieZ_;
+    f32 colorTemp_ = 6500.0f;
+    bool enableSpectral_ = true;
+};
+
 } // namespace Frost
