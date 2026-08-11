@@ -30,8 +30,8 @@ void SceneStreaming::shutdown() {
     terrainBlocks_.clear();
     worldCells_.clear();
     for (auto& lod : lodLevels_) lod.clear();
-    while (!loadQueue_.empty()) loadQueue_.pop();
-    while (!unloadQueue_.empty()) unloadQueue_.pop();
+    while (!legacyLoadQueue_.empty()) legacyLoadQueue_.pop();
+    while (!legacyUnloadQueue_.empty()) legacyUnloadQueue_.pop();
     FROST_LOG_INFO("[SceneStreaming] Shutdown");
 }
 
@@ -86,7 +86,7 @@ u32 SceneStreaming::loadChunk(const AABB& bounds, u32 dataSize, StreamingPriorit
     chunk.loadProgress = 0.0f;
     chunk.dependencyCount = 0;
     chunks_.push_back(chunk);
-    loadQueue_.push(&chunks_.back());
+    legacyLoadQueue_.push(&chunks_.back());
     stats_.totalRequests++;
     stats_.queueSize++;
     return chunk.chunkId;
@@ -310,7 +310,12 @@ void SceneStreaming::deprefetchChunks(const Vec3& position, f32 radius) {
     }
 }
 
-StreamingStats SceneStreaming::getStats() const { return stats_; }
+StreamingStats SceneStreaming::getStats() const {
+    StreamingStats result = stats_;
+    result.activeLoads = activeLoads_;
+    result.queueSize = (u32)pendingRequests_.size();
+    return result;
+}
 void SceneStreaming::resetStats() { stats_ = {}; }
 
 void SceneStreaming::printStats() const {
@@ -337,9 +342,9 @@ f32 SceneStreaming::computeTerrainPriority(const TerrainBlock& block, const Vec3
 }
 
 void SceneStreaming::sortPendingQueue() {
-    while (!loadQueue_.empty()) loadQueue_.pop();
+    while (!legacyLoadQueue_.empty()) legacyLoadQueue_.pop();
     for (auto& chunk : chunks_) {
-        if (chunk.state == StreamingState::Queued) loadQueue_.push(&chunk);
+        if (chunk.state == StreamingState::Queued) legacyLoadQueue_.push(&chunk);
     }
 }
 
@@ -348,9 +353,9 @@ void SceneStreaming::processLoadQueue() {
     for (const auto& chunk : chunks_) {
         if (chunk.state == StreamingState::Loading || chunk.state == StreamingState::Streaming) activeLoads++;
     }
-    while (!loadQueue_.empty() && activeLoads < config_.maxConcurrentLoads) {
-        StreamingChunk* chunk = loadQueue_.top();
-        loadQueue_.pop();
+    while (!legacyLoadQueue_.empty() && activeLoads < config_.maxConcurrentLoads) {
+        StreamingChunk* chunk = legacyLoadQueue_.top();
+        legacyLoadQueue_.pop();
         if (chunk->state == StreamingState::Queued) {
             chunk->state = StreamingState::Loading;
             chunk->loadProgress = 0.0f;
@@ -361,9 +366,9 @@ void SceneStreaming::processLoadQueue() {
 }
 
 void SceneStreaming::processUnloadQueue() {
-    while (!unloadQueue_.empty()) {
-        StreamingChunk* chunk = unloadQueue_.top();
-        unloadQueue_.pop();
+    while (!legacyUnloadQueue_.empty()) {
+        StreamingChunk* chunk = legacyUnloadQueue_.top();
+        legacyUnloadQueue_.pop();
         if (chunk->state == StreamingState::Unloading) {
             chunk->state = StreamingState::Unloaded;
             chunk->loadProgress = 0.0f;
@@ -429,6 +434,161 @@ bool SceneStreaming::validateChunkData(u32 chunkId) const {
 void SceneStreaming::debugDraw() const {
     FROST_LOG_DEBUG("[SceneStreaming] Debug: %zu chunks, %zu terrain, %zu cells",
         chunks_.size(), terrainBlocks_.size(), worldCells_.size());
+}
+
+void SceneStreaming::requestStream(u32 assetId, f32 importance) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pendingRequests_.contains(assetId)) return;
+
+    StreamRequest req;
+    req.assetId = assetId;
+    req.priority.distanceScore = 0.0f;
+    req.priority.importanceScore = importance;
+    req.priority.lodLevel = 0;
+    req.requestedTime = lastUpdate_;
+    req.inProgress = false;
+    req.completed = false;
+    pendingRequests_[assetId] = req;
+
+    for (usize i = 0; i < loadQueue_.size(); i++) {
+        if (loadQueue_[i] == assetId) return;
+    }
+    loadQueue_.push_back(assetId);
+
+    for (usize i = 0; i + 1 < loadQueue_.size(); i++) {
+        for (usize j = i + 1; j < loadQueue_.size(); j++) {
+            auto itA = pendingRequests_.find(loadQueue_[i]);
+            auto itB = pendingRequests_.find(loadQueue_[j]);
+            if (itA != pendingRequests_.end() && itB != pendingRequests_.end()) {
+                if (itB.value().priority < itA.value().priority) {
+                    u32 tmp = loadQueue_[i];
+                    loadQueue_[i] = loadQueue_[j];
+                    loadQueue_[j] = tmp;
+                }
+            }
+        }
+    }
+}
+
+void SceneStreaming::cancelRequest(u32 assetId) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    pendingRequests_.erase(assetId);
+    for (usize i = 0; i < loadQueue_.size(); i++) {
+        if (loadQueue_[i] == assetId) {
+            loadQueue_.erase(i);
+            break;
+        }
+    }
+}
+
+void SceneStreaming::processQueue() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (activeLoads_ < maxConcurrentLoads_ && !loadQueue_.empty()) {
+        u32 assetId = loadQueue_[0];
+        loadQueue_.erase(0);
+        auto it = pendingRequests_.find(assetId);
+        if (it == pendingRequests_.end() || it.value().completed || it.value().inProgress) continue;
+
+        it.value().inProgress = true;
+        activeLoads_++;
+    }
+}
+
+void SceneStreaming::completeLoad(u32 assetId) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = pendingRequests_.find(assetId);
+    if (it == pendingRequests_.end()) return;
+    if (!it.value().inProgress) return;
+
+    it.value().completed = true;
+    it.value().inProgress = false;
+    if (activeLoads_ > 0) activeLoads_--;
+    pendingRequests_.erase(assetId);
+}
+
+void SceneStreaming::updateStreaming(f32 dt, const Vec3& cameraPos) {
+    lastUpdate_ = dt;
+
+    for (usize i = 0; i < loadQueue_.size(); i++) {
+        auto it = pendingRequests_.find(loadQueue_[i]);
+        if (it == pendingRequests_.end()) continue;
+        StreamRequest& req = it.value();
+        f32 dist = (cameraPos).length();
+        req.priority.distanceScore = (dist < streamRadius_) ? 1.0f - (dist / streamRadius_) : 0.0f;
+    }
+
+    for (usize i = 0; i + 1 < loadQueue_.size(); i++) {
+        for (usize j = i + 1; j < loadQueue_.size(); j++) {
+            auto itA = pendingRequests_.find(loadQueue_[i]);
+            auto itB = pendingRequests_.find(loadQueue_[j]);
+            if (itA != pendingRequests_.end() && itB != pendingRequests_.end()) {
+                if (itB.value().priority < itA.value().priority) {
+                    u32 tmp = loadQueue_[i];
+                    loadQueue_[i] = loadQueue_[j];
+                    loadQueue_[j] = tmp;
+                }
+            }
+        }
+    }
+
+    Vector<u32> toCancel;
+    for (auto it = pendingRequests_.begin(); it != pendingRequests_.end(); ++it) {
+        if (!it.value().inProgress) {
+            f32 dist = (cameraPos).length();
+            if (dist > unloadRadius_) {
+                toCancel.push_back(it.key());
+            }
+        }
+    }
+    for (u32 id : toCancel) {
+        cancelRequest(id);
+    }
+
+    processQueue();
+}
+
+u32 SceneStreaming::getLoadQueueSize() const {
+    return (u32)loadQueue_.size();
+}
+
+u32 SceneStreaming::getActiveLoads() const {
+    return activeLoads_;
+}
+
+u32 SceneStreaming::getTotalBytesLoaded() const {
+    return totalBytesLoaded_;
+}
+
+u32 SceneStreaming::getTotalBytesUnloaded() const {
+    return totalBytesUnloaded_;
+}
+
+void SceneStreaming::setStreamRadius(f32 radius) { streamRadius_ = radius; }
+f32 SceneStreaming::getStreamRadius() const { return streamRadius_; }
+
+void SceneStreaming::setUnloadRadius(f32 radius) { unloadRadius_ = radius; }
+f32 SceneStreaming::getUnloadRadius() const { return unloadRadius_; }
+
+u32 SceneStreaming::computeLODLevel(f32 distance) const {
+    if (distance < streamRadius_ * 0.2f) return 0;
+    if (distance < streamRadius_ * 0.4f) return 1;
+    if (distance < streamRadius_ * 0.6f) return 2;
+    if (distance < streamRadius_ * 0.8f) return 3;
+    return 4;
+}
+
+Vector<u32> SceneStreaming::computePrefetchList(const Vec3& position, f32 radius) const {
+    Vector<u32> list;
+    f32 prefetchRadius = radius + config_.prefetchDistance;
+    for (const auto& chunk : chunks_) {
+        if (chunk.state == StreamingState::Unloaded) {
+            f32 dist = (chunk.bounds.center() - position).length();
+            if (dist < prefetchRadius) {
+                list.push_back(chunk.chunkId);
+            }
+        }
+    }
+    return list;
 }
 
 }

@@ -3,6 +3,7 @@
 #include "Core/Math.h"
 #include "Core/Vector.h"
 #include "Core/String.h"
+#include "Core/HashMap.h"
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -110,6 +111,21 @@ struct StreamingStats {
 
 using StreamingCallback = std::function<void(u32 chunkId, StreamingStatus status)>;
 
+struct StreamPriority {
+    f32 distanceScore;
+    f32 importanceScore;
+    u32 lodLevel;
+    bool operator<(const StreamPriority& o) const { return (distanceScore + importanceScore) < (o.distanceScore + o.importanceScore); }
+};
+
+struct StreamRequest {
+    u32 assetId;
+    StreamPriority priority;
+    f32 requestedTime;
+    bool inProgress;
+    bool completed;
+};
+
 class SceneStreaming {
 public:
     SceneStreaming();
@@ -172,14 +188,30 @@ public:
     bool validateChunkData(u32 chunkId) const;
     void debugDraw() const;
 
+    void requestStream(u32 assetId, f32 importance);
+    void cancelRequest(u32 assetId);
+    void processQueue();
+    void completeLoad(u32 assetId);
+    void updateStreaming(f32 dt, const Vec3& cameraPos);
+    u32 getLoadQueueSize() const;
+    u32 getActiveLoads() const;
+    u32 getTotalBytesLoaded() const;
+    u32 getTotalBytesUnloaded() const;
+    void setStreamRadius(f32 radius);
+    f32 getStreamRadius() const;
+    void setUnloadRadius(f32 radius);
+    f32 getUnloadRadius() const;
+    u32 computeLODLevel(f32 distance) const;
+    Vector<u32> computePrefetchList(const Vec3& position, f32 radius) const;
+
 private:
     StreamingConfig config_;
     Vector<StreamingChunk> chunks_;
     Vector<LODLevel> lodLevels_[256];
     Vector<TerrainBlock> terrainBlocks_;
     Vector<WorldCell> worldCells_;
-    std::priority_queue<StreamingChunk*> loadQueue_;
-    std::priority_queue<StreamingChunk*> unloadQueue_;
+    std::priority_queue<StreamingChunk*> legacyLoadQueue_;
+    std::priority_queue<StreamingChunk*> legacyUnloadQueue_;
     StreamingCallback callback_;
     StreamingStats stats_;
     u32 nextChunkId_;
@@ -189,6 +221,15 @@ private:
     f32 lastUpdate_;
     f32 lastCameraDist_;
     Vec3 lastCameraPos_;
+
+    HashMap<u32, StreamRequest> pendingRequests_;
+    Vector<u32> loadQueue_;
+    u32 maxConcurrentLoads_ = 4;
+    u32 activeLoads_ = 0;
+    f32 streamRadius_ = 500.0f;
+    f32 unloadRadius_ = 600.0f;
+    u32 totalBytesLoaded_ = 0;
+    u32 totalBytesUnloaded_ = 0;
 };
 
 }

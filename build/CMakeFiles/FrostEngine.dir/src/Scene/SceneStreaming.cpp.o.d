@@ -192,6 +192,7 @@ CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o: \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/String.h \
  /usr/include/c++/11/cstdarg \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h \
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h \
  /usr/include/c++/11/mutex /usr/include/c++/11/chrono \
  /usr/include/c++/11/ratio /usr/include/c++/11/ctime \
  /usr/include/c++/11/bits/parse_numbers.h \
