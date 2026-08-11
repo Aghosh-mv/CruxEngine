@@ -9567,7 +9567,11 @@ CMakeFiles/FrostEngine.dir/src/Renderer/FrostRadiance.cpp.o: ../src/Renderer/Fro
   /usr/include/c++/11/numeric \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/bit \
-  /usr/include/c++/11/pstl/glue_numeric_defs.h
+  /usr/include/c++/11/pstl/glue_numeric_defs.h \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/ctime \
+  /usr/include/c++/11/bits/parse_numbers.h
 
 CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o: ../src/Renderer/FrostVirtualTexturing.cpp \
   /usr/include/stdc-predef.h \

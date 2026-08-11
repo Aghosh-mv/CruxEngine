@@ -185,23 +185,37 @@ public:
     }
 
     // ========================================================================
-    // Compute dispatch with explicit work group counts
+    // Queued compute dispatch (executed on flushDispatches / endFrame)
     // ========================================================================
-    bool dispatchCompute(u32 shaderId, u32 groupsX, u32 groupsY, u32 groupsZ) {
-        if (shaderId >= shaderCount_) {
-            FROST_LOG_ERROR("[ComputeManager] dispatchCompute: invalid shader id %u", shaderId);
-            return false;
-        }
-        if (groupsX == 0 || groupsY == 0 || groupsZ == 0) {
-            FROST_LOG_ERROR("[ComputeManager] dispatchCompute: work group counts must be > 0");
-            return false;
-        }
-        Gl::UseProgram(shaders_[shaderId].program);
-        Gl::DispatchCompute(groupsX, groupsY, groupsZ);
-        Gl::MemoryBarrier(0x0040); // GL_SHADER_STORAGE_BARRIER_BIT
-        stats_.dispatches++;
-        return true;
-    }
+    void dispatchCompute(u32 shaderId, u32 gx, u32 gy, u32 gz);
+
+    // ========================================================================
+    // UAV resource pool (buffer-backed UAVs)
+    // ========================================================================
+    struct UAVResource {
+        u32 id = 0;
+        u32 sizeBytes = 0;
+        bool inUse = false;
+        u32 boundSlot = 0;
+    };
+
+    u32 allocateUAV(u32 sizeBytes);
+    void freeUAV(u32 id);
+    const UAVResource& getUAV(u32 id) const;
+    u32 getPoolSize() const;
+
+    u32 getTotalGpuBytes() const;
+    u32 getPeakGpuBytes() const;
+    void resetPeakTracking();
+
+    u32 flushDispatches();
+    void clearDispatches();
+
+    void beginFrame();
+    void endFrame();
+
+    u32 getDispatchCount() const;
+    f32 getDispatchTimeMs() const;
 
     // ========================================================================
     // Indirect dispatch from a buffer containing group counts
@@ -438,7 +452,16 @@ public:
         texHeights_.clear();
         texFormats_.clear();
         activeUAVs_ = 0;
+        for (u32 i = 0; i < static_cast<u32>(uavBuffers_.size()); i++) {
+            if (uavBuffers_[i]) Gl::DeleteBuffers(1, &uavBuffers_[i]);
+        }
+        uavResources_.clear();
+        uavBuffers_.clear();
+        pendingDispatches_.clear();
         dispatchCount_ = 0;
+        totalGpuBytes_ = 0;
+        peakGpuBytes_ = 0;
+        dispatchTimeMs_ = 0.0f;
         stats_ = ComputeStats{};
         FROST_LOG_INFO("[ComputeManager] pools and stats reset");
     }
@@ -487,6 +510,20 @@ private:
     Vector<u32> texturePool_;
     u32 activeUAVs_ = 0;
     u32 dispatchCount_ = 0;
+
+    // Buffer-backed UAV resource pool and queued dispatch tracking
+    struct PendingDispatch {
+        u32 shaderId = 0;
+        u32 gx = 1;
+        u32 gy = 1;
+        u32 gz = 1;
+    };
+    Vector<UAVResource> uavResources_;
+    Vector<GLuint> uavBuffers_;
+    Vector<PendingDispatch> pendingDispatches_;
+    u32 totalGpuBytes_ = 0;
+    u32 peakGpuBytes_ = 0;
+    f32 dispatchTimeMs_ = 0.0f;
 
     // Texture pool
     Vector<GLuint> texPoolIds_;
