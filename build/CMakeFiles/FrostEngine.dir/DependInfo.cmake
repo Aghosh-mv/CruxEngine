@@ -69,6 +69,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Renderer/Renderer.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/SVOR.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Shader.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_compute.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_extra.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_pbr.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o.d"

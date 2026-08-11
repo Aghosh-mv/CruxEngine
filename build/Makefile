@@ -1651,6 +1651,30 @@ src/Renderer/Shader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.s
 .PHONY : src/Renderer/Shader.cpp.s
 
+src/Renderer/ShaderSource.o: src/Renderer/ShaderSource.cpp.o
+.PHONY : src/Renderer/ShaderSource.o
+
+# target to build an object file
+src/Renderer/ShaderSource.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o
+.PHONY : src/Renderer/ShaderSource.cpp.o
+
+src/Renderer/ShaderSource.i: src/Renderer/ShaderSource.cpp.i
+.PHONY : src/Renderer/ShaderSource.i
+
+# target to preprocess a source file
+src/Renderer/ShaderSource.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.i
+.PHONY : src/Renderer/ShaderSource.cpp.i
+
+src/Renderer/ShaderSource.s: src/Renderer/ShaderSource.cpp.s
+.PHONY : src/Renderer/ShaderSource.s
+
+# target to generate assembly for a file
+src/Renderer/ShaderSource.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.s
+.PHONY : src/Renderer/ShaderSource.cpp.s
+
 src/Renderer/ShaderSource_compute.o: src/Renderer/ShaderSource_compute.cpp.o
 .PHONY : src/Renderer/ShaderSource_compute.o
 
@@ -2424,6 +2448,9 @@ help:
 	@echo "... src/Renderer/Shader.o"
 	@echo "... src/Renderer/Shader.i"
 	@echo "... src/Renderer/Shader.s"
+	@echo "... src/Renderer/ShaderSource.o"
+	@echo "... src/Renderer/ShaderSource.i"
+	@echo "... src/Renderer/ShaderSource.s"
 	@echo "... src/Renderer/ShaderSource_compute.o"
 	@echo "... src/Renderer/ShaderSource_compute.i"
 	@echo "... src/Renderer/ShaderSource_compute.s"

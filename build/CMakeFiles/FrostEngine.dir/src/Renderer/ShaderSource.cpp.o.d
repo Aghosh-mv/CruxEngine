@@ -1,7 +1,7 @@
-CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o: \
- /home/tinkerspace/FrostEngine/src/Renderer/Renderer.cpp \
+CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o: \
+ /home/tinkerspace/FrostEngine/src/Renderer/ShaderSource.cpp \
  /usr/include/stdc-predef.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Renderer.h \
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/ShaderSource.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Types.h \
  /usr/include/c++/11/cstdint \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -191,21 +191,4 @@ CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o: \
  /usr/include/c++/11/bits/basic_string.tcc \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/String.h \
  /usr/include/c++/11/cstdarg \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Math.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Shader.h \
- /usr/include/GL/gl.h /usr/include/GL/glext.h \
- /usr/include/KHR/khrplatform.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Mesh.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Material.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Texture.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Camera.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Light.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Platform/Window.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Gl.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/ShaderSource.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Font.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Assets/MeshFactory.h \
- /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Log.h \
- /usr/include/c++/11/ctime /usr/include/c++/11/chrono \
- /usr/include/c++/11/ratio /usr/include/c++/11/bits/parse_numbers.h
+ /home/tinkerspace/FrostEngine/include/FrostEngine/Core/HashMap.h

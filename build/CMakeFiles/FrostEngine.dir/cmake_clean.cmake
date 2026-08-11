@@ -121,6 +121,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_compute.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o"

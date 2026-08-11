@@ -42,6 +42,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/ShaderSource_pbr.cpp
     src/Renderer/ShaderSource_extra.cpp
     src/Renderer/ShaderSource_compute.cpp
+    src/Renderer/ShaderSource.cpp
     src/Renderer/Mesh.cpp
     src/Renderer/Texture.cpp
     src/Renderer/Material.cpp
