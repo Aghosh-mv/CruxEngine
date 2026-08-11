@@ -90,6 +90,17 @@ struct TCSMCascade {
     }
 };
 
+// ---- Per-cascade light-space cache entry ----
+// Tracks the light-space origin/extent a cascade was last rendered for so
+// subsequent frames can reuse the shadow map without re-rendering when the
+// light has barely moved.
+struct CascadeCacheEntry {
+    u32  frameLastRendered = 0;   // cascade frame counter at last render
+    Vec3 cachedOrigin;            // light-space origin the cascade was rendered for
+    f32  cachedExtent = 0.0f;     // world-space extent the cascade was rendered for
+    bool valid = false;           // has this cascade been rendered at least once?
+};
+
 // ---- TCSM system ----
 class TCSMSystem {
 public:
@@ -98,14 +109,7 @@ public:
 
     TCSMSystem() = default;
 
-    bool init(u32 resolution = 2048, u32 cascadeCount = 2) {
-        cascadeCount_ = (cascadeCount > MAX_CASCADES) ? MAX_CASCADES : cascadeCount;
-        for (u32 i = 0; i < cascadeCount_; i++) {
-            cascades_[i].allocate(resolution);
-        }
-        initialized_ = true;
-        return true;
-    }
+    bool init(u32 cascadeCount, u32 shadowMapSize);
 
     void shutdown() {
         for (u32 i = 0; i < MAX_CASCADES; i++) {
@@ -240,11 +244,44 @@ public:
     u32 cascadeCount() const { return cascadeCount_; }
     bool initialized() const { return initialized_; }
 
+    // ---- Temporal cascade caching ----
+    // Returns true if the cascade's shadow map needs to be re-rendered for
+    // this light position. When the cache is still valid the previous frame's
+    // render is reused (temporal reprojection handles the small delta).
+    bool updateCascadeOrigin(u32 cascadeIndex, const Vec3& lightOrigin, f32 extent);
+    const CascadeCacheEntry& getCascadeCacheEntry(u32 cascadeIndex) const;
+    u32 getCachedCascades() const;
+
+    // Returns the per-cascade jittered light-space offset (in texel units).
+    Vec3 applyJitter(u32 cascadeIndex, f32 pixelSize);
+
+    // Exponential temporal blend between previous and current shadow value.
+    f32 temporalBlend(f32 prev, f32 cur, f32 historyWeight) const;
+
+    // Cache statistics.
+    u32 getCacheHits() const;
+    u32 getCacheMisses() const;
+    u32 getRenderedCascades() const;
+    f32 getCacheHitRatio() const;
+    void resetStats();
+
 private:
     TCSMCascade cascades_[MAX_CASCADES];
     f32 lastLightVP_[MAX_CASCADES][16] = {};
-    u32 cascadeCount_ = 2;
+    u32 cascadeCount_ = 4;
     bool initialized_ = false;
+
+    // ---- Temporal cascade caching state ----
+    Vector<CascadeCacheEntry> cascadeCache_;
+    Vector<Vec3> jitterOffsets_;     // per-cascade last applied jitter
+    f32 jitterScale_ = 1.0f;         // jitter amplitude multiplier
+    f32 reprojectionFactor_ = 0.95f; // max history weight used by temporalBlend
+    u32 cacheHits_ = 0;
+    u32 cacheMisses_ = 0;
+    u32 renderedCascades_ = 0;       // cumulative cascade re-renders
+    u32 frameCounter_ = 0;           // per-cascade update counter
+
+    static const CascadeCacheEntry kEmptyCacheEntry;
 };
 
 } // namespace Frost

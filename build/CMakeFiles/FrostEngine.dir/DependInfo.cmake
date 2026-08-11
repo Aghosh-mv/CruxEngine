@@ -70,6 +70,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_extra.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_extra.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/ShaderSource_pbr.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/SpectralRendering.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Renderer/TCSM.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Texture.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Upscaler.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/VirtualShadowMaps.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/VirtualShadowMaps.cpp.o.d"

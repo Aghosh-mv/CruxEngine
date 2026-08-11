@@ -71,6 +71,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/GPUDriven.cpp
     src/Renderer/SpectralRendering.cpp
     src/Renderer/SVOR.cpp
+    src/Renderer/TCSM.cpp
 )
 
 # ============================================================================

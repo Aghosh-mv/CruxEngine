@@ -1675,6 +1675,30 @@ src/Renderer/SpectralRendering.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.s
 .PHONY : src/Renderer/SpectralRendering.cpp.s
 
+src/Renderer/TCSM.o: src/Renderer/TCSM.cpp.o
+.PHONY : src/Renderer/TCSM.o
+
+# target to build an object file
+src/Renderer/TCSM.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.o
+.PHONY : src/Renderer/TCSM.cpp.o
+
+src/Renderer/TCSM.i: src/Renderer/TCSM.cpp.i
+.PHONY : src/Renderer/TCSM.i
+
+# target to preprocess a source file
+src/Renderer/TCSM.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.i
+.PHONY : src/Renderer/TCSM.cpp.i
+
+src/Renderer/TCSM.s: src/Renderer/TCSM.cpp.s
+.PHONY : src/Renderer/TCSM.s
+
+# target to generate assembly for a file
+src/Renderer/TCSM.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.s
+.PHONY : src/Renderer/TCSM.cpp.s
+
 src/Renderer/Texture.o: src/Renderer/Texture.cpp.o
 .PHONY : src/Renderer/Texture.o
 
@@ -2307,6 +2331,9 @@ help:
 	@echo "... src/Renderer/SpectralRendering.o"
 	@echo "... src/Renderer/SpectralRendering.i"
 	@echo "... src/Renderer/SpectralRendering.s"
+	@echo "... src/Renderer/TCSM.o"
+	@echo "... src/Renderer/TCSM.i"
+	@echo "... src/Renderer/TCSM.s"
 	@echo "... src/Renderer/Texture.o"
 	@echo "... src/Renderer/Texture.i"
 	@echo "... src/Renderer/Texture.s"

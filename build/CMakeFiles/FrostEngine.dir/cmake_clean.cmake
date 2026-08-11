@@ -123,6 +123,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/FrostEngine.dir/src/Renderer/ShaderSource_pbr.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/SpectralRendering.cpp.o.d"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.o"
+  "CMakeFiles/FrostEngine.dir/src/Renderer/TCSM.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Texture.cpp.o.d"
   "CMakeFiles/FrostEngine.dir/src/Renderer/Upscaler.cpp.o"
