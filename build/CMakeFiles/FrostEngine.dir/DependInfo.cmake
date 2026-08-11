@@ -51,6 +51,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Renderer/FrostVirtualTexturing.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostVirtualTexturing.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/FrostWaveletGI.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostWaveletGI.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/FrostZenith.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Renderer/GPUDriven.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/GPUDriven.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/GPUDriven.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/GPUProfiler.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/GPUProfiler.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/Gl.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/Gl.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Renderer/LightingSystem.cpp" "CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Renderer/LightingSystem.cpp.o.d"

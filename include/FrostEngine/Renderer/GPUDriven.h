@@ -62,6 +62,24 @@ struct GPUCullingParams {
     u32 _pad;
 };
 
+// ---- Per-instance renderable data ----
+struct GPUInstance {
+    Vec3 position;
+    Vec3 scale;
+    u32 meshIndex = 0;
+    u32 materialIndex = 0;
+    u32 lodLevel = 0;
+    u32 flags = 0;
+};
+
+// ---- Compacted indirect draw command (matches GL_DRAW_INDIRECT layout) ----
+struct IndirectCommand {
+    u32 vertexCount;
+    u32 instanceCount;
+    u32 firstVertex;
+    u32 firstInstance;
+};
+
 // ---- GPU-Driven Renderer ----
 class GPUDrivenRenderer {
 public:
@@ -222,12 +240,42 @@ public:
         drawCount_ = 0;
     }
 
+    // ---- Instance buffer management ----
+    u32 addInstance(const GPUInstance& instance);
+    void removeInstance(u32 index);
+    void updateInstanceTransform(u32 index, const Vec3& pos, const Vec3& scale);
+    u32 getInstanceCount() const;
+
+    // ---- GPU-driven culling and compacted indirect commands ----
+    u32 cullInstances(const Vector<Vec4>& cameraPlanes, const Mat4& viewProj);
+    u32 buildIndirectCommands(const Mat4& viewProj);
+    u32 countCulled() const;
+    u32 getCulledTotal() const;
+    f32 getCullTimeMs() const;
+    const Vector<u32>& getVisibleInstances() const;
+    const Vector<IndirectCommand>& getIndirectCommands() const;
+
+    // ---- Culling configuration and stats ----
+    void setGpuCulling(bool enabled);
+    bool isGpuCullingEnabled() const;
+    void resetCullingStats();
+    void clearInstances();
+
 private:
     Vector<GPUObjectData> objects_;
     Vector<GPUDrawCommand> drawCommands_;
     Vector<bool> visibleMask_;
     u32 objectCount_ = 0;
     u32 drawCount_ = 0;
+
+    Vector<GPUInstance> instances_;
+    Vector<u32> visibleInstances_;
+    Vector<IndirectCommand> indirectCommands_;
+    u32 maxInstances_ = 100000;
+    u32 culledCount_ = 0;
+    u32 totalCulled_ = 0;
+    f32 cullTimeMs_ = 0.0f;
+    bool enableGpuCulling_ = true;
 };
 
 } // namespace Frost

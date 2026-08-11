@@ -1219,6 +1219,30 @@ src/Renderer/FrostZenith.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/FrostZenith.cpp.s
 .PHONY : src/Renderer/FrostZenith.cpp.s
 
+src/Renderer/GPUDriven.o: src/Renderer/GPUDriven.cpp.o
+.PHONY : src/Renderer/GPUDriven.o
+
+# target to build an object file
+src/Renderer/GPUDriven.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUDriven.cpp.o
+.PHONY : src/Renderer/GPUDriven.cpp.o
+
+src/Renderer/GPUDriven.i: src/Renderer/GPUDriven.cpp.i
+.PHONY : src/Renderer/GPUDriven.i
+
+# target to preprocess a source file
+src/Renderer/GPUDriven.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUDriven.cpp.i
+.PHONY : src/Renderer/GPUDriven.cpp.i
+
+src/Renderer/GPUDriven.s: src/Renderer/GPUDriven.cpp.s
+.PHONY : src/Renderer/GPUDriven.s
+
+# target to generate assembly for a file
+src/Renderer/GPUDriven.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/GPUDriven.cpp.s
+.PHONY : src/Renderer/GPUDriven.cpp.s
+
 src/Renderer/GPUProfiler.o: src/Renderer/GPUProfiler.cpp.o
 .PHONY : src/Renderer/GPUProfiler.o
 
@@ -2178,6 +2202,9 @@ help:
 	@echo "... src/Renderer/FrostZenith.o"
 	@echo "... src/Renderer/FrostZenith.i"
 	@echo "... src/Renderer/FrostZenith.s"
+	@echo "... src/Renderer/GPUDriven.o"
+	@echo "... src/Renderer/GPUDriven.i"
+	@echo "... src/Renderer/GPUDriven.s"
 	@echo "... src/Renderer/GPUProfiler.o"
 	@echo "... src/Renderer/GPUProfiler.i"
 	@echo "... src/Renderer/GPUProfiler.s"

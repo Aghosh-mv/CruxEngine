@@ -68,6 +68,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/OcclusionCulling.cpp
     src/Renderer/FrostZenith.cpp
     src/Renderer/MaterialGraph.cpp
+    src/Renderer/GPUDriven.cpp
 )
 
 # ============================================================================
