@@ -1963,6 +1963,30 @@ src/Scene/SceneStreaming.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.s
 .PHONY : src/Scene/SceneStreaming.cpp.s
 
+src/Scene/VirtualGeometry.o: src/Scene/VirtualGeometry.cpp.o
+.PHONY : src/Scene/VirtualGeometry.o
+
+# target to build an object file
+src/Scene/VirtualGeometry.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/VirtualGeometry.cpp.o
+.PHONY : src/Scene/VirtualGeometry.cpp.o
+
+src/Scene/VirtualGeometry.i: src/Scene/VirtualGeometry.cpp.i
+.PHONY : src/Scene/VirtualGeometry.i
+
+# target to preprocess a source file
+src/Scene/VirtualGeometry.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/VirtualGeometry.cpp.i
+.PHONY : src/Scene/VirtualGeometry.cpp.i
+
+src/Scene/VirtualGeometry.s: src/Scene/VirtualGeometry.cpp.s
+.PHONY : src/Scene/VirtualGeometry.s
+
+# target to generate assembly for a file
+src/Scene/VirtualGeometry.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Scene/VirtualGeometry.cpp.s
+.PHONY : src/Scene/VirtualGeometry.cpp.s
+
 src/Scene/WorldPartition.o: src/Scene/WorldPartition.cpp.o
 .PHONY : src/Scene/WorldPartition.o
 
@@ -2439,6 +2463,9 @@ help:
 	@echo "... src/Scene/SceneStreaming.o"
 	@echo "... src/Scene/SceneStreaming.i"
 	@echo "... src/Scene/SceneStreaming.s"
+	@echo "... src/Scene/VirtualGeometry.o"
+	@echo "... src/Scene/VirtualGeometry.i"
+	@echo "... src/Scene/VirtualGeometry.s"
 	@echo "... src/Scene/WorldPartition.o"
 	@echo "... src/Scene/WorldPartition.i"
 	@echo "... src/Scene/WorldPartition.s"

@@ -82,6 +82,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/tinkerspace/FrostEngine/src/Scene/SceneGraph.cpp" "CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scene/SceneGraph.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Scene/SceneSerializer.cpp" "CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scene/SceneSerializer.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Scene/SceneStreaming.cpp" "CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o.d"
+  "/home/tinkerspace/FrostEngine/src/Scene/VirtualGeometry.cpp" "CMakeFiles/FrostEngine.dir/src/Scene/VirtualGeometry.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scene/VirtualGeometry.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Scene/WorldPartition.cpp" "CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scene/WorldPartition.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Scripting/KitrisBytecode.cpp" "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisBytecode.cpp.o.d"
   "/home/tinkerspace/FrostEngine/src/Scripting/KitrisDebugger.cpp" "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o" "gcc" "CMakeFiles/FrostEngine.dir/src/Scripting/KitrisDebugger.cpp.o.d"

@@ -5,9 +5,14 @@
 #include "Core/Mat4.h"
 #include "Core/Vector.h"
 #include "Core/UniquePtr.h"
+#include "Scene/Entity.h"
+#include "Scene/SceneManager.h"
 
 namespace Frost {
 namespace Geometry {
+
+using ::Frost::BoundingBox;
+using ::Frost::BoundingSphere;
 
 struct Triangle {
     u32 v0, v1, v2;
@@ -36,7 +41,6 @@ struct Patch {
 
 struct Meshlet {
     u32 center;
-    u32 cullingSphere;
     u32 primitives[64];
     u32 primitiveCount;
     u32 vertices[64];
@@ -60,7 +64,7 @@ struct Mesh {
     Vector<Meshlet> meshlets;
     
     u32 lodLevels = 4;
-    f32几何ErrorThreshold = 0.5f;
+    f32 geometryErrorThreshold = 0.5f;
     
     BoundingBox boundingBox;
     BoundingSphere boundingSphere;
@@ -100,6 +104,23 @@ struct ClusterBatcher {
 
 namespace Frost {
 
+struct GeometryPage {
+    u32 pageId;
+    Vec3 min;
+    Vec3 max;
+    u32 level;
+    bool resident;
+    bool loaded;
+    u32 meshCount;
+};
+
+struct GeometryRequest {
+    u32 pageId;
+    u32 priority;
+    f32 distanceToCamera;
+    bool streaming;
+};
+
 class VirtualGeometrySystem {
 public:
     static VirtualGeometrySystem& instance();
@@ -123,6 +144,20 @@ public:
     
     const Vector<Geometry::Meshlet>& getMeshlets() const { return meshlets_; }
     
+    void init(u32 clipmapLevels, f32 scale);
+    u32 computeClipmapPage(const Vec3& worldPos, u32 level) const;
+    void requestPage(u32 pageId, u32 priority);
+    u32 processRequests(u32 maxPerFrame);
+    bool makeResident(u32 pageId);
+    bool evictPage(u32 pageId);
+    const GeometryPage& getPage(u32 pageId) const;
+    u32 getResidentPageCount() const { return residentPageCount_; }
+    u32 getRequestedPages() const { return requestedPages_; }
+    u32 getStreamedPages() const { return streamedPages_; }
+    u32 getClipmapLevels() const { return clipmapLevels_; }
+    void update(const Vec3& cameraPos, f32 dt);
+    void clearPages();
+    
 private:
     VirtualGeometrySystem() = default;
     ~VirtualGeometrySystem() = default;
@@ -139,7 +174,18 @@ private:
     f32 clusterErrorThreshold_ = 0.5f;
     u32 maxLODLevel_ = 4;
     u32 frameIndex_ = 0;
+    
+    Vector<GeometryPage> pages_;
+    Vector<GeometryRequest> pendingRequests_;
+    u32 clipmapLevels_ = 8;
+    f32 clipmapScale_ = 10.0f;
+    u32 maxResidentPages_ = 16384;
+    u32 residentPageCount_ = 0;
+    u32 requestedPages_ = 0;
+    u32 streamedPages_ = 0;
+    f32 lastUpdateTime_ = 0.0f;
+    
+    usize findPage(u32 pageId) const;
 };
 
-}
 }

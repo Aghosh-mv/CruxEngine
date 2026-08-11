@@ -10,6 +10,8 @@
 
 namespace Frost {
 
+namespace Renderer { struct Texture; struct Sampler; }
+
 struct Entity {
     u32 id = 0;
     

@@ -142,6 +142,7 @@ set(FROST_SCENE_SOURCES
     src/Scene/SceneSerializer.cpp
     src/Scene/SceneStreaming.cpp
     src/Scene/WorldPartition.cpp
+    src/Scene/VirtualGeometry.cpp
 )
 
 # ============================================================================
