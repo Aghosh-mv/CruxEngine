@@ -175,6 +175,13 @@ public:
         f32 rasterTimeMs = 0.0f;
     };
     
+    struct HiZBuffer {
+        Vector<f32> depths;
+        u32 width = 0;
+        u32 height = 0;
+        u32 mipLevels = 0;
+    };
+    
     struct Object {
         u32 id = 0;
         AABB bounds;
@@ -227,6 +234,17 @@ void beginFrame(u64 frameIndex, void* cmd);
     void debugDrawHiZ(void* cmd, u32 mipLevel = 0);
     void debugDrawSoftwareRaster(void* cmd);
     
+    void buildHiZ(const f32* depthBuffer, u32 width, u32 height);
+    void downsampleHiZ(u32 mipLevel);
+    bool testAABB(const Vec3& min, const Vec3& max, const Mat4& viewProj);
+    bool testSphere(const Vec3& center, f32 radius, const Mat4& viewProj);
+    void temporalReproject();
+    const HiZBuffer& getHiZBuffer() const { return hizBuffer_; }
+    u32 getOccludedCount() const { return occludedCount_; }
+    u32 getTestedCount() const { return testedCount_; }
+    f32 getCullTimeMs() const { return cullTimeMs_; }
+    void setNearFar(f32 near, f32 far);
+    
 private:
     bool testObjectHiZ(const Object& obj) const;
     bool testObjectSoftwareRaster(const Object& obj) const;
@@ -247,8 +265,19 @@ private:
     Mat4 viewProj_;
     Frustum frustum_;
     
-    HiZBuffer hiZBuffer_;
+    ::Frost::Renderer::HiZBuffer hiZBuffer_;
     UniquePtr<SoftwareRasterizer> softwareRasterizer_;
+    
+    HiZBuffer hizBuffer_;
+    HiZBuffer prevHzBuffer_;
+    u32 tilesX_ = 0;
+    u32 tilesY_ = 0;
+    f32 zNear_ = 0.1f;
+    f32 zFar_ = 1000.0f;
+    bool enableTemporal_ = true;
+    u32 occludedCount_ = 0;
+    u32 testedCount_ = 0;
+    f32 cullTimeMs_ = 0.0f;
     
     Vector<Object> objects_;
     Vector<OcclusionMesh> occlusionMeshes_;

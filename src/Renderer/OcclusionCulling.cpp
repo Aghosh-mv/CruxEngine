@@ -557,5 +557,194 @@ void OcclusionCullingSystem::processDynamicObjects() {
     }
 }
 
+void OcclusionCullingSystem::buildHiZ(const f32* depthBuffer, u32 width, u32 height) {
+    hizBuffer_.width = width;
+    hizBuffer_.height = height;
+    hizBuffer_.mipLevels = 0;
+    u32 dim = std::max(width, height);
+    while ((1u << hizBuffer_.mipLevels) < dim) hizBuffer_.mipLevels++;
+    hizBuffer_.mipLevels = std::max(hizBuffer_.mipLevels, 1u);
+
+    u32 totalSize = 0;
+    for (u32 mip = 0; mip < hizBuffer_.mipLevels; mip++) {
+        u32 w = std::max(width >> mip, 1u);
+        u32 h = std::max(height >> mip, 1u);
+        totalSize += w * h;
+    }
+    hizBuffer_.depths.resize(totalSize);
+
+    u32 baseW = width;
+    u32 baseH = height;
+    for (u32 i = 0; i < baseW * baseH; i++) {
+        hizBuffer_.depths[i] = depthBuffer[i];
+    }
+
+    for (u32 mip = 1; mip < hizBuffer_.mipLevels; mip++) {
+        downsampleHiZ(mip);
+    }
+}
+
+void OcclusionCullingSystem::downsampleHiZ(u32 mipLevel) {
+    if (mipLevel == 0 || mipLevel >= hizBuffer_.mipLevels) return;
+
+    u32 prevMip = mipLevel - 1;
+    u32 srcW = std::max(hizBuffer_.width >> prevMip, 1u);
+    u32 srcH = std::max(hizBuffer_.height >> prevMip, 1u);
+    u32 dstW = std::max(hizBuffer_.width >> mipLevel, 1u);
+    u32 dstH = std::max(hizBuffer_.height >> mipLevel, 1u);
+
+    u32 srcOffset = 0;
+    for (u32 m = 0; m < prevMip; m++) {
+        srcOffset += std::max(hizBuffer_.width >> m, 1u) * std::max(hizBuffer_.height >> m, 1u);
+    }
+    u32 dstOffset = srcOffset + srcW * srcH;
+
+    for (u32 y = 0; y < dstH; y++) {
+        for (u32 x = 0; x < dstW; x++) {
+            f32 maxDepth = 0.0f;
+            for (u32 dy = 0; dy < 2; dy++) {
+                for (u32 dx = 0; dx < 2; dx++) {
+                    u32 sx = x * 2 + dx;
+                    u32 sy = y * 2 + dy;
+                    if (sx < srcW && sy < srcH) {
+                        f32 d = hizBuffer_.depths[srcOffset + sy * srcW + sx];
+                        maxDepth = std::max(maxDepth, d);
+                    }
+                }
+            }
+            hizBuffer_.depths[dstOffset + y * dstW + x] = maxDepth;
+        }
+    }
+}
+
+bool OcclusionCullingSystem::testAABB(const Vec3& aabbMin, const Vec3& aabbMax, const Mat4& viewProj) {
+    testedCount_++;
+
+    if (hizBuffer_.depths.size() == 0) return false;
+
+    Vec3 corners[8] = {
+        {aabbMin.x, aabbMin.y, aabbMin.z},
+        {aabbMax.x, aabbMin.y, aabbMin.z},
+        {aabbMin.x, aabbMax.y, aabbMin.z},
+        {aabbMax.x, aabbMax.y, aabbMin.z},
+        {aabbMin.x, aabbMin.y, aabbMax.z},
+        {aabbMax.x, aabbMin.y, aabbMax.z},
+        {aabbMin.x, aabbMax.y, aabbMax.z},
+        {aabbMax.x, aabbMax.y, aabbMax.z}
+    };
+
+    f32 minZ = 1e30f;
+    f32 minU = 1e30f, maxU = 0.0f;
+    f32 minV = 1e30f, maxV = 0.0f;
+    bool behindCamera = false;
+
+    for (u32 i = 0; i < 8; i++) {
+        Vec4 clip = viewProj * Vec4(corners[i].x, corners[i].y, corners[i].z, 1.0f);
+        if (clip.w <= 0.0f) {
+            behindCamera = true;
+            continue;
+        }
+        f32 ndcx = clip.x / clip.w;
+        f32 ndcy = clip.y / clip.w;
+        f32 ndcz = clip.z / clip.w;
+
+        f32 u = (ndcx + 1.0f) * 0.5f;
+        f32 v = (1.0f - ndcy) * 0.5f;
+
+        minU = std::min(minU, u);
+        maxU = std::max(maxU, u);
+        minV = std::min(minV, v);
+        maxV = std::max(maxV, v);
+        minZ = std::min(minZ, ndcz);
+    }
+
+    if (behindCamera) return false;
+    if (minU >= 1.0f || maxU <= 0.0f || minV >= 1.0f || maxV <= 0.0f) return false;
+
+    minU = std::max(minU, 0.0f);
+    maxU = std::min(maxU, 1.0f);
+    minV = std::max(minV, 0.0f);
+    maxV = std::min(maxV, 1.0f);
+
+    u32 screenW = (u32)((maxU - minU) * hizBuffer_.width + 0.5f);
+    u32 screenH = (u32)((maxV - minV) * hizBuffer_.height + 0.5f);
+    if (screenW == 0) screenW = 1;
+    if (screenH == 0) screenH = 1;
+
+    u32 mipLevel = 0;
+    u32 mipW = hizBuffer_.width;
+    u32 mipH = hizBuffer_.height;
+    while (mipLevel + 1 < hizBuffer_.mipLevels && mipW / 2 >= screenW && mipH / 2 >= screenH) {
+        mipLevel++;
+        mipW = std::max(mipW / 2, 1u);
+        mipH = std::max(mipH / 2, 1u);
+    }
+
+    u32 mipOffset = 0;
+    for (u32 m = 0; m < mipLevel; m++) {
+        mipOffset += std::max(hizBuffer_.width >> m, 1u) * std::max(hizBuffer_.height >> m, 1u);
+    }
+    u32 sampleW = std::max(hizBuffer_.width >> mipLevel, 1u);
+    u32 sampleH = std::max(hizBuffer_.height >> mipLevel, 1u);
+
+    u32 sx0 = (u32)(minU * sampleW);
+    u32 sy0 = (u32)(minV * sampleH);
+    u32 sx1 = (u32)(maxU * sampleW) + 1;
+    u32 sy1 = (u32)(maxV * sampleH) + 1;
+    sx0 = std::min(sx0, sampleW - 1);
+    sy0 = std::min(sy0, sampleH - 1);
+    sx1 = std::min(sx1, sampleW);
+    sy1 = std::min(sy1, sampleH);
+
+    f32 maxSampleDepth = 0.0f;
+    for (u32 sy = sy0; sy < sy1; sy++) {
+        for (u32 sx = sx0; sx < sx1; sx++) {
+            f32 d = hizBuffer_.depths[mipOffset + sy * sampleW + sx];
+            maxSampleDepth = std::max(maxSampleDepth, d);
+        }
+    }
+
+    if (maxSampleDepth < minZ) {
+        occludedCount_++;
+        return true;
+    }
+    return false;
+}
+
+bool OcclusionCullingSystem::testSphere(const Vec3& center, f32 radius, const Mat4& viewProj) {
+    return testAABB(
+        Vec3(center.x - radius, center.y - radius, center.z - radius),
+        Vec3(center.x + radius, center.y + radius, center.z + radius),
+        viewProj
+    );
+}
+
+void OcclusionCullingSystem::temporalReproject() {
+    if (!enableTemporal_) return;
+    if (hizBuffer_.depths.size() == 0) return;
+
+    if (prevHzBuffer_.depths.size() != hizBuffer_.depths.size()) {
+        prevHzBuffer_ = hizBuffer_;
+        return;
+    }
+
+    for (usize i = 0; i < hizBuffer_.depths.size(); i++) {
+        hizBuffer_.depths[i] = std::max(hizBuffer_.depths[i], prevHzBuffer_.depths[i]);
+    }
+    prevHzBuffer_ = hizBuffer_;
+}
+
+void OcclusionCullingSystem::setNearFar(f32 near, f32 far) {
+    zNear_ = near;
+    zFar_ = far;
+}
+
+void OcclusionCullingSystem::resetStats() {
+    stats_ = Stats{};
+    occludedCount_ = 0;
+    testedCount_ = 0;
+    cullTimeMs_ = 0.0f;
+}
+
 }
 }
