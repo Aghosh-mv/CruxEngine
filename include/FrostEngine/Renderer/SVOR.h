@@ -51,6 +51,23 @@ struct SVONode {
     u16 _pad;
 };
 
+// ---- Hardened SVO node: compact blocks of 8 contiguous children ----
+struct VoxelNode {
+    u32 childMask;         // which of the 8 child slots exist (bitmask)
+    u32 childOffset;       // index of first child slot in nodes_ (0 = none)
+    Vec3 albedo;           // density-weighted average albedo of subtree
+    Vec3 emission;         // accumulated radiance of subtree
+    f32 density;           // occupancy density (0 = empty, 1 = solid)
+};
+
+// ---- Hardened voxel record: world-space surface sample ----
+struct VoxelData {
+    Vec3 position;         // world-space voxel center
+    Vec3 color;            // surface albedo
+    Vec3 normal;           // surface normal
+    f32 density;           // solidity
+};
+
 // ---- Sparse Voxel Octree Radiance system ----
 class SVORSystem {
 public:
@@ -59,9 +76,9 @@ public:
     static constexpr u32 MAX_VOXELS = 1 << 18; // ~256K voxels max
 
     SVORSystem() {
-        nodes_.resize(MAX_NODES);
+        legacyNodes_.resize(MAX_NODES);
         voxels_.resize(MAX_VOXELS);
-        nodeCount_ = 1; // root node
+        legacyNodeCount_ = 1; // root node
         voxelCount_ = 1;
     }
 
@@ -75,7 +92,7 @@ public:
         u32 nodeIdx = 0;
 
         for (u32 depth = 0; depth < MAX_DEPTH; depth++) {
-            SVONode& node = nodes_[nodeIdx];
+            SVONode& node = legacyNodes_[nodeIdx];
             node.level = (u8)depth;
 
             // Determine which octant
@@ -100,7 +117,7 @@ public:
                     return;
                 }
                 // Internal: allocate child node
-                node.children[childIdx] = nodeCount_++;
+                node.children[childIdx] = legacyNodeCount_++;
             }
 
             nodeIdx = node.children[childIdx];
@@ -118,7 +135,7 @@ public:
         u32 nodeIdx = 0;
 
         for (u32 depth = 0; depth < MAX_DEPTH; depth++) {
-            const SVONode& node = nodes_[nodeIdx];
+            const SVONode& node = legacyNodes_[nodeIdx];
 
             i32 octX = (wx >= 0) ? 1 : 0;
             i32 octY = (wy >= 0) ? 1 : 0;
@@ -144,7 +161,7 @@ public:
         }
 
         // Reached deepest level
-        const SVONode& node = nodes_[nodeIdx];
+        const SVONode& node = legacyNodes_[nodeIdx];
         if (node.leafData) {
             const SVoxel& v = voxels_[node.leafData];
             outR = v.r; outG = v.g; outB = v.b;
@@ -178,8 +195,8 @@ public:
     // ---- Phase 2: Propagate radiance UP the octree ----
     void propagateUp() {
         // Process from leaves to root (depth-first, bottom-up)
-        for (u32 i = nodeCount_; i > 0; i--) {
-            SVONode& node = nodes_[i - 1];
+        for (u32 i = legacyNodeCount_; i > 0; i--) {
+            SVONode& node = legacyNodes_[i - 1];
             if (node.childMask == 0) continue;
 
             f32 totalR = 0, totalG = 0, totalB = 0;
@@ -188,7 +205,7 @@ public:
             for (u32 c = 0; c < 8; c++) {
                 if (node.childMask & (1 << c)) {
                     if (node.children[c]) {
-                        const SVONode& child = nodes_[node.children[c]];
+                        const SVONode& child = legacyNodes_[node.children[c]];
                         if (child.leafData) {
                             const SVoxel& v = voxels_[child.leafData];
                             totalR += v.r; totalG += v.g; totalB += v.b;
@@ -224,23 +241,26 @@ public:
     }
 
     u32 voxelCount() const { return voxelCount_; }
-    u32 nodeCount() const { return nodeCount_; }
+    u32 nodeCount() const { return legacyNodeCount_; }
     void setWorldSize(f32 halfSize) { worldHalfSize_ = halfSize; }
 
-    void clear() {
-        for (u32 i = 0; i < MAX_NODES; i++) {
-            nodes_[i] = SVONode{};
-        }
-        for (u32 i = 0; i < MAX_VOXELS; i++) {
-            voxels_[i] = SVoxel{};
-        }
-        nodeCount_ = 1;
-        voxelCount_ = 1;
-    }
+    void clear();
+
+    // ---- Hardened SVO API ----
+    void init(u32 maxDepth, Vec3 origin, f32 voxelSize);
+    bool insertVoxel(const VoxelData& data);
+    Vec3 traceCone(Vec3 origin, Vec3 direction, f32 aperture, f32 maxDist);
+    Vec3 traceRay(Vec3 origin, Vec3 dir, f32 maxDist);
+    void voxelizeTriangle(Vec3 a, Vec3 b, Vec3 c, Vec3 color);
+    u32 getNodeCount() const { return nodeCount_; }
+    u32 getVoxelCount() const { return (u32)voxelData_.size(); }
+    f32 getBuildTimeMs() const { return buildTimeMs_; }
+    u32 getVoxelizedTriangles() const { return voxelizedTriangles_; }
+    void setVoxelSize(f32 voxelSize) { voxelSize_ = voxelSize; }
 
 private:
     void propagateDownRecursive(u32 nodeIdx, f32 parentWeight) {
-        const SVONode& node = nodes_[nodeIdx];
+        const SVONode& node = legacyNodes_[nodeIdx];
         if (node.leafData && node.childMask == 0) return; // leaf
 
         f32 parentR = 0, parentG = 0, parentB = 0;
@@ -251,7 +271,7 @@ private:
 
         for (u32 c = 0; c < 8; c++) {
             if (node.childMask & (1 << c) && node.children[c]) {
-                SVONode& child = nodes_[node.children[c]];
+                SVONode& child = legacyNodes_[node.children[c]];
                 if (child.leafData) {
                     SVoxel& cv = voxels_[child.leafData];
                     // Blend parent radiance into child (indirect lighting)
@@ -264,11 +284,28 @@ private:
         }
     }
 
-    Vector<SVONode> nodes_;
+    // ---- Hardened SVO helpers ----
+    void aggregateUp(const u32* path, u32 pathCount);
+    bool queryLeaf(i32 ix, i32 iy, i32 iz, u32& outNodeIdx) const;
+    void sampleCone(u32 nodeIdx, Vec3 center, f32 half, Vec3 p, f32 r, u32 depth,
+                    Vec3& accRadiance, f32& accDensity, f32& accWeight) const;
+
+    // ---- Legacy SVO storage ----
+    Vector<SVONode> legacyNodes_;
     Vector<SVoxel> voxels_;
-    u32 nodeCount_ = 0;
+    u32 legacyNodeCount_ = 0;
     u32 voxelCount_ = 0;
     f32 worldHalfSize_ = 256.0f;
+
+    // ---- Hardened SVO storage ----
+    u32 maxDepth_ = 8;
+    u32 nodeCount_ = 0;
+    Vector<VoxelNode> nodes_;
+    Vector<VoxelData> voxelData_;
+    Vec3 origin_;
+    f32 voxelSize_ = 1.0f;
+    u32 voxelizedTriangles_ = 0;
+    f32 buildTimeMs_ = 0.0f;
 };
 
 } // namespace Frost

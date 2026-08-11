@@ -70,6 +70,7 @@ set(FROST_RENDERER_SOURCES
     src/Renderer/MaterialGraph.cpp
     src/Renderer/GPUDriven.cpp
     src/Renderer/SpectralRendering.cpp
+    src/Renderer/SVOR.cpp
 )
 
 # ============================================================================

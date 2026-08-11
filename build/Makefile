@@ -1531,6 +1531,30 @@ src/Renderer/Renderer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.s
 .PHONY : src/Renderer/Renderer.cpp.s
 
+src/Renderer/SVOR.o: src/Renderer/SVOR.cpp.o
+.PHONY : src/Renderer/SVOR.o
+
+# target to build an object file
+src/Renderer/SVOR.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o
+.PHONY : src/Renderer/SVOR.cpp.o
+
+src/Renderer/SVOR.i: src/Renderer/SVOR.cpp.i
+.PHONY : src/Renderer/SVOR.i
+
+# target to preprocess a source file
+src/Renderer/SVOR.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.i
+.PHONY : src/Renderer/SVOR.cpp.i
+
+src/Renderer/SVOR.s: src/Renderer/SVOR.cpp.s
+.PHONY : src/Renderer/SVOR.s
+
+# target to generate assembly for a file
+src/Renderer/SVOR.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FrostEngine.dir/build.make CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.s
+.PHONY : src/Renderer/SVOR.cpp.s
+
 src/Renderer/Shader.o: src/Renderer/Shader.cpp.o
 .PHONY : src/Renderer/Shader.o
 
@@ -2265,6 +2289,9 @@ help:
 	@echo "... src/Renderer/Renderer.o"
 	@echo "... src/Renderer/Renderer.i"
 	@echo "... src/Renderer/Renderer.s"
+	@echo "... src/Renderer/SVOR.o"
+	@echo "... src/Renderer/SVOR.i"
+	@echo "... src/Renderer/SVOR.s"
 	@echo "... src/Renderer/Shader.o"
 	@echo "... src/Renderer/Shader.i"
 	@echo "... src/Renderer/Shader.s"

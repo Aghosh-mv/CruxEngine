@@ -211,6 +211,11 @@
 },
 {
   "directory": "/home/tinkerspace/FrostEngine/build",
+  "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Renderer/SVOR.cpp.o -c /home/tinkerspace/FrostEngine/src/Renderer/SVOR.cpp",
+  "file": "/home/tinkerspace/FrostEngine/src/Renderer/SVOR.cpp"
+},
+{
+  "directory": "/home/tinkerspace/FrostEngine/build",
   "command": "/usr/bin/c++ -DFROST_PLATFORM_LINUX=1 -DFROST_VERSION_MAJOR=0 -DFROST_VERSION_MINOR=1 -DFROST_VERSION_PATCH=0 -I/home/tinkerspace/FrostEngine/include -I/home/tinkerspace/FrostEngine/include/FrostEngine -I/home/tinkerspace/FrostEngine/include/FrostEngine/Renderer -O3 -DNDEBUG -std=c++17 -o CMakeFiles/FrostEngine.dir/src/Assets/MeshFactory.cpp.o -c /home/tinkerspace/FrostEngine/src/Assets/MeshFactory.cpp",
   "file": "/home/tinkerspace/FrostEngine/src/Assets/MeshFactory.cpp"
 },
