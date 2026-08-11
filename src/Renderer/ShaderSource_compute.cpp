@@ -1,5 +1,9 @@
 #include "Renderer/ShaderSource_compute.h"
 
+#include <chrono>
+#include <algorithm>
+#include <utility>
+
 namespace Frost {
 namespace ShaderSource {
 
@@ -804,12 +808,310 @@ void main() {
     } else {
         history = current;
     }
-
     // Blend
     vec3 result = mix(history, current, u_alpha);
     imageStore(u_output, coord, vec4(result, 1.0));
 }
 )";
+
+// ============================================================================
+// Compute shader template system
+// ============================================================================
+
+namespace {
+
+constexpr u32 kMaxIncludeDepth = 32u;
+
+String trimStr(const String& s) {
+    usize start = 0;
+    usize end = s.size();
+    while (start < end) {
+        char c = s[start];
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n') break;
+        start++;
+    }
+    while (end > start) {
+        char c = s[end - 1];
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n') break;
+        end--;
+    }
+    return s.substr(start, end - start);
+}
+
+u32 parseU32(const String& s) {
+    u32 value = 0;
+    for (usize i = 0; i < s.size(); i++) {
+        char c = s[i];
+        if (c >= '0' && c <= '9') {
+            value = value * 10u + (u32)(c - '0');
+        } else if (c == 'u' || c == 'U' || c == ' ' || c == '\t') {
+            continue;
+        } else {
+            break;
+        }
+    }
+    return value;
+}
+
+void extractDefines(const String& src, Vector<String>& defines) {
+    usize pos = 0;
+    while (pos < src.size()) {
+        usize f = src.find("#define", pos);
+        if (f == String::npos) break;
+        usize lineEnd = src.find('\n', f);
+        if (lineEnd == String::npos) lineEnd = src.size();
+        String body = trimStr(src.substr(f + 7, lineEnd - f - 7));
+        if (!body.empty() && !body.startsWith("FROST_SPEC(")) {
+            defines.push_back(body);
+        }
+        pos = (lineEnd == src.size()) ? src.size() : lineEnd + 1;
+    }
+}
+
+void extractSpecializationConstants(const String& src, Vector<SpecializationValue>& specs) {
+    usize pos = 0;
+    u32 ord = 0;
+    while (pos < src.size()) {
+        usize f = src.find("FROST_SPEC", pos);
+        if (f == String::npos) break;
+        usize paren = f + 10;
+        while (paren < src.size() && (src[paren] == ' ' || src[paren] == '\t')) paren++;
+        if (paren >= src.size() || src[paren] != '(') {
+            pos = f + 10;
+            continue;
+        }
+        usize comma = src.find(',', paren);
+        usize close = src.find(')', paren);
+        if (comma == String::npos || close == String::npos || comma > close) {
+            pos = f + 10;
+            continue;
+        }
+        SpecializationValue sv;
+        sv.constantId = ord;
+        sv.value = parseU32(trimStr(src.substr(comma + 1, close - comma - 1)));
+        specs.push_back(sv);
+        pos = close + 1;
+        ord++;
+    }
+}
+
+} // anonymous namespace
+
+u32 ShaderSource_compute::registerTemplate(const char* name, const char* source) {
+    if (!name || !source) return 0xFFFFFFFF;
+    for (usize i = 0; i < templates_.size(); i++) {
+        if (templates_[i].name == name) return (u32)i;
+    }
+    ComputeShaderTemplate tpl;
+    tpl.name = name;
+    tpl.source = source;
+    extractDefines(tpl.source, tpl.defines);
+    extractSpecializationConstants(tpl.source, tpl.specializationConstants);
+    specializationCount_ += (u32)tpl.specializationConstants.size();
+    templates_.push_back(std::move(tpl));
+    return (u32)(templates_.size() - 1);
+}
+
+u32 ShaderSource_compute::instantiateTemplate(u32 templateId, const Vector<SpecializationValue>& specializations) {
+    if (templateId >= templates_.size()) return 0xFFFFFFFF;
+
+    String key;
+    key.format("@%u@", (unsigned)templateId);
+    Vector<SpecializationValue> sorted;
+    for (usize i = 0; i < specializations.size(); i++) {
+        sorted.push_back(specializations[i]);
+    }
+    std::sort(sorted.begin(), sorted.end(),
+              [](const SpecializationValue& a, const SpecializationValue& b) {
+                  return a.constantId < b.constantId;
+              });
+    for (usize i = 0; i < sorted.size(); i++) {
+        String part;
+        part.format("c%u=%u;", (unsigned)sorted[i].constantId, (unsigned)sorted[i].value);
+        key.append(part);
+    }
+
+    auto it = templateCache_.find(key);
+    if (it != templateCache_.end()) {
+        return it.value();
+    }
+
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    const ComputeShaderTemplate& tpl = templates_[templateId];
+    String resolved = resolveIncludes(tpl.source, templateId, 0);
+    String finalSource = applySpecializations(resolved, tpl, specializations);
+
+    u32 handle = generatedShaders_ + 1u;
+    generatedShaders_ = handle;
+    templateCache_[key] = handle;
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    generateTimeMs_ += std::chrono::duration<f32, std::milli>(t1 - t0).count();
+
+    (void)finalSource;
+    return handle;
+}
+
+void ShaderSource_compute::specializeConstant(u32 constantId, u32 value) {
+    if (templates_.empty()) return;
+    ComputeShaderTemplate& tpl = templates_.back();
+    for (usize i = 0; i < tpl.specializationConstants.size(); i++) {
+        if (tpl.specializationConstants[i].constantId == constantId) {
+            tpl.specializationConstants[i].value = value;
+            templateCache_.clear();
+            return;
+        }
+    }
+    tpl.specializationConstants.push_back(SpecializationValue{constantId, value});
+    specializationCount_++;
+    templateCache_.clear();
+}
+
+const ComputeShaderTemplate& ShaderSource_compute::getTemplate(u32 id) const {
+    static const ComputeShaderTemplate kEmptyTemplate;
+    if (id >= templates_.size()) return kEmptyTemplate;
+    return templates_[id];
+}
+
+bool ShaderSource_compute::hasTemplate(const char* name) const {
+    if (!name) return false;
+    for (usize i = 0; i < templates_.size(); i++) {
+        if (templates_[i].name == name) return true;
+    }
+    return false;
+}
+
+Vector<String> ShaderSource_compute::parseIncludes(const char* source) {
+    Vector<String> result;
+    if (!source) return result;
+    String src(source);
+    usize pos = 0;
+    while (pos < src.size()) {
+        usize inc = src.find("#include", pos);
+        if (inc == String::npos) break;
+        usize open = inc + 8;
+        while (open < src.size() && (src[open] == ' ' || src[open] == '\t')) open++;
+        if (open >= src.size()) break;
+        char closeChar = 0;
+        if (src[open] == '"') closeChar = '"';
+        else if (src[open] == '<') closeChar = '>';
+        if (!closeChar) { pos = inc + 8; continue; }
+        usize nameStart = open + 1;
+        usize close = src.find(closeChar, nameStart);
+        if (close == String::npos) break;
+        result.push_back(src.substr(nameStart, close - nameStart));
+        pos = close + 1;
+    }
+    return result;
+}
+
+String ShaderSource_compute::resolveIncludes(const String& source, u32 selfId, u32 depth) {
+    if (depth > kMaxIncludeDepth) return source;
+    if (depth > includeDepth_) includeDepth_ = depth;
+
+    String result;
+    usize pos = 0;
+    while (pos < source.size()) {
+        usize inc = source.find("#include", pos);
+        if (inc == String::npos) {
+            result.append(source.substr(pos));
+            break;
+        }
+        result.append(source.substr(pos, inc - pos));
+        usize open = inc + 8;
+        while (open < source.size() && (source[open] == ' ' || source[open] == '\t')) open++;
+        if (open >= source.size()) {
+            result.append("#include");
+            break;
+        }
+        char closeChar = 0;
+        if (source[open] == '"') closeChar = '"';
+        else if (source[open] == '<') closeChar = '>';
+        if (!closeChar) {
+            result.append("#include");
+            pos = inc + 8;
+            continue;
+        }
+        usize nameStart = open + 1;
+        usize close = source.find(closeChar, nameStart);
+        if (close == String::npos) {
+            result.append(source.substr(inc));
+            break;
+        }
+        String includeName = source.substr(nameStart, close - nameStart);
+        bool resolved = false;
+        for (usize i = 0; i < templates_.size(); i++) {
+            if ((u32)i == selfId) continue;
+            if (templates_[i].name == includeName) {
+                result.append(resolveIncludes(templates_[i].source, (u32)i, depth + 1));
+                resolved = true;
+                break;
+            }
+        }
+        if (!resolved) {
+            result.append(source.substr(inc, close - inc + 1));
+        }
+        pos = close + 1;
+    }
+    return result;
+}
+
+String ShaderSource_compute::applySpecializations(const String& source,
+                                                  const ComputeShaderTemplate& tpl,
+                                                  const Vector<SpecializationValue>& overrides) {
+    String result;
+    usize pos = 0;
+    u32 ord = 0;
+    while (pos < source.size()) {
+        usize f = source.find("FROST_SPEC", pos);
+        if (f == String::npos) {
+            result.append(source.substr(pos));
+            break;
+        }
+        result.append(source.substr(pos, f - pos));
+        usize paren = f + 10;
+        while (paren < source.size() && (source[paren] == ' ' || source[paren] == '\t')) paren++;
+        if (paren >= source.size() || source[paren] != '(') {
+            result.append("#define FROST_SPEC");
+            pos = f + 10;
+            continue;
+        }
+        usize comma = source.find(',', paren);
+        usize close = source.find(')', paren);
+        if (comma == String::npos || close == String::npos || comma > close) {
+            usize end = (close == String::npos) ? source.size() : close + 1;
+            result.append(source.substr(f, end - f));
+            pos = end;
+            continue;
+        }
+        String name = trimStr(source.substr(paren + 1, comma - paren - 1));
+        String defText = trimStr(source.substr(comma + 1, close - comma - 1));
+
+        u32 value = 0;
+        if (ord < tpl.specializationConstants.size()) {
+            value = tpl.specializationConstants[ord].value;
+        } else {
+            value = parseU32(defText);
+        }
+        for (usize i = 0; i < overrides.size(); i++) {
+            if (overrides[i].constantId == ord) {
+                value = overrides[i].value;
+                break;
+            }
+        }
+
+        result.append("#define ");
+        result.append(name);
+        result.append(' ');
+        String valStr;
+        valStr.format("%u", (unsigned)value);
+        result.append(valStr);
+        pos = close + 1;
+        ord++;
+    }
+    return result;
+}
 
 }
 }

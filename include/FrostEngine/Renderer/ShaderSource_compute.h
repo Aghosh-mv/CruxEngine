@@ -8,6 +8,10 @@
 // NRC training, GPU-driven culling, and auto-exposure histogram.
 // ============================================================================
 
+#include "Core/Types.h"
+#include "Core/Math.h"
+#include "Core/HashMap.h"
+
 namespace Frost {
 namespace ShaderSource {
 
@@ -46,6 +50,53 @@ extern const char* volumetricFogComp;
 
 // ---- Temporal Anti-Aliasing resolve ----
 extern const char* taaResolveComp;
+
+// ============================================================================
+// Compute shader template system
+// ============================================================================
+// Templates are GLSL sources that may declare specialization constants with
+// the FROST_SPEC(NAME, DEFAULT) macro and pull in other templates with
+// #include "templateName". instantiateTemplate substitutes specialization
+// constants and flattens the include graph into a concrete shader.
+
+struct SpecializationValue {
+    u32 constantId = 0;
+    u32 value = 0;
+};
+
+struct ComputeShaderTemplate {
+    String name;
+    Vector<String> defines;
+    Vector<SpecializationValue> specializationConstants;
+    String source;
+};
+
+class ShaderSource_compute {
+public:
+    u32 registerTemplate(const char* name, const char* source);
+    u32 instantiateTemplate(u32 templateId, const Vector<SpecializationValue>& specializations);
+    void specializeConstant(u32 constantId, u32 value);
+    const ComputeShaderTemplate& getTemplate(u32 id) const;
+    u32 getGeneratedShaderCount() const { return generatedShaders_; }
+    u32 getSpecializationCount() const { return specializationCount_; }
+    f32 getGenerateTimeMs() const { return generateTimeMs_; }
+    bool hasTemplate(const char* name) const;
+    void invalidateCache() { templateCache_.clear(); }
+    Vector<String> parseIncludes(const char* source);
+
+private:
+    String resolveIncludes(const String& source, u32 selfId, u32 depth);
+    String applySpecializations(const String& source,
+                                const ComputeShaderTemplate& tpl,
+                                const Vector<SpecializationValue>& overrides);
+
+    Vector<ComputeShaderTemplate> templates_;
+    HashMap<String, u32> templateCache_;
+    u32 specializationCount_ = 0;
+    u32 generatedShaders_ = 0;
+    u32 includeDepth_ = 0;
+    f32 generateTimeMs_ = 0.0f;
+};
 
 }
 }
