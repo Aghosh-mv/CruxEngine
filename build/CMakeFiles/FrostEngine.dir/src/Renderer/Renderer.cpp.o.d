@@ -206,4 +206,5 @@ CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o: \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Renderer/Font.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Assets/MeshFactory.h \
  /home/tinkerspace/FrostEngine/include/FrostEngine/Core/Log.h \
- /usr/include/c++/11/ctime
+ /usr/include/c++/11/ctime /usr/include/c++/11/chrono \
+ /usr/include/c++/11/ratio /usr/include/c++/11/bits/parse_numbers.h

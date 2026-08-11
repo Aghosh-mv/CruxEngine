@@ -41,6 +41,20 @@ struct DrawStats {
     u32 fps = 0;
 };
 
+struct DrawBatch {
+    u32 meshId = 0;
+    u32 materialId = 0;
+    u32 instanceCount = 0;
+    u32 indexCount = 0;
+    Mat4 transform = Mat4::identity();
+};
+
+struct CullResult {
+    Vector<u32> visibleIndices;
+    u32 totalInstances = 0;
+    f32 cullTimeMs = 0.0f;
+};
+
 // High-level renderer: owns all shaders, drives the shadow, reflection,
 // depth/SSAO, sky, main, particle, debug and post-process passes each frame.
 class Renderer {
@@ -121,6 +135,30 @@ public:
 
     const DrawStats& stats() const { return stats_; }
     u32 width() const { return width_; }
+
+    // Instanced draw batch management
+    void addDrawBatch(const DrawBatch& batch);
+    void removeDrawBatch(usize index);
+
+    // Frustum and occlusion culling for batch lists
+    CullResult cullFrustum(const Vector<DrawBatch>& batches, const Vec4* frustumPlanes, u32 planeCount);
+    CullResult cullOcclusion(const CullResult& prev, const void* hiZBuffer);
+
+    // Build GL_indirect_command buffer from cull results
+    Vector<u32> buildIndirectCommands(const CullResult& cull);
+
+    // Per-frame stats
+    u32 getDrawCallsPerFrame() const;
+    u32 getTrianglesPerFrame() const;
+    f32 getFrameGpuTimeMs() const;
+
+    // Toggle culling / instancing features
+    void setFrustumCulling(bool enable);
+    void setOcclusionCulling(bool enable);
+    void setInstancing(bool enable);
+
+    // Extended stats (includes batch-level counters)
+    const DrawStats& getStats();
     u32 height() const { return height_; }
     bool ready() const { return ready_; }
 
@@ -298,6 +336,20 @@ private:
     f32 cascadeDist_ = 130.0f;
 
     DrawStats stats_;
+
+    // Instanced draw batches (user-managed, persistent across frames)
+    Vector<DrawBatch> drawBatches_;
+    CullResult lastCullResult_;
+
+    // Per-frame performance counters
+    u32 drawCallsPerFrame_ = 0;
+    u32 trianglesPerFrame_ = 0;
+    f32 frameGpuTimeMs_ = 0.0f;
+
+    // Feature toggles
+    bool enableFrustumCulling_ = true;
+    bool enableOcclusionCulling_ = true;
+    bool enableInstancing_ = true;
 };
 
 }

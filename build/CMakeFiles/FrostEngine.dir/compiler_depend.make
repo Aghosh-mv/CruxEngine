@@ -13166,7 +13166,10 @@ CMakeFiles/FrostEngine.dir/src/Renderer/Renderer.cpp.o: ../src/Renderer/Renderer
   ../include/FrostEngine/Renderer/Font.h \
   ../include/FrostEngine/Assets/MeshFactory.h \
   ../include/FrostEngine/Core/Log.h \
-  /usr/include/c++/11/ctime
+  /usr/include/c++/11/ctime \
+  /usr/include/c++/11/chrono \
+  /usr/include/c++/11/ratio \
+  /usr/include/c++/11/bits/parse_numbers.h
 
 CMakeFiles/FrostEngine.dir/src/Renderer/Shader.cpp.o: ../src/Renderer/Shader.cpp \
   /usr/include/stdc-predef.h \
@@ -15308,6 +15311,7 @@ CMakeFiles/FrostEngine.dir/src/Scene/SceneStreaming.cpp.o: ../src/Scene/SceneStr
   ../include/FrostEngine/Core/String.h \
   /usr/include/c++/11/cstdarg \
   ../include/FrostEngine/Core/Math.h \
+  ../include/FrostEngine/Core/HashMap.h \
   /usr/include/c++/11/mutex \
   /usr/include/c++/11/chrono \
   /usr/include/c++/11/ratio \
