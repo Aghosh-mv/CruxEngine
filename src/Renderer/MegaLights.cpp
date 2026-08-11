@@ -666,6 +666,198 @@ f32 MegaLights::computeLightProbability(const MegaLight& light, const Vec2& scre
 }
 
 // ============================================================================
+// Per-Tile Light Assignment & Reservoir Sampling
+// ============================================================================
+void MegaLights::assignLightsToTiles(const Vector<MegaLight>& lights, u32 screenW, u32 screenH, u32 tileSize) {
+    u32 tilesX = (screenW + tileSize - 1) / tileSize;
+    u32 tilesY = (screenH + tileSize - 1) / tileSize;
+    u32 totalTiles = tilesX * tilesY;
+
+    tileLights_.clear();
+    reservoirs_.clear();
+    totalSamples_ = 0;
+
+    tileLights_.reserve(totalTiles * lightsPerTile_);
+    reservoirs_.reserve(totalTiles);
+
+    for (u32 tileId = 0; tileId < totalTiles; tileId++) {
+        u32 tx = tileId % tilesX;
+        u32 ty = tileId / tilesX;
+
+        f32 tileMinX = (f32)(tx * tileSize);
+        f32 tileMinY = (f32)(ty * tileSize);
+        f32 tileMaxX = (f32)((tx + 1) * tileSize);
+        f32 tileMaxY = (f32)((ty + 1) * tileSize);
+
+        Vector<u32> candidateIndices;
+        candidateIndices.reserve(lights.size());
+
+        for (u32 i = 0; i < lights.size(); i++) {
+            const MegaLight& light = lights[i];
+            if (!light.enabled) continue;
+
+            if (light.type == MegaLightType::Directional) {
+                candidateIndices.push_back(i);
+                continue;
+            }
+
+            Vec4 clip = viewProjMatrix_ * Vec4(light.position, 1.0f);
+            if (clip.w <= 0.0f) continue;
+
+            f32 lightScreenX = (clip.x / clip.w * 0.5f + 0.5f) * (f32)screenW;
+            f32 lightScreenY = (1.0f - clip.y / clip.w * 0.5f - 0.5f) * (f32)screenH;
+            f32 lightRadius = light.range * 100.0f / (clip.w + 1.0f);
+
+            if (lightScreenX + lightRadius > tileMinX &&
+                lightScreenX - lightRadius < tileMaxX &&
+                lightScreenY + lightRadius > tileMinY &&
+                lightScreenY - lightRadius < tileMaxY) {
+                candidateIndices.push_back(i);
+            }
+        }
+
+        u32 count = candidateIndices.size() < (usize)lightsPerTile_
+                  ? candidateIndices.size() : (u32)lightsPerTile_;
+
+        Vector<MegaLight> tileCandidateLights;
+        tileCandidateLights.reserve(count);
+        for (u32 c = 0; c < count; c++) {
+            tileCandidateLights.push_back(lights[candidateIndices[c]]);
+        }
+
+        ReservoirSample rs = reservoirSample(tileId, tileCandidateLights, count);
+        reservoirs_.push_back(rs);
+
+        totalSamples_ += count;
+
+        for (u32 c = 0; c < candidateIndices.size(); c++) {
+            u32 lightIdx = candidateIndices[c];
+            const MegaLight& light = lights[lightIdx];
+            f32 dist = (light.position - cameraPosition_).length();
+            f32 atten = light.attenuation(dist);
+            f32 w = light.intensity * atten * std::pow(atten + 0.001f, sharedExponent_);
+
+            TileLight tl;
+            tl.lightIndex = lightIdx;
+            tl.weight = w;
+            tl.tileId = tileId;
+            tileLights_.push_back(tl);
+        }
+    }
+
+    tileCountX_ = tilesX;
+    tileCountY_ = tilesY;
+}
+
+Vec3 MegaLights::resolveTile(u32 tileX, u32 tileY, Vec3 worldPos, Vec3 normal, Vec3 viewDir) {
+    u32 tileId = tileY * tileCountX_ + tileX;
+
+    Vec3 totalContribution = Vec3(0);
+
+    for (u32 i = 0; i < tileLights_.size(); i++) {
+        if (tileLights_[i].tileId != tileId) continue;
+
+        const MegaLight& light = allLights_[tileLights_[i].lightIndex];
+        if (!light.enabled) continue;
+
+        Vec3 toLight = light.position - worldPos;
+        f32 dist = toLight.length();
+        if (dist > light.range || dist < 0.001f) continue;
+
+        Vec3 L = toLight / dist;
+        f32 NdotL = Mathf::saturate(normal.dot(L));
+
+        f32 atten = light.attenuation(dist);
+        f32 spotAtten = 1.0f;
+        if (light.type == MegaLightType::Spot) {
+            spotAtten = light.spotAttenuation(toLight);
+        }
+
+        f32 specular = 0.0f;
+        Vec3 halfVec = (L + viewDir).normalized();
+        f32 NdotH = Mathf::saturate(normal.dot(halfVec));
+        specular = std::pow(NdotH, light.falloffExponent) * atten;
+
+        Vec3 diffuse = light.color * light.intensity * atten * spotAtten * NdotL;
+        Vec3 spec = light.color * specular * 0.25f;
+        totalContribution = totalContribution + diffuse + spec;
+    }
+
+    return totalContribution;
+}
+
+ReservoirSample MegaLights::reservoirSample(u32 tileId, const Vector<MegaLight>& lights, u32 count) {
+    ReservoirSample result;
+    result.lightIndex = 0;
+    result.weight = 0.0f;
+    result.cumulativeWeight = 0.0f;
+    result.streamLength = 0;
+
+    if (count == 0 || lights.size() == 0) return result;
+
+    u32 streamLen = count < lights.size() ? count : (u32)lights.size();
+    f32 cumWeight = 0.0f;
+
+    for (u32 i = 0; i < streamLen; i++) {
+        u32 idx = i < lights.size() ? i : 0;
+        const MegaLight& light = lights[idx];
+        if (!light.enabled) continue;
+
+        f32 dist = (light.position - cameraPosition_).length();
+        f32 atten = light.attenuation(dist);
+        f32 w = light.intensity * atten * std::pow(atten + 0.001f, sharedExponent_);
+
+        cumWeight += w;
+        result.streamLength++;
+
+        f32 randVal = (f32)((tileId * 7919 + i * 104729 + frameIndex_ * 15485863) % 100000) / 100000.0f;
+
+        if (randVal * cumWeight < w) {
+            result.lightIndex = idx;
+            result.weight = w;
+            result.cumulativeWeight = cumWeight;
+        }
+    }
+
+    if (cumWeight > 0.0f) {
+        result.weight = result.weight > 0.0f ? result.weight : cumWeight / (f32)result.streamLength;
+    }
+
+    return result;
+}
+
+void MegaLights::setSharedExponent(f32 exponent) {
+    sharedExponent_ = exponent > 0.0f ? exponent : 1.0f;
+}
+
+f32 MegaLights::getSharedExponent() const {
+    return sharedExponent_;
+}
+
+u32 MegaLights::getTotalSamples() const {
+    return totalSamples_;
+}
+
+f32 MegaLights::getResolveTimeMs() const {
+    return resolveTimeMs_;
+}
+
+u32 MegaLights::getTileCountX() const {
+    return tileCountX_;
+}
+
+u32 MegaLights::getTileCountY() const {
+    return tileCountY_;
+}
+
+void MegaLights::resetStats() {
+    totalSamples_ = 0;
+    resolveTimeMs_ = 0.0f;
+    tileLights_.clear();
+    reservoirs_.clear();
+}
+
+// ============================================================================
 // Query
 // ============================================================================
 const TileLightList& MegaLights::getTileLights(u32 tileX, u32 tileY) const {

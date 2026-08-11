@@ -220,6 +220,22 @@ struct CullingConfig {
 };
 
 // ============================================================================
+// Per-tile light assignment & reservoir sampling
+// ============================================================================
+struct TileLight {
+    u32 lightIndex;
+    f32 weight;
+    u32 tileId;
+};
+
+struct ReservoirSample {
+    u32 lightIndex;
+    f32 weight;
+    f32 cumulativeWeight;
+    u32 streamLength;
+};
+
+// ============================================================================
 // MegaLights System
 // ============================================================================
 class MegaLights {
@@ -282,6 +298,18 @@ public:
     // Stochastic sampling
     u32 selectLightForSample(const Vec2& screenUV, u32 sampleIndex) const;
     f32 computeLightProbability(const MegaLight& light, const Vec2& screenUV) const;
+
+    // Per-tile light assignment & reservoir sampling
+    void assignLightsToTiles(const Vector<MegaLight>& lights, u32 screenW, u32 screenH, u32 tileSize);
+    Vec3 resolveTile(u32 tileX, u32 tileY, Vec3 worldPos, Vec3 normal, Vec3 viewDir);
+    ReservoirSample reservoirSample(u32 tileId, const Vector<MegaLight>& lights, u32 count);
+    void setSharedExponent(f32 exponent);
+    f32 getSharedExponent() const;
+    u32 getTotalSamples() const;
+    f32 getResolveTimeMs() const;
+    u32 getTileCountX() const;
+    u32 getTileCountY() const;
+    void resetStats();
 
     // Query
     const TileLightList& getTileLights(u32 tileX, u32 tileY) const;
@@ -384,6 +412,14 @@ private:
 
     // Stats
     Stats stats_;
+
+    // Per-tile light assignment & reservoir sampling
+    u32 lightsPerTile_ = 16;
+    Vector<TileLight> tileLights_;
+    Vector<ReservoirSample> reservoirs_;
+    f32 sharedExponent_ = 1.0f;
+    u32 totalSamples_ = 0;
+    f32 resolveTimeMs_ = 0.0f;
 
     bool initialized_ = false;
 };
