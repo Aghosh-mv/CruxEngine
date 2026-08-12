@@ -43,17 +43,21 @@ uniform vec3 u_camPos;
 uniform float u_time;
 uniform mat4 u_viewProj;
 
-// Sun (two cascaded shadow maps)
+// Sun (three cascaded shadow maps)
 uniform vec3 u_sunDir;
 uniform vec3 u_sunColor;
 uniform float u_sunIntensity;
 uniform mat4 u_lightVP0;
 uniform mat4 u_lightVP1;
+uniform mat4 u_lightVP2;
 uniform sampler2D u_shadowMap0;
 uniform sampler2D u_shadowMap1;
+uniform sampler2D u_shadowMap2;
 uniform float u_shadowEnabled;
 uniform float u_shadowTexel;
 uniform float u_cascadeDist;
+uniform float u_cascadeDist2;
+uniform float u_shadowBlend;
 
 // SSAO
 uniform sampler2D u_aoTex;
@@ -147,7 +151,8 @@ float sampleShadow(sampler2D map, mat4 vp, vec3 worldPos, vec3 N, vec3 lightDir)
         for (int y = -2; y <= 2; y++) {
             vec2 offset = vec2(float(x), float(y)) * texel * 1.5;
             float depth = texture(map, proj.xy + offset).r;
-            shadow += (proj.z - bias > depth) ? 1.0 : 0.0;
+            float dif = proj.z - bias - depth;
+            shadow += smoothstep(0.0, 0.0015, dif);
         }
     }
     shadow /= 25.0;
@@ -156,10 +161,18 @@ float sampleShadow(sampler2D map, mat4 vp, vec3 worldPos, vec3 N, vec3 lightDir)
 
 float shadowFactor(vec3 worldPos, vec3 N, vec3 lightDir, float viewDist) {
     if (u_shadowEnabled < 0.5) return 1.0;
-    if (viewDist < u_cascadeDist) {
-        return sampleShadow(u_shadowMap0, u_lightVP0, worldPos, N, lightDir);
+    float s0 = sampleShadow(u_shadowMap0, u_lightVP0, worldPos, N, lightDir);
+    if (viewDist < u_cascadeDist - u_shadowBlend) return s0;
+    float s1 = sampleShadow(u_shadowMap1, u_lightVP1, worldPos, N, lightDir);
+    if (viewDist >= u_cascadeDist) {
+        if (viewDist < u_cascadeDist2 - u_shadowBlend) return s1;
+        float s2 = sampleShadow(u_shadowMap2, u_lightVP2, worldPos, N, lightDir);
+        if (viewDist >= u_cascadeDist2) return s2;
+        float t = (viewDist - (u_cascadeDist2 - u_shadowBlend)) / u_shadowBlend;
+        return mix(s1, s2, t);
     }
-    return sampleShadow(u_shadowMap1, u_lightVP1, worldPos, N, lightDir);
+    float t = (viewDist - (u_cascadeDist - u_shadowBlend)) / u_shadowBlend;
+    return mix(s0, s1, t);
 }
 
 void main() {

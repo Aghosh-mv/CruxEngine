@@ -222,7 +222,7 @@ private:
     FrameBuffer mainFbo_;      // MSAA main target
     FrameBuffer resolveFbo_;   // resolved color
     FrameBuffer blurFbo_[2];   // bloom ping-pong
-    FrameBuffer shadowFbo_[2]; // two shadow cascades
+    FrameBuffer shadowFbo_[3]; // three shadow cascades
     FrameBuffer depthFbo_;     // raw depth (SSAO), half res
     FrameBuffer ssaoFbo_;      // ambient occlusion
     FrameBuffer ssaoBlurFbo_;
@@ -237,7 +237,8 @@ private:
     Cubemap skyCubemap_;
 
     Camera shadowCam_;
-    Mat4 shadowVP_[2];
+    Mat4 shadowVP_[3];
+    f32 cascadeEnd_[3] = { 75.0f, 190.0f, 420.0f }; // view-distance cascade boundaries
     Mat4 reflectionVP_;
     Camera debugCam_;
     Camera* camera_ = nullptr;
@@ -333,7 +334,6 @@ private:
 
     u32 shadowSize_ = 2048;
     f32 shadowDistance_ = 420.0f;
-    f32 cascadeDist_ = 130.0f;
 
     DrawStats stats_;
 

@@ -47,11 +47,15 @@ uniform vec3 u_sunColor;
 uniform float u_sunIntensity;
 uniform mat4 u_lightVP0;
 uniform mat4 u_lightVP1;
+uniform mat4 u_lightVP2;
 uniform sampler2D u_shadowMap0;
 uniform sampler2D u_shadowMap1;
+uniform sampler2D u_shadowMap2;
 uniform float u_shadowEnabled;
 uniform float u_shadowTexel;
 uniform float u_cascadeDist;
+uniform float u_cascadeDist2;
+uniform float u_shadowBlend;
 
 uniform vec3 u_ambientSky;
 uniform vec3 u_ambientGround;
@@ -91,7 +95,8 @@ float sampleShadow(sampler2D map, mat4 vp, vec3 worldPos, vec3 N, vec3 lightDir)
         for (int y = -2; y <= 2; y++) {
             vec2 offset = vec2(float(x), float(y)) * texel * 1.6;
             float depth = texture(map, proj.xy + offset).r;
-            shadow += (proj.z - bias > depth) ? 1.0 : 0.0;
+            float dif = proj.z - bias - depth;
+            shadow += smoothstep(0.0, 0.0025, dif);
         }
     }
     return 1.0 - shadow / 25.0;
@@ -99,10 +104,18 @@ float sampleShadow(sampler2D map, mat4 vp, vec3 worldPos, vec3 N, vec3 lightDir)
 
 float shadowFactor(vec3 worldPos, vec3 N, vec3 lightDir, float viewDist) {
     if (u_shadowEnabled < 0.5) return 1.0;
-    if (viewDist < u_cascadeDist) {
-        return sampleShadow(u_shadowMap0, u_lightVP0, worldPos, N, lightDir);
+    float s0 = sampleShadow(u_shadowMap0, u_lightVP0, worldPos, N, lightDir);
+    if (viewDist < u_cascadeDist - u_shadowBlend) return s0;
+    float s1 = sampleShadow(u_shadowMap1, u_lightVP1, worldPos, N, lightDir);
+    if (viewDist >= u_cascadeDist) {
+        if (viewDist < u_cascadeDist2 - u_shadowBlend) return s1;
+        float s2 = sampleShadow(u_shadowMap2, u_lightVP2, worldPos, N, lightDir);
+        if (viewDist >= u_cascadeDist2) return s2;
+        float t = (viewDist - (u_cascadeDist2 - u_shadowBlend)) / u_shadowBlend;
+        return mix(s1, s2, t);
     }
-    return sampleShadow(u_shadowMap1, u_lightVP1, worldPos, N, lightDir);
+    float t = (viewDist - (u_cascadeDist - u_shadowBlend)) / u_shadowBlend;
+    return mix(s0, s1, t);
 }
 
 void main() {
@@ -307,10 +320,11 @@ void main() {
 const char* skyVert = R"(#version 330 core
 layout(location = 0) in vec3 a_pos;
 uniform mat4 u_viewProj;
+uniform vec3 u_camPos;
 out vec3 v_dir;
 void main() {
     v_dir = a_pos;
-    vec4 pos = u_viewProj * vec4(a_pos, 1.0);
+    vec4 pos = u_viewProj * vec4(u_camPos + a_pos, 1.0);
     gl_Position = pos.xyww;
     gl_Position.z = 1.0;
 }
@@ -325,6 +339,74 @@ uniform vec3 u_sunColor;
 uniform float u_sunIntensity;
 uniform float u_time;
 uniform float u_nightFactor;
+uniform vec3 u_camPos;
+
+const float PI = 3.14159265358979;
+
+// ---- Physical atmosphere: Rayleigh + Mie single scattering ----
+const float EARTH_R = 6360000.0;
+const float ATMO_R  = 6420000.0;
+const float RAYL_SCALE_H = 8000.0;
+const float MIE_SCALE_H  = 1200.0;
+const vec3  RAYL_BETA = vec3(5.802e-6, 13.558e-6, 33.1e-6);
+const vec3  MIE_BETA  = vec3(4.0e-6);
+const float MIE_G = 0.76;
+
+float raySphere(vec3 center, float radius, vec3 ro, vec3 rd) {
+    vec3 oc = ro - center;
+    float b = dot(oc, rd);
+    float c = dot(oc, oc) - radius * radius;
+    float h = b * b - c;
+    return h < 0.0 ? -1.0 : -b - sqrt(h);
+}
+
+vec3 atmosphere(vec3 ro, vec3 rd, vec3 sunDir) {
+    vec3 planet = vec3(ro.x, ro.y - 50.0, ro.z); // planet center below the camera
+    float tGround = raySphere(planet, EARTH_R, ro, rd);
+    float tAtmo = raySphere(planet, ATMO_R, ro, rd);
+    if (tAtmo < 0.0) return vec3(0.0);
+
+    float t0 = max(tGround, 0.0);
+    float t1 = tAtmo;
+    const int SAMPLES = 16;
+    const int LIGHT_SAMPLES = 8;
+    float dt = (t1 - t0) / float(SAMPLES);
+
+    float mu = dot(rd, sunDir);
+    float pR = 3.0 / (16.0 * PI) * (1.0 + mu * mu);
+    float g2 = MIE_G * MIE_G;
+    float pM = 3.0 / (8.0 * PI) * ((1.0 - g2) * (1.0 + mu * mu)) / ((2.0 + g2) * pow(1.0 + g2 - 2.0 * MIE_G * mu, 1.5));
+
+    vec3 insum = vec3(0.0);
+    float odR = 0.0, odM = 0.0;
+
+    for (int i = 0; i < SAMPLES; i++) {
+        vec3 p = ro + rd * (t0 + dt * (float(i) + 0.5));
+        float h = max(length(p - planet) - EARTH_R, 0.0);
+        float dR = exp(-h / RAYL_SCALE_H) * dt;
+        float dM = exp(-h / MIE_SCALE_H) * dt;
+        odR += dR;
+        odM += dM;
+
+        // transmittance toward the sun (stopped at the earth if the sun is low)
+        float sunDist = raySphere(planet, ATMO_R, p, sunDir);
+        float sunGround = raySphere(planet, EARTH_R, p, sunDir);
+        if (sunGround > 0.0) sunDist = sunGround;
+        float dtl = sunDist / float(LIGHT_SAMPLES);
+        float lodR = 0.0, lodM = 0.0;
+        for (int j = 0; j < LIGHT_SAMPLES; j++) {
+            vec3 pl = p + sunDir * (dtl * (float(j) + 0.5));
+            float hl = max(length(pl - planet) - EARTH_R, 0.0);
+            lodR += exp(-hl / RAYL_SCALE_H) * dtl;
+            lodM += exp(-hl / MIE_SCALE_H) * dtl;
+        }
+        if (sunGround > 0.0) { lodR += 1e5; lodM += 1e5; } // sun below horizon for this sample
+
+        vec3 attn = exp(-(RAYL_BETA * (odR + lodR) + MIE_BETA * (odM + lodM)));
+        insum += attn * (RAYL_BETA * pR * dR + MIE_BETA * pM * dM);
+    }
+    return insum;
+}
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -349,50 +431,55 @@ void main() {
     vec3 dir = normalize(v_dir);
     float h = dir.y;
 
-    // Day palette: deep teal zenith, sea-green mid sky, warm golden horizon
+    // Day palette (kept as a gentle base so the warm horizon tone stays)
     vec3 dayZenith = vec3(0.05, 0.32, 0.55);
     vec3 dayMid = vec3(0.28, 0.55, 0.70);
     vec3 dayHorizon = vec3(0.96, 0.79, 0.55);
+    vec3 paletteDay = mix(dayHorizon, dayMid, pow(max(h, 0.0), 0.5));
+    paletteDay = mix(paletteDay, dayZenith, pow(max(h, 0.0), 2.0));
 
-    // Night palette: deep indigo zenith, violet mid, faint ember horizon
+    // Night palette
     vec3 nightZenith = vec3(0.012, 0.02, 0.09);
     vec3 nightMid = vec3(0.05, 0.08, 0.20);
     vec3 nightHorizon = vec3(0.16, 0.12, 0.22);
+    vec3 nightSky = mix(nightHorizon, nightMid, pow(max(h, 0.0), 0.5));
+    nightSky = mix(nightSky, nightZenith, pow(max(h, 0.0), 2.0));
 
-    vec3 zenith = mix(dayZenith, nightZenith, u_nightFactor);
-    vec3 midSky = mix(dayMid, nightMid, u_nightFactor);
-    vec3 horizon = mix(dayHorizon, nightHorizon, u_nightFactor);
+    // Physical scattering day sky, dominant over the palette
+    vec3 sunDir = normalize(-u_sunDir);
+    vec3 physical = atmosphere(u_camPos, dir, sunDir) * u_sunColor * u_sunIntensity;
+    vec3 daySky = mix(paletteDay, physical, 0.88);
+    daySky = clamp(daySky, 0.0, 2.0);
 
-    vec3 color = mix(horizon, midSky, pow(max(h, 0.0), 0.5));
-    color = mix(color, zenith, pow(max(h, 0.0), 2.0));
+    float dayBlend = 1.0 - u_nightFactor;
+    vec3 color = mix(nightSky, daySky, dayBlend);
 
     // warm underglow hugging the horizon
-    color += vec3(0.32, 0.20, 0.09) * exp(-abs(h) * 4.5) * 0.9 * (1.0 - u_nightFactor * 0.85);
+    color += vec3(0.32, 0.20, 0.09) * exp(-abs(h) * 4.5) * 0.5 * dayBlend;
 
-    // sun disc + layered glow + rays
-    vec3 sunDir = normalize(-u_sunDir);
+    // sun disc + layered glow
     float sunDot = max(dot(dir, sunDir), 0.0);
-    color += u_sunColor * u_sunIntensity * pow(sunDot, 1600.0) * 60.0 * (1.0 - u_nightFactor);
-    color += u_sunColor * pow(sunDot, 40.0) * 0.7 * (1.0 - u_nightFactor);
-    color += u_sunColor * pow(sunDot, 10.0) * 0.22 * (1.0 - u_nightFactor);
-    color += u_sunColor * pow(sunDot, 3.0) * 0.06 * (1.0 - u_nightFactor);
-    color += u_sunColor * pow(max(dot(dir, sunDir), 0.0), 6.0) * 0.10 * (1.0 - u_nightFactor);
+    color += u_sunColor * pow(sunDot, 1600.0) * 60.0 * dayBlend;
+    color += u_sunColor * pow(sunDot, 40.0) * 0.7 * dayBlend;
+    color += u_sunColor * pow(sunDot, 10.0) * 0.22 * dayBlend;
+    color += u_sunColor * pow(sunDot, 3.0) * 0.06 * dayBlend;
 
     // moon at night
     float moonDot = max(dot(dir, -sunDir), 0.0);
     color += vec3(0.85, 0.9, 1.0) * u_nightFactor * pow(moonDot, 1200.0) * 3.0;
     color += vec3(0.6, 0.7, 0.95) * u_nightFactor * pow(moonDot, 40.0) * 0.5;
 
-    // drifting clouds, two layers, warm-lit
+    // drifting clouds, two layers, warm-lit (dimmed at night)
     float cloudH = pow(max(h, 0.0), 2.6);
     vec2 cp = dir.xz / (dir.y + 0.25);
     vec3 cloudColor = vec3(1.0, 0.93, 0.84);
+    float cloudMask = 1.0 - u_nightFactor * 0.85;
     float clouds = fbm(cp * 0.45 + vec2(u_time * 0.006, 0.0));
     clouds = smoothstep(0.46, 0.88, clouds);
-    color = mix(color, cloudColor, clouds * cloudH * 0.85);
+    color = mix(color, cloudColor, clouds * cloudH * 0.85 * cloudMask);
     float haze = fbm(cp * 1.8 + vec2(-u_time * 0.004, u_time * 0.002));
     haze = smoothstep(0.40, 0.62, haze) * 0.35;
-    color = mix(color, cloudColor, haze * cloudH * 0.5);
+    color = mix(color, cloudColor, haze * cloudH * 0.5 * cloudMask);
 
     // faint stars at night
     if (h > 0.30) {

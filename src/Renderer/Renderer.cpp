@@ -64,6 +64,7 @@ bool Renderer::init(const Window& window, u32 msaaSamples) {
     if (!blurFbo_[1].create(width_, height_, false, 1, true)) return false;
     if (!shadowFbo_[0].create(shadowSize_, shadowSize_, true, 1, false)) return false;
     if (!shadowFbo_[1].create(shadowSize_, shadowSize_, true, 1, false)) return false;
+    if (!shadowFbo_[2].create(shadowSize_, shadowSize_, true, 1, false)) return false;
     if (!depthFbo_.createDepth(width_ / 2, height_ / 2)) return false;
     if (!ssaoFbo_.create(width_ / 2, height_ / 2, false, 1, true)) return false;
     if (!ssaoBlurFbo_.create(width_ / 2, height_ / 2, false, 1, true)) return false;
@@ -89,6 +90,7 @@ void Renderer::shutdown() {
     blurFbo_[1].destroy();
     shadowFbo_[0].destroy();
     shadowFbo_[1].destroy();
+    shadowFbo_[2].destroy();
     depthFbo_.destroy();
     ssaoFbo_.destroy();
     ssaoBlurFbo_.destroy();
@@ -175,27 +177,78 @@ void Renderer::submitInstanced(const Mesh& mesh, const Material& mat,
 }
 
 // ---------------------------------------------------------------------------
-// Shadow pass: two cascaded shadow maps fitted around the camera
+// Shadow pass: three frustum-sliced cascades, texel-snapped to avoid shimmering
 // ---------------------------------------------------------------------------
 void Renderer::renderShadowPass() {
     if (!sun_.castShadow) return;
 
     Vec3 camPos = camera_->position();
+    Vec3 camFwd = camera_->forward();
+    Vec3 camRight = camera_->right();
+    Vec3 camUp = camera_->up();
     Vec3 lightDir = sun_.direction.normalized();
-    Vec3 up = (std::abs(lightDir.dot(Vec3::up())) > 0.99f) ? Vec3(1, 0, 0) : Vec3::up();
+    Vec3 lightUp = (std::abs(lightDir.dot(Vec3::up())) > 0.99f) ? Vec3(1, 0, 0) : Vec3::up();
 
-    const f32 cascadeHalf[2] = { 85.0f, 320.0f };
+    const f32 tanHalfFov = tanf(camera_->fov() * 0.5f * Mathf::DEG2RAD);
+    const f32 aspect = camera_->aspect();
+    const f32 nearP = camera_->nearPlane();
+    const f32 farP = shadowDistance_;
 
-    for (int c = 0; c < 2; c++) {
-        Vec3 lightPos = camPos + lightDir * shadowDistance_;
-        Mat4 lightView = Mat4::lookAt(lightPos, camPos, up);
-        f32 halfX = cascadeHalf[c];
-        f32 halfY = halfX * 0.7f;
-        f32 zExt = shadowDistance_ * 4.0f;
+    // Practical split scheme: blend linear + logarithmic splits
+    f32 splits[4];
+    splits[0] = nearP;
+    for (int i = 1; i <= 3; i++) {
+        f32 f = (f32)i / 3.0f;
+        f32 lin = nearP + (farP - nearP) * f;
+        f32 logp = nearP * powf(farP / nearP, f);
+        splits[i] = Mathf::lerp(lin, logp, 0.75f);
+    }
+
+    const Vec3 lightPos = camPos + lightDir * farP;
+    const Mat4 lightView = Mat4::lookAt(lightPos, camPos, lightUp);
+
+    for (int c = 0; c < 3; c++) {
+        cascadeEnd_[c] = splits[c + 1];
+
+        // Build the 8 frustum-slice corners in world space
+        Vec3 corners[8];
+        const f32 slice[2] = { splits[c], splits[c + 1] };
+        for (int k = 0; k < 2; k++) {
+            const f32 d = slice[k];
+            const f32 h = tanHalfFov * d;
+            const f32 w = h * aspect;
+            const Vec3 fc = camPos + camFwd * d;
+            corners[k * 4 + 0] = fc - camRight * w + camUp * h;
+            corners[k * 4 + 1] = fc + camRight * w + camUp * h;
+            corners[k * 4 + 2] = fc + camRight * w - camUp * h;
+            corners[k * 4 + 3] = fc - camRight * w - camUp * h;
+        }
+
+        // Tight ortho box around the slice, expressed in light space
+        f32 minx = 1e30f, maxx = -1e30f, miny = 1e30f, maxy = -1e30f, minz = 1e30f, maxz = -1e30f;
+        for (int i = 0; i < 8; i++) {
+            Vec4 p = lightView * Vec4(corners[i].x, corners[i].y, corners[i].z, 1.0f);
+            minx = std::fmin(minx, p.x); maxx = std::fmax(maxx, p.x);
+            miny = std::fmin(miny, p.y); maxy = std::fmax(maxy, p.y);
+            minz = std::fmin(minz, p.z); maxz = std::fmax(maxz, p.z);
+        }
+
+        // Pull the near side back / push far out so occluders outside the slice count
+        minz = std::fmin(minz, -farP * 2.0f);
+        maxz = std::fmax(maxz, farP * 0.25f);
+
+        // Texel-snap the light projection to stop cascade shimmer as the camera moves
+        const f32 texel = std::fmax(maxx - minx, maxy - miny) / (f32)shadowSize_;
+        minx = std::floor(minx / texel) * texel;  maxx = std::ceil(maxx / texel) * texel;
+        miny = std::floor(miny / texel) * texel;  maxy = std::ceil(maxy / texel) * texel;
+
         Mat4 ortho;
-        ortho.m[0] = 1.0f / halfX;
-        ortho.m[5] = 1.0f / halfY;
-        ortho.m[10] = 1.0f / (zExt * 2.0f);
+        ortho.m[0] = 2.0f / (maxx - minx);
+        ortho.m[5] = 2.0f / (maxy - miny);
+        ortho.m[10] = 2.0f / (maxz - minz);
+        ortho.m[12] = -(maxx + minx) / (maxx - minx);
+        ortho.m[13] = -(maxy + miny) / (maxy - miny);
+        ortho.m[14] = -(maxz + minz) / (maxz - minz);
         ortho.m[15] = 1.0f;
         shadowVP_[c] = ortho * lightView;
 
@@ -374,6 +427,7 @@ void Renderer::renderSkyPass(const Vec3& camPos, const Mat4& viewProj) {
     skyShader_.setVec3("u_sunDir", sun_.direction.normalized());
     skyShader_.setVec3("u_sunColor", sun_.color.rgb());
     skyShader_.setFloat("u_sunIntensity", sun_.intensity);
+    skyShader_.setVec3("u_camPos", camPos);
     skyShader_.setFloat("u_time", time_);
     skyShader_.setFloat("u_nightFactor", nightFactor_);
     skyCube_.draw();
@@ -396,13 +450,18 @@ void Renderer::renderTerrainChunks(const Vec3& camPos, const Mat4& viewProj, boo
     terrainShader_.setFloat("u_sunIntensity", sun_.intensity);
     terrainShader_.setMat4("u_lightVP0", shadowVP_[0]);
     terrainShader_.setMat4("u_lightVP1", shadowVP_[1]);
+    terrainShader_.setMat4("u_lightVP2", shadowVP_[2]);
     shadowFbo_[0].depthBind(0);
     terrainShader_.setInt("u_shadowMap0", 0);
     shadowFbo_[1].depthBind(1);
     terrainShader_.setInt("u_shadowMap1", 1);
+    shadowFbo_[2].depthBind(2);
+    terrainShader_.setInt("u_shadowMap2", 2);
     terrainShader_.setFloat("u_shadowEnabled", sun_.castShadow ? 1.0f : 0.0f);
     terrainShader_.setFloat("u_shadowTexel", 1.0f / (f32)shadowSize_);
-    terrainShader_.setFloat("u_cascadeDist", cascadeDist_);
+    terrainShader_.setFloat("u_cascadeDist", cascadeEnd_[0]);
+    terrainShader_.setFloat("u_cascadeDist2", cascadeEnd_[1]);
+    terrainShader_.setFloat("u_shadowBlend", 12.0f);
     terrainShader_.setVec3("u_ambientSky", ambientSky_.rgb());
     terrainShader_.setVec3("u_ambientGround", ambientGround_.rgb());
     terrainShader_.setFloat("u_ambientIntensity", ambientIntensity_);
@@ -651,13 +710,18 @@ void Renderer::setupGlobalUniforms(const Shader& sh, const Vec3& camPos,
     sh.setMat4("u_viewProj", viewProj);
     sh.setMat4("u_lightVP0", shadowVP_[0]);
     sh.setMat4("u_lightVP1", shadowVP_[1]);
+    sh.setMat4("u_lightVP2", shadowVP_[2]);
     shadowFbo_[0].depthBind(0);
     sh.setInt("u_shadowMap0", 0);
     shadowFbo_[1].depthBind(1);
     sh.setInt("u_shadowMap1", 1);
+    shadowFbo_[2].depthBind(2);
+    sh.setInt("u_shadowMap2", 2);
     sh.setFloat("u_shadowEnabled", sun_.castShadow ? 1.0f : 0.0f);
     sh.setFloat("u_shadowTexel", 1.0f / (f32)shadowSize_);
-    sh.setFloat("u_cascadeDist", cascadeDist_);
+    sh.setFloat("u_cascadeDist", cascadeEnd_[0]);
+    sh.setFloat("u_cascadeDist2", cascadeEnd_[1]);
+    sh.setFloat("u_shadowBlend", 12.0f);
     sh.setFloat("u_aoEnabled", ssaoEnabled_ ? 1.0f : 0.0f);
     Gl::ActiveTexture(GL_TEXTURE2);
     Gl::BindTexture(GL_TEXTURE_2D, ssaoFbo_.color());
