@@ -16,7 +16,7 @@ static f32 nowSeconds() {
 int main() {
     setvbuf(stdout, nullptr, _IONBF, 0);
     WindowConfig config;
-    config.title = "Angin - Wind Glider";
+    config.title = "FrostEngine";
     config.width = 1920;
     config.height = 1080;
     config.fullscreen = false;
