@@ -1,8 +1,0 @@
-/home/tinkerspace/FrostEngine/build/CMakeFiles/FrostEngine.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/FrostGame.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/edit_cache.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/rebuild_cache.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/list_install_components.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/install.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/install/local.dir
-/home/tinkerspace/FrostEngine/build/CMakeFiles/install/strip.dir

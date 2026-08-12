@@ -1,0 +1,25 @@
+# Build artifacts
+/build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.o
+*.a
+
+# Packaging output
+/dist/
+*.deb
+*.AppImage
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db

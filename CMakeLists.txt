@@ -34,6 +34,13 @@ set(FROST_PLATFORM_SOURCES
 )
 
 # ============================================================================
+# Source files - Input
+# ============================================================================
+set(FROST_INPUT_SOURCES
+    src/Input/InputSystem.cpp
+)
+
+# ============================================================================
 # Source files - Renderer
 # ============================================================================
 set(FROST_RENDERER_SOURCES
@@ -193,6 +200,7 @@ set(FROST_GAME_SOURCES
 set(FROST_SOURCES
     ${FROST_CORE_SOURCES}
     ${FROST_PLATFORM_SOURCES}
+    ${FROST_INPUT_SOURCES}
     ${FROST_RENDERER_SOURCES}
     ${FROST_ASSETS_SOURCES}
     ${FROST_PHYSICS_SOURCES}
@@ -232,6 +240,10 @@ target_compile_definitions(FrostEngine PUBLIC
 
 add_executable(FrostGame src/main.cpp)
 target_link_libraries(FrostGame PRIVATE FrostEngine X11 Xext GL)
+
+install(TARGETS FrostGame RUNTIME DESTINATION bin)
+install(FILES packaging/frostengine.desktop DESTINATION share/applications)
+install(FILES packaging/frostengine.png DESTINATION share/icons/hicolor/256x256/apps)
 
 install(TARGETS FrostEngine EXPORT FrostEngineTargets
     ARCHIVE DESTINATION lib

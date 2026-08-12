@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=FrostEngine
+Name[en]=FrostEngine
+Comment=FrostEngine wind-glider demo
+Exec=frostgame
+Icon=frostengine
+Terminal=false
+Categories=Game;Simulation;
+StartupNotify=true
